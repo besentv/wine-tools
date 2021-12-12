@@ -1,0 +1,83 @@
+From 5034dd0e7083a9b3e46d882bcdb79919166b6f03 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Sun, 12 Dec 2021 22:30:53 +0100
+Subject: [PATCH 2/2] gdiplus: Add chache to color_over functions.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
+---
+ dlls/gdiplus/gdiplus_private.h | 22 ++++++++++++++++++----
+ 1 file changed, 18 insertions(+), 4 deletions(-)
+
+diff --git a/dlls/gdiplus/gdiplus_private.h b/dlls/gdiplus/gdiplus_private.h
+index 7fcf3440c6c..a6b99c06043 100644
+--- a/dlls/gdiplus/gdiplus_private.h
++++ b/dlls/gdiplus/gdiplus_private.h
+@@ -158,16 +158,21 @@ static inline REAL deg2rad(REAL degrees)
+ 
+ static inline ARGB color_over(ARGB bg, ARGB fg)
+ {
++    static ARGB bg_cache, fg_cache, ret_chache = 0x00;
++    
+     BYTE b, g, r, a;
+     BYTE bg_alpha, fg_alpha;
+ 
++    if(bg == bg_cache && fg == fg_cache)
++        return ret_chache;
++
+     fg_alpha = (fg>>24)&0xff;
+ 
+     if (fg_alpha == 0xff) return fg;
+ 
+     if (fg_alpha == 0) return bg;
+ 
+-    bg_alpha = (((bg>>24)&0xff) * (0xff-fg_alpha)) / 0xff;
++    bg_alpha = (((bg>>24)&0xff) * (0xff-fg_alpha)) >> 8;// /0xff
+ 
+     if (bg_alpha == 0) return fg;
+ 
+@@ -176,27 +181,36 @@ static inline ARGB color_over(ARGB bg, ARGB fg)
+     g = (((bg>>8)&0xff)*bg_alpha + ((fg>>8)&0xff)*fg_alpha)/a;
+     r = (((bg>>16)&0xff)*bg_alpha + ((fg>>16)&0xff)*fg_alpha)/a;
+ 
+-    return (a<<24)|(r<<16)|(g<<8)|b;
++    ret_chache = (a<<24)|(r<<16)|(g<<8)|b;
++
++    return ret_chache;
+ }
+ 
+ /* fg is premult, bg and return value are not */
+ static inline ARGB color_over_fgpremult(ARGB bg, ARGB fg)
+ {
++    static ARGB bg_cache, fg_cache, ret_chache = 0x00;
++
+     BYTE b, g, r, a;
+     BYTE bg_alpha, fg_alpha;
+ 
++    if(bg == bg_cache && fg == fg_cache)
++        return ret_chache;
++
+     fg_alpha = (fg>>24)&0xff;
+ 
+     if (fg_alpha == 0) return bg;
+ 
+-    bg_alpha = (((bg>>24)&0xff) * (0xff-fg_alpha)) / 0xff;
++    bg_alpha = (((bg>>24)&0xff) * (0xff-fg_alpha)) >> 8;// / 0xff;
+ 
+     a = bg_alpha + fg_alpha;
+     b = ((bg&0xff)*bg_alpha + (fg&0xff)*0xff)/a;
+     g = (((bg>>8)&0xff)*bg_alpha + ((fg>>8)&0xff)*0xff)/a;
+     r = (((bg>>16)&0xff)*bg_alpha + ((fg>>16)&0xff)*0xff)/a;
+ 
+-    return (a<<24)|(r<<16)|(g<<8)|b;
++    ret_chache = (a<<24)|(r<<16)|(g<<8)|b;
++
++    return ret_chache;
+ }
+ 
+ extern const char *debugstr_rectf(const RectF* rc) DECLSPEC_HIDDEN;
+-- 
+2.34.1
+
