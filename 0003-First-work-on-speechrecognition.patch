@@ -1,0 +1,537 @@
+From f8bb20edd6e8db616a45b2dd8d83f7468c4368b7 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Thu, 16 Dec 2021 00:25:00 +0100
+Subject: [PATCH 3/3] First work on speechrecognition.
+
+---
+ dlls/windows.media.speech/Makefile.in       |   3 +-
+ dlls/windows.media.speech/classes.idl       |   1 +
+ dlls/windows.media.speech/main.c            |  91 ++++++
+ include/Makefile.in                         |   1 +
+ include/windows.globalization.idl           |  39 +++
+ include/windows.media.speechrecognition.idl | 315 ++++++++++++++++++++
+ 6 files changed, 449 insertions(+), 1 deletion(-)
+ create mode 100644 include/windows.media.speechrecognition.idl
+
+diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
+index 9fbff8e132f..cb4400eafb0 100644
+--- a/dlls/windows.media.speech/Makefile.in
++++ b/dlls/windows.media.speech/Makefile.in
+@@ -4,4 +4,5 @@ IMPORTS = combase uuid
+ C_SRCS = \
+ 	main.c
+ 
+-IDL_SRCS = classes.idl
++IDL_SRCS = \
++	classes.idl
+diff --git a/dlls/windows.media.speech/classes.idl b/dlls/windows.media.speech/classes.idl
+index 6c141bf4768..4dd43cf6eed 100644
+--- a/dlls/windows.media.speech/classes.idl
++++ b/dlls/windows.media.speech/classes.idl
+@@ -16,4 +16,5 @@
+ 
+ #pragma makedep register
+ 
++#include "windows.media.speechrecognition.idl"
+ #include "windows.media.speechsynthesis.idl"
+diff --git a/dlls/windows.media.speech/main.c b/dlls/windows.media.speech/main.c
+index b607f9a8203..7e94797abac 100644
+--- a/dlls/windows.media.speech/main.c
++++ b/dlls/windows.media.speech/main.c
+@@ -34,6 +34,8 @@
+ #include "windows.foundation.h"
+ #define WIDL_using_Windows_Media_SpeechSynthesis
+ #include "windows.media.speechsynthesis.h"
++#define WIDL_using_Windows_Media_SpeechRecognition
++#include "windows.media.speechrecognition.h"
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(speech);
+ 
+@@ -46,6 +48,95 @@ static const char *debugstr_hstring(HSTRING hstr)
+     return wine_dbgstr_wn(str, len);
+ }
+ 
++struct speech_continuous_recognition_completed_event_args
++{
++    ISpeechContinuousRecognitionCompletedEventArgs ISpeechContinuousRecognitionCompletedEventArgs_iface;
++    LONG ref;
++};
++
++static inline struct speech_continuous_recognition_completed_event_args
++        *impl_from_ISpeechContinuousRecognitionCompletedEventArgs(
++        ISpeechContinuousRecognitionCompletedEventArgs *iface)
++{
++    return CONTAINING_RECORD(iface, struct speech_continuous_recognition_completed_event_args, ISpeechContinuousRecognitionCompletedEventArgs_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_QueryInterface(
++        ISpeechContinuousRecognitionCompletedEventArgs *iface, REFIID iid, void **out)
++{
++    WARN("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
++    *out = NULL;
++    return E_NOINTERFACE;
++}
++
++static ULONG STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_AddRef(
++        ISpeechContinuousRecognitionCompletedEventArgs *iface)
++{
++    struct speech_continuous_recognition_completed_event_args *impl = impl_from_ISpeechContinuousRecognitionCompletedEventArgs(iface);
++    ULONG ref = InterlockedIncrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++    return ref;
++}
++
++static ULONG STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_Release(
++        ISpeechContinuousRecognitionCompletedEventArgs *iface)
++{
++    struct speech_continuous_recognition_completed_event_args *impl = impl_from_ISpeechContinuousRecognitionCompletedEventArgs(iface);
++    ULONG ref = InterlockedDecrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++    return ref;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_GetIids(
++        ISpeechContinuousRecognitionCompletedEventArgs *iface, ULONG *iid_count, IID **iids)
++{
++    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_GetRuntimeClassName(
++        ISpeechContinuousRecognitionCompletedEventArgs *iface, HSTRING *class_name)
++{
++    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_GetTrustLevel(
++        ISpeechContinuousRecognitionCompletedEventArgs *iface, TrustLevel *trust_level)
++{
++    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_get_Status(
++        ISpeechContinuousRecognitionCompletedEventArgs *iface, SpeechRecognitionResultStatus *value)
++{
++    FIXME("iface %p, value %p stub!\n", iface, value);
++    *value = SpeechRecognitionResultStatus_Success;
++    return E_NOTIMPL;
++}
++
++static const struct ISpeechContinuousRecognitionCompletedEventArgsVtbl 
++        speech_continuous_recognition_completed_event_args_vtbl =
++{
++    speech_continuous_recognition_completed_event_args_QueryInterface,
++    speech_continuous_recognition_completed_event_args_AddRef,
++    speech_continuous_recognition_completed_event_args_Release,
++    /* IInspectable methods */
++    speech_continuous_recognition_completed_event_args_GetIids,
++    speech_continuous_recognition_completed_event_args_GetRuntimeClassName,
++    speech_continuous_recognition_completed_event_args_GetTrustLevel,
++    /* ISpeechContinuousRecognitionCompletedEventArgsVtbl methods */
++    speech_continuous_recognition_completed_event_args_get_Status
++};
++
++static struct speech_continuous_recognition_completed_event_args
++        speech_continuous_recognition_completed_event_args =
++{
++    {&speech_continuous_recognition_completed_event_args_vtbl},
++    0
++};
++
+ struct voice_information_vector
+ {
+     IVectorView_VoiceInformation IVectorView_VoiceInformation_iface;
+diff --git a/include/Makefile.in b/include/Makefile.in
+index e5ae8429ed0..cdbd5025348 100644
+--- a/include/Makefile.in
++++ b/include/Makefile.in
+@@ -781,6 +781,7 @@ SOURCES = \
+ 	windows.h \
+ 	windows.media.devices.idl \
+ 	windows.media.idl \
++	windows.media.speechrecognition.idl \
+ 	windows.media.speechsynthesis.idl \
+ 	windows.storage.streams.idl \
+ 	windows.system.idl \
+diff --git a/include/windows.globalization.idl b/include/windows.globalization.idl
+index c08f7bd27d9..12e3801c14a 100644
+--- a/include/windows.globalization.idl
++++ b/include/windows.globalization.idl
+@@ -29,6 +29,10 @@ import "windows.foundation.idl";
+ namespace Windows {
+     namespace Globalization {
+         typedef enum DayOfWeek DayOfWeek;
++        interface ILanguage;
++        interface ILanguage2;
++        interface ILanguage3;
++        runtimeclass Language;
+     }
+ }
+ 
+@@ -45,5 +49,40 @@ namespace Windows {
+             Friday    = 5,
+             Saturday  = 6
+         };
++
++        [
++            exclusiveto(Windows.Globalization.Language),
++            uuid(EA79A752-F7C2-4265-B1BD-C4DEC4E4F080)
++        ]
++        interface ILanguage
++        {
++
++        }
++
++        [
++            exclusiveto(Windows.Globalization.Language),
++            uuid(6A47E5B5-D94D-4886-A404-A5A5B9D5B494)
++        ]
++        interface ILanguage2
++        {
++
++        }
++
++        [
++            exclusiveto(Windows.Globalization.Language),
++            uuid(C6AF3D10-641A-5BA4-BB43-5E12AED75954)
++        ]
++        interface ILanguage3
++        {
++
++        }
++
++        [marshaling_behavior(agile)]
++        runtimeclass Language
++        {
++            [default] interface Windows.Globalization.ILanguage;
++            interface Windows.Globalization.ILanguage2;
++            interface Windows.Globalization.ILanguage3;
++        }
+     }
+ }
+diff --git a/include/windows.media.speechrecognition.idl b/include/windows.media.speechrecognition.idl
+new file mode 100644
+index 00000000000..b8a86f50f8a
+--- /dev/null
++++ b/include/windows.media.speechrecognition.idl
+@@ -0,0 +1,315 @@
++/*
++ * Copyright 2021 Bernhard Kölbl
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
++ */
++
++#ifdef __WIDL__
++#pragma winrt ns_prefix
++#endif
++
++import "inspectable.idl";
++import "windows.globalization.idl";
++import "windows.foundation.idl";
++import "windows.media.idl";
++
++namespace Windows {
++    namespace Media {
++        namespace SpeechRecognition {
++            typedef enum SpeechContinuousRecognitionMode SpeechContinuousRecognitionMode;
++            typedef enum SpeechRecognitionAudioProblem SpeechRecognitionAudioProblem;
++            typedef enum SpeechRecognitionConfidence SpeechRecognitionConfidence;
++            typedef enum SpeechRecognitionConstraintProbability SpeechRecognitionConstraintProbability;
++            typedef enum SpeechRecognitionConstraintType SpeechRecognitionConstraintType;
++            typedef enum SpeechRecognitionResultStatus SpeechRecognitionResultStatus;
++            typedef enum SpeechRecognitionScenario SpeechRecognitionScenario;
++            typedef enum SpeechRecognizerState SpeechRecognizerState; 
++            interface ISpeechContinuousRecognitionCompletedEventArgs;
++            // interface ISpeechContinuousRecognitionResultGeneratedEventArgs;
++            // interface ISpeechContinuousRecognitionSession;
++            interface ISpeechRecognitionCompilationResult;
++            interface ISpeechRecognitionConstraint;
++            // interface ISpeechRecognitionGrammarFileConstraint;
++            // interface ISpeechRecognitionGrammarFileConstraintFactory;
++            // interface ISpeechRecognitionHypothesis;
++            // interface ISpeechRecognitionHypothesisGeneratedEventArgs;
++            // interface ISpeechRecognitionListConstraint;
++            // interface ISpeechRecognitionListConstraintFactory;
++            interface ISpeechRecognitionQualityDegradingEventArgs;
++            interface ISpeechRecognitionResult;
++            interface ISpeechRecognitionResult2;
++            // interface ISpeechRecognitionSemanticInterpretation;
++            // interface ISpeechRecognitionTopicConstraint;
++            // interface ISpeechRecognitionTopicConstraintFactory;
++            // interface ISpeechRecognitionVoiceCommandDefinitionConstraint;
++            interface ISpeechRecognizer;
++            interface ISpeechRecognizer2;
++            // interface ISpeechRecognizerFactory;
++            interface ISpeechRecognizerStateChangedEventArgs;
++            // interface ISpeechRecognizerStatics;
++            // interface ISpeechRecognizerStatics2;
++            interface ISpeechRecognizerTimeouts;
++            interface ISpeechRecognizerUIOptions;
++            runtimeclass SpeechRecognizerUIOptions;
++            runtimeclass SpeechContinuousRecognitionCompletedEventArgs;
++            // runtimeclass SpeechContinuousRecognitionResultGeneratedEventArgs;
++            runtimeclass SpeechRecognitionCompilationResult;
++            // runtimeclass SpeechRecognitionGrammarFileConstraint;
++            // runtimeclass SpeechRecognitionHypothesis;
++            // runtimeclass SpeechRecognitionHypothesisGeneratedEventArgs;
++            // runtimeclass SpeechRecognitionListConstraint;
++            runtimeclass SpeechRecognitionQualityDegradingEventArgs;
++            runtimeclass SpeechRecognitionResult;
++            // runtimeclass SpeechRecognitionSemanticInterpretation;
++            // runtimeclass SpeechRecognitionTopicConstraint;
++            // runtimeclass SpeechRecognitionVoiceCommandDefinitionConstraint;
++            runtimeclass SpeechRecognizer;
++            runtimeclass SpeechRecognizerStateChangedEventArgs;
++            runtimeclass SpeechRecognizerTimeouts;
++        }
++    }
++}
++
++namespace Windows {
++    namespace Media {
++        namespace SpeechRecognition {
++            declare {
++                interface Windows.Foundation.IAsyncOperation<Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult*>;
++                interface Windows.Foundation.AsyncOperationCompletedHandler<Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult*>;
++                interface Windows.Foundation.IAsyncOperation<Windows.Media.SpeechRecognition.SpeechRecognitionResult*>;
++                interface Windows.Foundation.AsyncOperationCompletedHandler<Windows.Media.SpeechRecognition.SpeechRecognitionResult*>;
++                interface Windows.Foundation.IAsyncOperation<Windows.Media.SpeechRecognition.SpeechRecognitionResult*>;
++                interface Windows.Foundation.AsyncOperationCompletedHandler<Windows.Media.SpeechRecognition.SpeechRecognitionResult*>;
++                /* Following line is actually IVector not IVectorView! FIXME! */
++                interface Windows.Foundation.Collections.IVectorView<Windows.Media.SpeechRecognition.ISpeechRecognitionConstraint*>;
++                interface Windows.Foundation.TypedEventHandler<Windows.Media.SpeechRecognition.ISpeechRecognizer*, Windows.Media.SpeechRecognition.ISpeechRecognitionQualityDegradingEventArgs*>;
++                interface Windows.Foundation.TypedEventHandler<Windows.Media.SpeechRecognition.ISpeechRecognizer*, Windows.Media.SpeechRecognition.ISpeechRecognizerStateChangedEventArgs*>;
++            }
++        }
++    }
++}
++
++namespace Windows {
++    namespace Media {
++        namespace SpeechRecognition {
++
++            [contract(Windows.Foundation.UniversalApiContract, 1.0)]
++            enum SpeechContinuousRecognitionMode
++            {
++                Default = 0,
++                PauseOnRecognition = 1
++            };
++
++            [contract(Windows.Foundation.UniversalApiContract, 1.0)]
++            enum SpeechRecognitionAudioProblem
++            {
++                None = 0,
++                TooNoisy = 1,
++                NoSignal = 2,
++                TooLoud = 3,
++                TooQuiet = 4,
++                TooFast = 5,
++                TooSlow = 6,
++            };
++
++            [contract(Windows.Foundation.UniversalApiContract, 1.0)]
++            enum SpeechRecognitionConfidence
++            {
++                High = 0,
++                Medium = 1,
++                Low = 2,
++                Rejected = 3,
++            };
++
++            [contract(Windows.Foundation.UniversalApiContract, 1.0)]
++            enum SpeechRecognitionConstraintProbability
++            {
++                Default = 0,
++                Min = 1,
++                Max = 2,
++            };
++
++            [contract(Windows.Foundation.UniversalApiContract, 1.0)]
++            enum SpeechRecognitionConstraintType
++            {
++                Topic = 0,
++                List = 1,
++                Grammar = 2,
++                VoiceCommandDefinition = 3,
++            };
++
++            [contract(Windows.Foundation.UniversalApiContract, 1.0)]
++            enum SpeechRecognitionResultStatus
++            {
++                Success = 0,
++                TopicLanguageNotSupported = 1,
++                GrammarLanguageMismatch = 2,
++                GrammarCompilationFailure = 3,
++                AudioQualityFailure = 4,
++                UserCanceled = 5,
++                Unknown = 6,
++                TimeoutExceeded = 7,
++                PauseLimitExceeded = 8,
++                NetworkFailure = 9,
++                MicrophoneUnavailable = 10,
++            };
++
++            [contract(Windows.Foundation.UniversalApiContract, 1.0)]
++            enum SpeechRecognitionScenario
++            {
++                WebSearch = 0,
++                Dictation = 1,
++                FormFilling = 2,
++            };
++
++            [contract(Windows.Foundation.UniversalApiContract, 1.0)]
++            enum SpeechRecognizerState
++            {
++                Idle = 0,
++                Capturing = 1,
++                Processing = 2,
++                SoundStarted = 3,
++                SoundEnded = 4,
++                SpeechDetected = 5,
++                Paused = 6,
++            };
++
++            [
++            contract(Windows.Foundation.UniversalApiContract, 1.0),
++            exclusiveto(Windows.Media.SpeechRecognition.SpeechContinuousRecognitionCompletedEventArgs),
++            uuid(e3d069bb-e30c-5e18-424b-7fbe81f8fbd0)
++            ]
++            interface ISpeechContinuousRecognitionCompletedEventArgs : IInspectable
++            {
++                [propget] HRESULT Status([out] [retval] Windows.Media.SpeechRecognition.SpeechRecognitionResultStatus* value);
++            }
++
++            [
++                contract(Windows.Foundation.UniversalApiContract, 1.0),
++                marshaling_behavior(agile)
++            ]
++            runtimeclass SpeechContinuousRecognitionCompletedEventArgs
++            {
++                [default] interface Windows.Media.SpeechRecognition.ISpeechContinuousRecognitionCompletedEventArgs;
++            }
++
++            [
++            contract(Windows.Foundation.UniversalApiContract, 1.0),
++            exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionResult),
++            uuid(4E303157-034E-4652-857E-D0454CC4BEEC)
++            ]
++            interface ISpeechRecognitionResult : IInspectable
++            {
++                //[propget] HRESULT Status([out] [retval] Windows.Media.SpeechRecognition.SpeechRecognitionResultStatus* value);
++            }
++
++            [
++                contract(Windows.Foundation.UniversalApiContract, 1.0),
++                marshaling_behavior(agile)
++            ]
++            runtimeclass SpeechRecognitionResult
++            {
++                [default] interface Windows.Media.SpeechRecognition.ISpeechRecognitionResult;
++                interface Windows.Media.SpeechRecognition.ISpeechRecognitionResult2;
++            }
++
++            [
++            contract(Windows.Foundation.UniversalApiContract, 1.0),
++            exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult),
++            uuid(407E6C5D-6AC7-4DA4-9CC1-2FCE32CF7489)
++            ]
++            interface ISpeechRecognitionCompilationResult : IInspectable
++            {
++                //[propget] HRESULT Status([out] [retval] Windows.Media.SpeechRecognition.SpeechRecognitionResultStatus* value);
++            }
++
++            [
++                contract(Windows.Foundation.UniversalApiContract, 1.0),
++                marshaling_behavior(agile)
++            ]
++            runtimeclass SpeechRecognitionCompilationResult
++            {
++                [default] interface Windows.Media.SpeechRecognition.ISpeechRecognitionCompilationResult;
++            }
++
++            [
++            contract(Windows.Foundation.UniversalApiContract, 1.0),
++            exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult),
++            uuid(738F00B1-E18C-5140-A53A-F1788D10C93D)
++            ]
++            interface ISpeechRecognitionConstraint
++            {
++
++            }
++
++            [
++            contract(Windows.Foundation.UniversalApiContract, 1.0),
++            exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult),
++            uuid(4FE24105-8C3A-4C7E-8D0A-5BD4F5B14AD8)
++            ]
++            interface ISpeechRecognitionQualityDegradingEventArgs
++            {
++
++            }
++
++            [
++            contract(Windows.Foundation.UniversalApiContract, 1.0),
++            exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult),
++            uuid(563D4F09-BA03-4BAD-AD81-DDC6C4DAB0C3)
++            ]
++            interface ISpeechRecognizerStateChangedEventArgs
++            {
++
++            }
++
++            [
++            contract(Windows.Foundation.UniversalApiContract, 1.0),
++            exclusiveto(Windows.Media.SpeechRecognition.SpeechContinuousRecognitionCompletedEventArgs),
++            uuid(0BC3C9CB-C26A-40F2-AEB5-8096B2E48073)
++            ]
++            interface ISpeechRecognizer : IInspectable
++            {
++                HRESULT CompileConstraintsAsync(
++                        [out] [retval] Windows.Foundation.IAsyncOperation<Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult*> **operation);
++                HRESULT RecognizeAsync([out] [retval] Windows.Foundation.IAsyncOperation<Windows.Media.SpeechRecognition.SpeechRecognitionResult*> **operation);
++                HRESULT RecognizeWithUIAsync([out] [retval] Windows.Foundation.IAsyncOperation<Windows.Media.SpeechRecognition.SpeechRecognitionResult*> **operation);
++                /* Following line is actually IVector not IVectorView! FIXME! */
++                [propget] HRESULT Constraints([out] [retval] Windows.Foundation.Collections.IVectorView<Windows.Media.SpeechRecognition.ISpeechRecognitionConstraint*> **vector);
++                [propget] HRESULT CurrentLanguage([out] [retval] Windows.Globalization.Language **language);
++                [propget] HRESULT Timeout([out] [retval] Windows.Media.SpeechRecognition.ISpeechRecognizerTimeouts **timeouts);
++                [propget] HRESULT UIOptions([out] [retval] Windows.Media.SpeechRecognition.ISpeechRecognizerUIOptions **options);
++                [eventadd] HRESULT RecognitionQualityDegrading(
++                        [in] Windows.Foundation.TypedEventHandler<Windows.Media.SpeechRecognition.ISpeechRecognizer*, Windows.Media.SpeechRecognition.ISpeechRecognitionQualityDegradingEventArgs*> *handler,
++                        [out, retval] EventRegistrationToken* token);
++                [eventremove] HRESULT RecognitionQualityDegrading(
++                        [in] EventRegistrationToken token);
++                [eventadd] HRESULT StateChanged(
++                        [in] Windows.Foundation.TypedEventHandler<Windows.Media.SpeechRecognition.ISpeechRecognizer*, Windows.Media.SpeechRecognition.ISpeechRecognizerStateChangedEventArgs*> *handler,
++                        [out, retval] EventRegistrationToken* token);
++                [eventremove] HRESULT StateChanged(
++                        [in] EventRegistrationToken token);
++            }
++
++            [
++                contract(Windows.Foundation.UniversalApiContract, 1.0),
++                marshaling_behavior(agile)
++            ]
++            runtimeclass SpeechRecognizer
++            {
++                [default] interface Windows.Media.SpeechRecognition.ISpeechRecognizer;
++            }
++        }
++    }
++}
+-- 
+2.34.1
+
