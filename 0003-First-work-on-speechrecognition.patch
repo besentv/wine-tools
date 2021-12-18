@@ -1,29 +1,36 @@
-From f8bb20edd6e8db616a45b2dd8d83f7468c4368b7 Mon Sep 17 00:00:00 2001
+From 3e2aeef29af0eaadf424da3c09167865b74eb45f Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
-Date: Thu, 16 Dec 2021 00:25:00 +0100
+Date: Sat, 18 Dec 2021 19:08:04 +0100
 Subject: [PATCH 3/3] First work on speechrecognition.
 
 ---
- dlls/windows.media.speech/Makefile.in       |   3 +-
- dlls/windows.media.speech/classes.idl       |   1 +
- dlls/windows.media.speech/main.c            |  91 ++++++
- include/Makefile.in                         |   1 +
- include/windows.globalization.idl           |  39 +++
- include/windows.media.speechrecognition.idl | 315 ++++++++++++++++++++
- 6 files changed, 449 insertions(+), 1 deletion(-)
+ dlls/windows.media.speech/Makefile.in         |   3 +-
+ dlls/windows.media.speech/classes.idl         |   1 +
+ dlls/windows.media.speech/main.c              |  21 +-
+ dlls/windows.media.speech/speechrecognition.c | 350 ++++++++++++++++++
+ .../windows_media_speech_private.h            |  53 +++
+ include/Makefile.in                           |   1 +
+ include/windows.globalization.idl             |  42 +++
+ include/windows.media.speechrecognition.idl   | 338 +++++++++++++++++
+ include/windows.media.speechsynthesis.idl     |   3 +-
+ 9 files changed, 793 insertions(+), 19 deletions(-)
+ create mode 100644 dlls/windows.media.speech/speechrecognition.c
+ create mode 100644 dlls/windows.media.speech/windows_media_speech_private.h
  create mode 100644 include/windows.media.speechrecognition.idl
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
-index 9fbff8e132f..cb4400eafb0 100644
+index 9fbff8e132f..7d25ac3a20f 100644
 --- a/dlls/windows.media.speech/Makefile.in
 +++ b/dlls/windows.media.speech/Makefile.in
-@@ -4,4 +4,5 @@ IMPORTS = combase uuid
- C_SRCS = \
- 	main.c
+@@ -2,6 +2,7 @@ MODULE = windows.media.speech.dll
+ IMPORTS = combase uuid
  
--IDL_SRCS = classes.idl
-+IDL_SRCS = \
-+	classes.idl
+ C_SRCS = \
+-	main.c
++	main.c \
++	speechrecognition.c
+ 
+ IDL_SRCS = classes.idl
 diff --git a/dlls/windows.media.speech/classes.idl b/dlls/windows.media.speech/classes.idl
 index 6c141bf4768..4dd43cf6eed 100644
 --- a/dlls/windows.media.speech/classes.idl
@@ -35,22 +42,74 @@ index 6c141bf4768..4dd43cf6eed 100644
 +#include "windows.media.speechrecognition.idl"
  #include "windows.media.speechsynthesis.idl"
 diff --git a/dlls/windows.media.speech/main.c b/dlls/windows.media.speech/main.c
-index b607f9a8203..7e94797abac 100644
+index b607f9a8203..de7dbac0cd0 100644
 --- a/dlls/windows.media.speech/main.c
 +++ b/dlls/windows.media.speech/main.c
-@@ -34,6 +34,8 @@
- #include "windows.foundation.h"
- #define WIDL_using_Windows_Media_SpeechSynthesis
- #include "windows.media.speechsynthesis.h"
-+#define WIDL_using_Windows_Media_SpeechRecognition
-+#include "windows.media.speechrecognition.h"
+@@ -17,23 +17,10 @@
+  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
+  */
+ 
+-#include <stdarg.h>
+-
+-#define COBJMACROS
+-#include "windef.h"
+-#include "winbase.h"
+-#include "winstring.h"
+-#include "wine/debug.h"
+-#include "objbase.h"
+-
+-#include "initguid.h"
+-#include "activation.h"
+-
+-#define WIDL_using_Windows_Foundation
+-#define WIDL_using_Windows_Foundation_Collections
+-#include "windows.foundation.h"
+-#define WIDL_using_Windows_Media_SpeechSynthesis
+-#include "windows.media.speechsynthesis.h"
++
++#define WINDOWS_MEDIA_SPEECH_INIT_GUID
++
++#include "windows_media_speech_private.h"
  
  WINE_DEFAULT_DEBUG_CHANNEL(speech);
  
-@@ -46,6 +48,95 @@ static const char *debugstr_hstring(HSTRING hstr)
-     return wine_dbgstr_wn(str, len);
- }
- 
+diff --git a/dlls/windows.media.speech/speechrecognition.c b/dlls/windows.media.speech/speechrecognition.c
+new file mode 100644
+index 00000000000..069904a76d0
+--- /dev/null
++++ b/dlls/windows.media.speech/speechrecognition.c
+@@ -0,0 +1,350 @@
++/* WinRT Windows.Media.SpeechRecognition implementation
++ *
++ * Copyright 2021 Bernhard Kölbl
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
++ */
++
++#include "windows_media_speech_private.h"
++
++WINE_DEFAULT_DEBUG_CHANNEL(speech);
++
++/*
++*
++* ISpeechContinuousRecognitionCompletedEventArgs
++*
++*/
++
++#pragma region ISpeechContinuousRecognitionCompletedEventArgs
++
 +struct speech_continuous_recognition_completed_event_args
 +{
 +    ISpeechContinuousRecognitionCompletedEventArgs ISpeechContinuousRecognitionCompletedEventArgs_iface;
@@ -67,6 +126,18 @@ index b607f9a8203..7e94797abac 100644
 +static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_QueryInterface(
 +        ISpeechContinuousRecognitionCompletedEventArgs *iface, REFIID iid, void **out)
 +{
++    TRACE("iface %p, iid %s, out %p stub!\n", iface, debugstr_guid(iid), out);
++
++    if (IsEqualGUID(iid, &IID_IUnknown) ||
++        IsEqualGUID(iid, &IID_IInspectable) ||
++        IsEqualGUID(iid, &IID_ISpeechContinuousRecognitionCompletedEventArgs))
++    {
++        IUnknown_AddRef(iface);
++        *out = iface;
++        return S_OK;
++    }
++
++
 +    WARN("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
 +    *out = NULL;
 +    return E_NOINTERFACE;
@@ -75,18 +146,25 @@ index b607f9a8203..7e94797abac 100644
 +static ULONG STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_AddRef(
 +        ISpeechContinuousRecognitionCompletedEventArgs *iface)
 +{
-+    struct speech_continuous_recognition_completed_event_args *impl = impl_from_ISpeechContinuousRecognitionCompletedEventArgs(iface);
-+    ULONG ref = InterlockedIncrement(&impl->ref);
++    struct speech_continuous_recognition_completed_event_args *This = impl_from_ISpeechContinuousRecognitionCompletedEventArgs(iface);
++
++    ULONG ref = InterlockedIncrement(&This->ref);
 +    TRACE("iface %p, ref %u.\n", iface, ref);
++
 +    return ref;
 +}
 +
 +static ULONG STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_Release(
 +        ISpeechContinuousRecognitionCompletedEventArgs *iface)
 +{
-+    struct speech_continuous_recognition_completed_event_args *impl = impl_from_ISpeechContinuousRecognitionCompletedEventArgs(iface);
-+    ULONG ref = InterlockedDecrement(&impl->ref);
++    struct speech_continuous_recognition_completed_event_args *This = impl_from_ISpeechContinuousRecognitionCompletedEventArgs(iface);
++
++    ULONG ref = InterlockedDecrement(&This->ref);
 +    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    if(!ref)
++        heap_free(This);
++
 +    return ref;
 +}
 +
@@ -122,6 +200,7 @@ index b607f9a8203..7e94797abac 100644
 +static const struct ISpeechContinuousRecognitionCompletedEventArgsVtbl 
 +        speech_continuous_recognition_completed_event_args_vtbl =
 +{
++    /* IUnknown methods */
 +    speech_continuous_recognition_completed_event_args_QueryInterface,
 +    speech_continuous_recognition_completed_event_args_AddRef,
 +    speech_continuous_recognition_completed_event_args_Release,
@@ -129,20 +208,288 @@ index b607f9a8203..7e94797abac 100644
 +    speech_continuous_recognition_completed_event_args_GetIids,
 +    speech_continuous_recognition_completed_event_args_GetRuntimeClassName,
 +    speech_continuous_recognition_completed_event_args_GetTrustLevel,
-+    /* ISpeechContinuousRecognitionCompletedEventArgsVtbl methods */
++    /* ISpeechContinuousRecognitionCompletedEventArgs methods */
 +    speech_continuous_recognition_completed_event_args_get_Status
 +};
 +
-+static struct speech_continuous_recognition_completed_event_args
-+        speech_continuous_recognition_completed_event_args =
++static HRESULT speech_continuous_recognition_completed_event_args_create(REFIID iid, void **obj)
 +{
-+    {&speech_continuous_recognition_completed_event_args_vtbl},
-+    0
++    struct speech_continuous_recognition_completed_event_args *This;
++    HRESULT hr;
++
++    if (!(This = heap_alloc_zero(sizeof(*This))))
++        return E_OUTOFMEMORY;
++
++    This->ISpeechContinuousRecognitionCompletedEventArgs_iface.lpVtbl = &speech_continuous_recognition_completed_event_args_vtbl;
++    This->ref = 1;
++
++    hr = ISpeechContinuousRecognitionCompletedEventArgs_QueryInterface(&This->ISpeechContinuousRecognitionCompletedEventArgs_iface, iid, obj);
++    ISpeechContinuousRecognitionCompletedEventArgs_Release(&This->ISpeechContinuousRecognitionCompletedEventArgs_iface);
++
++    return hr;
++}
++
++#pragma endregion ISpeechContinuousRecognitionCompletedEventArgs
++
++/*
++*
++* ISpeechRecognizer
++*
++*/
++
++#pragma region ISpeechRecognizer
++
++struct speech_recognizer
++{
++    ISpeechRecognizer ISpeechRecognizer_iface;
++    LONG ref;
 +};
 +
- struct voice_information_vector
- {
-     IVectorView_VoiceInformation IVectorView_VoiceInformation_iface;
++static inline struct speech_recognizer *impl_from_ISpeechRecognizer(ISpeechRecognizer *iface)
++{
++    return CONTAINING_RECORD(iface, struct speech_recognizer, ISpeechRecognizer_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_QueryInterface(ISpeechRecognizer *iface, REFIID iid, void **out)
++{
++    TRACE("iface %p, iid %s, out %p stub!\n", iface, debugstr_guid(iid), out);
++
++    if (IsEqualGUID(iid, &IID_IUnknown) ||
++        IsEqualGUID(iid, &IID_IInspectable) ||
++        IsEqualGUID(iid, &IID_ISpeechRecognizer))
++    {
++        IUnknown_AddRef(iface);
++        *out = iface;
++        return S_OK;
++    }
++
++
++    WARN("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
++    *out = NULL;
++    return E_NOINTERFACE;
++}
++
++static ULONG STDMETHODCALLTYPE speech_recognizer_AddRef(ISpeechRecognizer *iface)
++{
++    struct speech_recognizer *This = impl_from_ISpeechRecognizer(iface);
++
++    ULONG ref = InterlockedIncrement(&This->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    return ref;
++}
++
++static ULONG STDMETHODCALLTYPE speech_recognizer_Release(ISpeechRecognizer *iface)
++{
++    struct speech_recognizer *This = impl_from_ISpeechRecognizer(iface);
++
++    ULONG ref = InterlockedDecrement(&This->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    if(!ref)
++        heap_free(This);
++
++    return ref;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_GetIids(ISpeechRecognizer *iface, ULONG *iid_count, IID **iids)
++{
++    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_GetRuntimeClassName(ISpeechRecognizer *iface, HSTRING *class_name)
++{
++    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_GetTrustLevel(ISpeechRecognizer *iface, TrustLevel *trust_level)
++{
++    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_CompileConstraintsAsync(ISpeechRecognizer *iface,
++    IAsyncOperation_SpeechRecognitionCompilationResult **operation)
++{
++    FIXME("iface %p, operation %p stub!\n", iface, operation);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_RecognizeAsync(ISpeechRecognizer *iface,
++    IAsyncOperation_SpeechRecognitionResult **operation)
++{
++    FIXME("iface %p, operation %p stub!\n", iface, operation);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_RecognizeWithUIAsync(ISpeechRecognizer *iface,
++    IAsyncOperation_SpeechRecognitionResult **operation)
++{
++    FIXME("iface %p, operation %p stub!\n", iface, operation);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_get_Constraints(ISpeechRecognizer *iface,
++    IVectorView_ISpeechRecognitionConstraint **vector)
++{
++    FIXME("iface %p, operation %p stub!\n", iface, vector);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_get_CurrentLanguage(ISpeechRecognizer *iface,
++    ILanguage **language)
++{
++    FIXME("iface %p, operation %p stub!\n", iface, language);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_get_Timeouts(ISpeechRecognizer *iface,
++    ISpeechRecognizerTimeouts **timeouts)
++{
++    FIXME("iface %p, operation %p stub!\n", iface, timeouts);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_get_UIOptions(ISpeechRecognizer *iface,
++    ISpeechRecognizerUIOptions **options)
++{
++    FIXME("iface %p, operation %p stub!\n", iface, options);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_add_RecognitionQualityDegrading(ISpeechRecognizer *iface,
++    ITypedEventHandler_ISpeechRecognizer_ISpeechRecognitionQualityDegradingEventArgs *handler, EventRegistrationToken *token)
++{
++    FIXME("iface %p, operation %p, token %p, stub!\n", iface, handler, token);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_remove_RecognitionQualityDegrading(
++    ISpeechRecognizer *iface, EventRegistrationToken token)
++{
++    FIXME("iface %p, token %#I64x, stub!\n", iface, token);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_add_StateChanged(ISpeechRecognizer *iface,
++    ITypedEventHandler_ISpeechRecognizer_ISpeechRecognizerStateChangedEventArgs *handler, EventRegistrationToken *token)
++{
++    FIXME("iface %p, operation %p, token %p, stub!\n", iface, handler, token);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_remove_StateChanged(
++    ISpeechRecognizer *iface, EventRegistrationToken token)
++{
++    FIXME("iface %p, token %#I64x, stub!\n", iface, token);
++    return E_NOTIMPL;
++}
++
++static const struct ISpeechRecognizerVtbl speech_recognizer_vtbl =
++{
++    /* IUnknown methods */
++    speech_recognizer_QueryInterface,
++    speech_recognizer_AddRef,
++    speech_recognizer_Release,
++    /* IInspectable methods */
++    speech_recognizer_GetIids,
++    speech_recognizer_GetRuntimeClassName,
++    speech_recognizer_GetTrustLevel,
++    /* ISpeechRecognizer methods */
++    speech_recognizer_CompileConstraintsAsync,
++    speech_recognizer_RecognizeAsync,
++    speech_recognizer_RecognizeWithUIAsync,
++    speech_recognizer_get_Constraints,
++    speech_recognizer_get_CurrentLanguage,
++    speech_recognizer_get_Timeouts,
++    speech_recognizer_get_UIOptions,
++    speech_recognizer_add_RecognitionQualityDegrading,
++    speech_recognizer_remove_RecognitionQualityDegrading,
++    speech_recognizer_add_StateChanged,
++    speech_recognizer_remove_StateChanged,
++};
++
++static HRESULT speech_recognizer_create(REFIID iid, void **obj)
++{
++    struct speech_recognizer *This;
++    HRESULT hr;
++
++    if (!(This = heap_alloc_zero(sizeof(*This))))
++        return E_OUTOFMEMORY;
++
++    This->ISpeechRecognizer_iface.lpVtbl = &speech_recognizer_vtbl;
++    This->ref = 1;
++
++    hr = ISpeechRecognizer_QueryInterface(&This->ISpeechRecognizer_iface, iid, obj);
++    ISpeechRecognizer_Release(&This->ISpeechRecognizer_iface);
++
++    return hr;
++}
++
++#pragma endregion ISpeechRecognizer
+\ No newline at end of file
+diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
+new file mode 100644
+index 00000000000..c236f2184f6
+--- /dev/null
++++ b/dlls/windows.media.speech/windows_media_speech_private.h
+@@ -0,0 +1,53 @@
++/* WinRT Windows.Media.Speech private header
++ *
++ * Copyright 2021 Bernhard Kölbl
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
++ */
++
++#ifndef __WINE_WINDOWS_MEDIA_SPEECH_PRIVATE_H
++#define __WINE_WINDOWS_MEDIA_SPEECH_PRIVATE_H
++
++#include "wine/debug.h"
++#include "wine/heap.h"
++
++#include <stdarg.h>
++
++#define COBJMACROS
++#include "windef.h"
++#include "winbase.h"
++#include "winstring.h"
++#include "objbase.h"
++
++#ifdef WINDOWS_MEDIA_SPEECH_INIT_GUID
++#include "initguid.h"
++#endif
++
++#include "activation.h"
++
++#define WIDL_using_Windows_Foundation
++#define WIDL_using_Windows_Foundation_Collections
++#include "windows.foundation.h"
++#define WIDL_using_Windows_Globalization
++#include "windows.globalization.h"
++#define WIDL_using_Windows_Media_SpeechSynthesis
++#include "windows.media.speechsynthesis.h"
++#define WIDL_using_Windows_Media_SpeechRecognition
++#include "windows.media.speechrecognition.h"
++
++#endif
++
++// static HRESULT speech_continuous_recognition_completed_event_args_create(REFIID iid, void **obj);
++// static HRESULT speech_recognizer_create(REFIID iid, void **obj);
+\ No newline at end of file
 diff --git a/include/Makefile.in b/include/Makefile.in
 index e5ae8429ed0..cdbd5025348 100644
 --- a/include/Makefile.in
@@ -156,7 +503,7 @@ index e5ae8429ed0..cdbd5025348 100644
  	windows.storage.streams.idl \
  	windows.system.idl \
 diff --git a/include/windows.globalization.idl b/include/windows.globalization.idl
-index c08f7bd27d9..12e3801c14a 100644
+index c08f7bd27d9..405c24ae728 100644
 --- a/include/windows.globalization.idl
 +++ b/include/windows.globalization.idl
 @@ -29,6 +29,10 @@ import "windows.foundation.idl";
@@ -170,7 +517,7 @@ index c08f7bd27d9..12e3801c14a 100644
      }
  }
  
-@@ -45,5 +49,40 @@ namespace Windows {
+@@ -45,5 +49,43 @@ namespace Windows {
              Friday    = 5,
              Saturday  = 6
          };
@@ -179,7 +526,7 @@ index c08f7bd27d9..12e3801c14a 100644
 +            exclusiveto(Windows.Globalization.Language),
 +            uuid(EA79A752-F7C2-4265-B1BD-C4DEC4E4F080)
 +        ]
-+        interface ILanguage
++        interface ILanguage : IInspectable
 +        {
 +
 +        }
@@ -188,7 +535,7 @@ index c08f7bd27d9..12e3801c14a 100644
 +            exclusiveto(Windows.Globalization.Language),
 +            uuid(6A47E5B5-D94D-4886-A404-A5A5B9D5B494)
 +        ]
-+        interface ILanguage2
++        interface ILanguage2 : IInspectable
 +        {
 +
 +        }
@@ -197,12 +544,15 @@ index c08f7bd27d9..12e3801c14a 100644
 +            exclusiveto(Windows.Globalization.Language),
 +            uuid(C6AF3D10-641A-5BA4-BB43-5E12AED75954)
 +        ]
-+        interface ILanguage3
++        interface ILanguage3 : IInspectable
 +        {
 +
 +        }
 +
-+        [marshaling_behavior(agile)]
++        [
++            marshaling_behavior(agile),
++            uuid(144B0F3D-2D59-5DD2-B012-908EC3E06435)
++        ]
 +        runtimeclass Language
 +        {
 +            [default] interface Windows.Globalization.ILanguage;
@@ -213,10 +563,10 @@ index c08f7bd27d9..12e3801c14a 100644
  }
 diff --git a/include/windows.media.speechrecognition.idl b/include/windows.media.speechrecognition.idl
 new file mode 100644
-index 00000000000..b8a86f50f8a
+index 00000000000..f6682345b01
 --- /dev/null
 +++ b/include/windows.media.speechrecognition.idl
-@@ -0,0 +1,315 @@
+@@ -0,0 +1,338 @@
 +/*
 + * Copyright 2021 Bernhard Kölbl
 + *
@@ -436,7 +786,8 @@ index 00000000000..b8a86f50f8a
 +
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
-+                marshaling_behavior(agile)
++                marshaling_behavior(agile),
++                uuid(BA3EEBE8-8D7C-51F2-9ED4-EBAFE3674DB4)
 +            ]
 +            runtimeclass SpeechRecognitionResult
 +            {
@@ -456,7 +807,8 @@ index 00000000000..b8a86f50f8a
 +
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
-+                marshaling_behavior(agile)
++                marshaling_behavior(agile),
++                uuid(78C859BD-14D4-5C40-ABFF-490616D5E92D)
 +            ]
 +            runtimeclass SpeechRecognitionCompilationResult
 +            {
@@ -468,7 +820,7 @@ index 00000000000..b8a86f50f8a
 +            exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult),
 +            uuid(738F00B1-E18C-5140-A53A-F1788D10C93D)
 +            ]
-+            interface ISpeechRecognitionConstraint
++            interface ISpeechRecognitionConstraint : IInspectable
 +            {
 +
 +            }
@@ -478,7 +830,7 @@ index 00000000000..b8a86f50f8a
 +            exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult),
 +            uuid(4FE24105-8C3A-4C7E-8D0A-5BD4F5B14AD8)
 +            ]
-+            interface ISpeechRecognitionQualityDegradingEventArgs
++            interface ISpeechRecognitionQualityDegradingEventArgs : IInspectable
 +            {
 +
 +            }
@@ -488,7 +840,27 @@ index 00000000000..b8a86f50f8a
 +            exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult),
 +            uuid(563D4F09-BA03-4BAD-AD81-DDC6C4DAB0C3)
 +            ]
-+            interface ISpeechRecognizerStateChangedEventArgs
++            interface ISpeechRecognizerStateChangedEventArgs : IInspectable
++            {
++
++            }
++
++            [
++            contract(Windows.Foundation.UniversalApiContract, 1.0),
++            exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult),
++            uuid(2EF76FCA-6A3C-4DCA-A153-DF1BC88A79AF)
++            ]
++            interface ISpeechRecognizerTimeouts : IInspectable
++            {
++
++            }
++
++            [
++            contract(Windows.Foundation.UniversalApiContract, 1.0),
++            exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult),
++            uuid(7888D641-B92B-44BA-A25F-D1864630641F)
++            ]
++            interface ISpeechRecognizerUIOptions : IInspectable
 +            {
 +
 +            }
@@ -501,14 +873,14 @@ index 00000000000..b8a86f50f8a
 +            interface ISpeechRecognizer : IInspectable
 +            {
 +                HRESULT CompileConstraintsAsync(
-+                        [out] [retval] Windows.Foundation.IAsyncOperation<Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult*> **operation);
-+                HRESULT RecognizeAsync([out] [retval] Windows.Foundation.IAsyncOperation<Windows.Media.SpeechRecognition.SpeechRecognitionResult*> **operation);
-+                HRESULT RecognizeWithUIAsync([out] [retval] Windows.Foundation.IAsyncOperation<Windows.Media.SpeechRecognition.SpeechRecognitionResult*> **operation);
++                        [out, retval] Windows.Foundation.IAsyncOperation<Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult*> **operation);
++                HRESULT RecognizeAsync([out, retval] Windows.Foundation.IAsyncOperation<Windows.Media.SpeechRecognition.SpeechRecognitionResult*> **operation);
++                HRESULT RecognizeWithUIAsync([out, retval] Windows.Foundation.IAsyncOperation<Windows.Media.SpeechRecognition.SpeechRecognitionResult*> **operation);
 +                /* Following line is actually IVector not IVectorView! FIXME! */
-+                [propget] HRESULT Constraints([out] [retval] Windows.Foundation.Collections.IVectorView<Windows.Media.SpeechRecognition.ISpeechRecognitionConstraint*> **vector);
-+                [propget] HRESULT CurrentLanguage([out] [retval] Windows.Globalization.Language **language);
-+                [propget] HRESULT Timeout([out] [retval] Windows.Media.SpeechRecognition.ISpeechRecognizerTimeouts **timeouts);
-+                [propget] HRESULT UIOptions([out] [retval] Windows.Media.SpeechRecognition.ISpeechRecognizerUIOptions **options);
++                [propget] HRESULT Constraints([out, retval] Windows.Foundation.Collections.IVectorView<Windows.Media.SpeechRecognition.ISpeechRecognitionConstraint*> **vector);
++                [propget] HRESULT CurrentLanguage([out, retval] Windows.Globalization.Language **language);
++                [propget] HRESULT Timeouts([out, retval] Windows.Media.SpeechRecognition.ISpeechRecognizerTimeouts **timeouts);
++                [propget] HRESULT UIOptions([out, retval] Windows.Media.SpeechRecognition.ISpeechRecognizerUIOptions **options);
 +                [eventadd] HRESULT RecognitionQualityDegrading(
 +                        [in] Windows.Foundation.TypedEventHandler<Windows.Media.SpeechRecognition.ISpeechRecognizer*, Windows.Media.SpeechRecognition.ISpeechRecognitionQualityDegradingEventArgs*> *handler,
 +                        [out, retval] EventRegistrationToken* token);
@@ -523,7 +895,8 @@ index 00000000000..b8a86f50f8a
 +
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
-+                marshaling_behavior(agile)
++                marshaling_behavior(agile),
++                uuid(0BC3C9CB-C26A-40F2-AEB5-8096B2E48073)
 +            ]
 +            runtimeclass SpeechRecognizer
 +            {
@@ -532,6 +905,20 @@ index 00000000000..b8a86f50f8a
 +        }
 +    }
 +}
+diff --git a/include/windows.media.speechsynthesis.idl b/include/windows.media.speechsynthesis.idl
+index 29dca510dee..5b6092dbc98 100644
+--- a/include/windows.media.speechsynthesis.idl
++++ b/include/windows.media.speechsynthesis.idl
+@@ -139,7 +139,8 @@ namespace Windows {
+ 
+             [
+                 contract(Windows.Foundation.UniversalApiContract, 1.0),
+-                marshaling_behavior(agile)
++                marshaling_behavior(agile),
++                uuid(00BD028A-E2AD-57AF-9829-F8B273D2717B)
+             ]
+             runtimeclass VoiceInformation
+             {
 -- 
 2.34.1
 
