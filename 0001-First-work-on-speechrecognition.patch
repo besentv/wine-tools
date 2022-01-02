@@ -1,4 +1,4 @@
-From 3819d5c25e96176b1af9e5781df26f5969738f37 Mon Sep 17 00:00:00 2001
+From e17f6725224af25ae3ade6c59d59ee2616e9dce2 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sat, 18 Dec 2021 19:08:04 +0100
 Subject: [PATCH 1/2] First work on speechrecognition.
@@ -8,7 +8,7 @@ Subject: [PATCH 1/2] First work on speechrecognition.
  dlls/windows.media.speech/Makefile.in         |   4 +-
  dlls/windows.media.speech/classes.idl         |   1 +
  dlls/windows.media.speech/main.c              | 656 +++++---------
- dlls/windows.media.speech/speechrecognition.c | 800 ++++++++++++++++++
+ dlls/windows.media.speech/speechrecognition.c | 805 ++++++++++++++++++
  dlls/windows.media.speech/speechsynthesis.c   | 497 +++++++++++
  .../windows_media_speech_private.h            |  86 ++
  include/Makefile.in                           |   1 +
@@ -16,7 +16,7 @@ Subject: [PATCH 1/2] First work on speechrecognition.
  include/windows.globalization.idl             |  42 +
  include/windows.media.speechrecognition.idl   | 445 ++++++++++
  include/windows.media.speechsynthesis.idl     |   3 +-
- 12 files changed, 2102 insertions(+), 456 deletions(-)
+ 12 files changed, 2107 insertions(+), 456 deletions(-)
  create mode 100644 WinRT-Coding-Guideline.txt
  create mode 100644 dlls/windows.media.speech/speechrecognition.c
  create mode 100644 dlls/windows.media.speech/speechsynthesis.c
@@ -69,7 +69,7 @@ index 6c141bf4768..4dd43cf6eed 100644
 +#include "windows.media.speechrecognition.idl"
  #include "windows.media.speechsynthesis.idl"
 diff --git a/dlls/windows.media.speech/main.c b/dlls/windows.media.speech/main.c
-index b607f9a8203..5a6cb848f1f 100644
+index b607f9a8203..ae138cd0dfd 100644
 --- a/dlls/windows.media.speech/main.c
 +++ b/dlls/windows.media.speech/main.c
 @@ -17,575 +17,308 @@
@@ -695,7 +695,7 @@ index b607f9a8203..5a6cb848f1f 100644
 -    struct windows_media_speech *impl = impl_from_IInstalledVoicesStatic(iface);
 -    return windows_media_speech_QueryInterface(&impl->IActivationFactory_iface, iid, out);
 -}
-+    return speech_recognition_list_constraint_create2(&IID_ISpeechRecognitionListConstraint, (void**) listconstraint, commands);
++    return speech_recognition_list_constraint_create2(&IID_ISpeechRecognitionListConstraint, (void**) &listconstraint, commands);
  
 -static ULONG STDMETHODCALLTYPE installed_voices_static_AddRef(
 -        IInstalledVoicesStatic *iface)
@@ -716,7 +716,7 @@ index b607f9a8203..5a6cb848f1f 100644
 -    struct windows_media_speech *impl = impl_from_IInstalledVoicesStatic(iface);
 -    return windows_media_speech_Release(&impl->IActivationFactory_iface);
 -}
-+    TRACE("iface %p, listconstraint %p, commands %p, tag %p stub!\n", iface, listconstraint, commands, tag);
++    TRACE("iface %p, listconstraint %p, *listconstraint %p, commands %p, tag %p stub!\n", iface, listconstraint, *listconstraint, commands, tag);
  
 -static HRESULT STDMETHODCALLTYPE installed_voices_static_GetIids(
 -        IInstalledVoicesStatic *iface, ULONG *iid_count, IID **iids)
@@ -738,7 +738,7 @@ index b607f9a8203..5a6cb848f1f 100644
 -    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
 -    return E_NOTIMPL;
 -}
-+    return speech_recognition_list_constraint_create3(&IID_ISpeechRecognitionListConstraint, (void**) listconstraint, commands, tag);
++    return speech_recognition_list_constraint_create3(&IID_ISpeechRecognitionListConstraint, (void**) &listconstraint, commands, tag);
  
 -static HRESULT STDMETHODCALLTYPE installed_voices_static_get_AllVoices(
 -    IInstalledVoicesStatic *iface, IVectorView_VoiceInformation **value)
@@ -868,10 +868,10 @@ index b607f9a8203..5a6cb848f1f 100644
  }
 diff --git a/dlls/windows.media.speech/speechrecognition.c b/dlls/windows.media.speech/speechrecognition.c
 new file mode 100644
-index 00000000000..9b8bf62b70b
+index 00000000000..6515846debb
 --- /dev/null
 +++ b/dlls/windows.media.speech/speechrecognition.c
-@@ -0,0 +1,800 @@
+@@ -0,0 +1,805 @@
 +/* WinRT Windows.Media.SpeechRecognition implementation
 + *
 + * Copyright 2021 Bernhard Kölbl
@@ -1040,6 +1040,8 @@ index 00000000000..9b8bf62b70b
 +{
 +    ISpeechRecognitionListConstraint ISpeechRecognitionListConstraint_iface;
 +    ISpeechRecognitionConstraint ISpeechRecognitionConstraint_iface;
++    UINT32 DEBUG_a;
++    UINT32 DEBUG_b;
 +    LONG ref;
 +};
 +
@@ -1095,7 +1097,7 @@ index 00000000000..9b8bf62b70b
 +    struct speech_recognition_list_constraint *This = impl_from_ISpeechRecognitionListConstraint(iface);
 +
 +    ULONG ref = InterlockedIncrement(&This->ref);
-+    TRACE("iface %p, ref %u.\n", iface, ref);
++    TRACE("this %p, iface %p, ref %u.\n",This, iface, ref);
 +
 +    return ref;
 +}
@@ -1308,6 +1310,8 @@ index 00000000000..9b8bf62b70b
 +
 +    This->ISpeechRecognitionListConstraint_iface.lpVtbl = &i_speech_recognition_list_constraint_vtbl;
 +    This->ISpeechRecognitionConstraint_iface.lpVtbl = &i_speech_recognition_constraint_vtbl;
++    This->DEBUG_a = 0xdeadbeef;
++    This->DEBUG_b = 0xbadf00d;
 +    This->ref = 1;
 +
 +    hr = ISpeechRecognitionListConstraint_QueryInterface(&This->ISpeechRecognitionListConstraint_iface, iid, obj);
@@ -1319,6 +1323,7 @@ index 00000000000..9b8bf62b70b
 +HRESULT speech_recognition_list_constraint_create2(REFIID iid, void **obj, IIterable_HSTRING *commands)
 +{
 +    TRACE("stub!\n");
++    *((int*)commands) = (int)0xdeadbeef;
 +    return speech_recognition_list_constraint_create(iid, obj);
 +}
 +
