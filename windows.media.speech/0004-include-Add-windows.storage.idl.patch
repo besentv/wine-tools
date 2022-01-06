@@ -1,0 +1,92 @@
+From ffc2ca5d426178c0aa65e7ab507bf89fbf98f6f8 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Thu, 6 Jan 2022 18:34:51 +0100
+Subject: [PATCH 04/10] include: Add windows.storage.idl.
+
+---
+ include/Makefile.in         |  1 +
+ include/windows.storage.idl | 60 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 61 insertions(+)
+ create mode 100644 include/windows.storage.idl
+
+diff --git a/include/Makefile.in b/include/Makefile.in
+index e5ae8429ed0..9c1ecb516ba 100644
+--- a/include/Makefile.in
++++ b/include/Makefile.in
+@@ -782,6 +782,7 @@ SOURCES = \
+ 	windows.media.devices.idl \
+ 	windows.media.idl \
+ 	windows.media.speechsynthesis.idl \
++	windows.storage.idl \
+ 	windows.storage.streams.idl \
+ 	windows.system.idl \
+ 	windows.system.userprofile.idl \
+diff --git a/include/windows.storage.idl b/include/windows.storage.idl
+new file mode 100644
+index 00000000000..f1146d84256
+--- /dev/null
++++ b/include/windows.storage.idl
+@@ -0,0 +1,60 @@
++/*
++ * Copyright 2022 Bernhard Kölbl
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
++ */
++
++#ifdef __WIDL__
++#pragma winrt ns_prefix
++#endif
++
++import "inspectable.idl";
++import "eventtoken.idl";
++import "windows.storage.streams.idl";
++import "windows.foundation.idl";
++
++namespace Windows
++{
++    namespace Storage
++    {
++        interface IStorageFile;
++        runtimeclass StorageFile;
++    }
++}
++
++namespace Windows
++{
++    namespace Storage
++    {
++        [
++            contract(Windows.Foundation.FoundationContract, 1.0),
++            uuid(FA3F6186-4214-428C-A64C-14C9AC7315EA)
++        ]
++        interface IStorageFile : IInspectable
++        {
++            /* Stub! */
++        }
++
++
++        [
++            contract(Windows.Foundation.UniversalApiContract, 1.0),
++            marshaling_behavior(agile)
++        ]
++        runtimeclass StorageFile
++        {
++            [default] interface Windows.Storage.IStorageFile;
++        }
++    }
++}
+-- 
+2.34.1
+

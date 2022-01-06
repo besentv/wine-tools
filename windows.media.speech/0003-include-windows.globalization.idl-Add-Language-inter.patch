@@ -1,0 +1,72 @@
+From a3b2cc81315f6ed25ec338e871ced5e9f3ee9f78 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Thu, 6 Jan 2022 18:07:10 +0100
+Subject: [PATCH 03/10] include/windows.globalization.idl: Add Language
+ interface and class stubs.
+
+---
+ include/windows.globalization.idl | 42 +++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
+
+diff --git a/include/windows.globalization.idl b/include/windows.globalization.idl
+index c08f7bd27d9..405c24ae728 100644
+--- a/include/windows.globalization.idl
++++ b/include/windows.globalization.idl
+@@ -29,6 +29,10 @@ import "windows.foundation.idl";
+ namespace Windows {
+     namespace Globalization {
+         typedef enum DayOfWeek DayOfWeek;
++        interface ILanguage;
++        interface ILanguage2;
++        interface ILanguage3;
++        runtimeclass Language;
+     }
+ }
+ 
+@@ -45,5 +49,43 @@ namespace Windows {
+             Friday    = 5,
+             Saturday  = 6
+         };
++
++        [
++            exclusiveto(Windows.Globalization.Language),
++            uuid(EA79A752-F7C2-4265-B1BD-C4DEC4E4F080)
++        ]
++        interface ILanguage : IInspectable
++        {
++
++        }
++
++        [
++            exclusiveto(Windows.Globalization.Language),
++            uuid(6A47E5B5-D94D-4886-A404-A5A5B9D5B494)
++        ]
++        interface ILanguage2 : IInspectable
++        {
++
++        }
++
++        [
++            exclusiveto(Windows.Globalization.Language),
++            uuid(C6AF3D10-641A-5BA4-BB43-5E12AED75954)
++        ]
++        interface ILanguage3 : IInspectable
++        {
++
++        }
++
++        [
++            marshaling_behavior(agile),
++            uuid(144B0F3D-2D59-5DD2-B012-908EC3E06435)
++        ]
++        runtimeclass Language
++        {
++            [default] interface Windows.Globalization.ILanguage;
++            interface Windows.Globalization.ILanguage2;
++            interface Windows.Globalization.ILanguage3;
++        }
+     }
+ }
+-- 
+2.34.1
+

@@ -1,0 +1,44 @@
+From 2d0fbd2f898aa70d86a6e05bd91d7820e2271bea Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Thu, 6 Jan 2022 17:56:38 +0100
+Subject: [PATCH 01/10] include/windows.foundation.collections.idl: Add
+ Windows.Foundation.Collections.IVector interface.
+
+---
+ include/windows.foundation.collections.idl | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/include/windows.foundation.collections.idl b/include/windows.foundation.collections.idl
+index 876e15336a2..3cdcf31c296 100644
+--- a/include/windows.foundation.collections.idl
++++ b/include/windows.foundation.collections.idl
+@@ -118,6 +118,26 @@ cpp_quote("#endif")
+                 HRESULT IndexOf([in, optional] T element, [out] UINT32 *index, [out, retval] BOOLEAN *value);
+                 HRESULT GetMany([in] UINT32 start_index, [in] UINT32 items_size, [out] T *items, [out, retval] UINT32 *value);
+             }
++
++            [
++                contract(Windows.Foundation.FoundationContract, 1.0),
++                uuid(913337E9-11A1-4345-A3A2-4E7F956E222D)
++            ]
++            interface IVector<T> : IInspectable
++            {
++                HRESULT GetAt([in] UINT32 index, [out, retval] T *value);
++                [propget] HRESULT Size([out, retval] UINT32 *value);
++                HRESULT GetView([out, retval] IVectorView<T> **value);
++                HRESULT IndexOf([in, optional] T element, [out] UINT32 *index, [out, retval] BOOLEAN *value);
++                HRESULT SetAt([in] UINT32 index, [in] T value);
++                HRESULT InsertAt([in] UINT32 index, T value);
++                HRESULT RemoveAt([in] UINT32 index);
++                HRESULT Append([in, optional] T value);
++                HRESULT RemoveAtEnd();
++                HRESULT Clear();
++                HRESULT GetMany([in] UINT32 start_index, [in] UINT32 items_size, [out] T *items, [out, retval] UINT32 *value);
++                HRESULT ReplaceAll([in] T *items);
++            }
+         }
+ #endif
+     }
+-- 
+2.34.1
+

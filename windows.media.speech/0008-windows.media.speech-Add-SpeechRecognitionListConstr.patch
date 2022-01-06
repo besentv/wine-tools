@@ -1,0 +1,548 @@
+From 21562484715aeed9b12cb6999eea5f84c3ed3919 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Thu, 6 Jan 2022 23:21:54 +0100
+Subject: [PATCH 08/10] windows.media.speech: Add
+ SpeechRecognitionListConstraint stub.
+
+---
+ dlls/windows.media.speech/Makefile.in         |   1 +
+ dlls/windows.media.speech/main.c              | 138 ++++++++
+ .../speechrecognitionlistconstraint.c         | 321 ++++++++++++++++++
+ .../windows_media_speech_private.h            |   5 +
+ 4 files changed, 465 insertions(+)
+ create mode 100644 dlls/windows.media.speech/speechrecognitionlistconstraint.c
+
+diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
+index c1c70538f3e..0f7a993fee5 100644
+--- a/dlls/windows.media.speech/Makefile.in
++++ b/dlls/windows.media.speech/Makefile.in
+@@ -3,6 +3,7 @@ IMPORTS = combase uuid
+ 
+ C_SRCS = \
+ 	main.c \
++	speechrecognitionlistconstraint.c \
+ 	speechrecognizer.c \
+ 	speechsynthesis.c
+ 
+diff --git a/dlls/windows.media.speech/main.c b/dlls/windows.media.speech/main.c
+index f842de910d9..24a45218925 100644
+--- a/dlls/windows.media.speech/main.c
++++ b/dlls/windows.media.speech/main.c
+@@ -58,6 +58,13 @@ static HRESULT STDMETHODCALLTYPE activation_factory_QueryInterface(
+         return S_OK;
+     }
+ 
++    if (IsEqualGUID(iid, &IID_ISpeechRecognitionListConstraintFactory) && impl->ISpeechRecognitionListConstraintFactory_iface.lpVtbl)
++    {
++        IUnknown_AddRef(iface);
++        *out = &impl->ISpeechRecognitionListConstraintFactory_iface;
++        return S_OK;
++    }
++
+     FIXME("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
+     *out = NULL;
+     return E_NOINTERFACE;
+@@ -134,12 +141,136 @@ static const struct IActivationFactoryVtbl activation_factory_vtbl =
+         activation_factory_ActivateInstance,
+ };
+ 
++/*
++*
++* ISpeechRecognitionListConstraintFactory
++*
++*/
++
++static inline struct activation_factory *impl_from_ISpeechRecognitionListConstraintFactory(ISpeechRecognitionListConstraintFactory *iface)
++{
++    return CONTAINING_RECORD(iface, struct activation_factory, ISpeechRecognitionListConstraintFactory_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_factory_QueryInterface(
++    ISpeechRecognitionListConstraintFactory *iface, REFIID iid, void **out)
++{
++    struct activation_factory *impl = impl_from_ISpeechRecognitionListConstraintFactory(iface);
++
++    TRACE("iface %p, iid %s, out %p stub!\n", iface, debugstr_guid(iid), out);
++
++    /* IUnknown_QueryInterface already defined by IActivationFactory_iface. Redirect there. */
++    return IActivationFactory_QueryInterface(&impl->IActivationFactory_iface, iid, out);
++}
++
++static ULONG STDMETHODCALLTYPE speech_recognition_list_constraint_factory_AddRef(
++    ISpeechRecognitionListConstraintFactory *iface)
++{
++    struct activation_factory *impl = impl_from_ISpeechRecognitionListConstraintFactory(iface);
++
++    TRACE("iface %p\n", iface);
++
++    /* IUnknown_AddRef already defined by IActivationFactory_iface. Redirect there. */
++    return IActivationFactory_AddRef(&impl->IActivationFactory_iface);
++}
++
++static ULONG STDMETHODCALLTYPE speech_recognition_list_constraint_factory_Release(
++    ISpeechRecognitionListConstraintFactory *iface)
++{
++    struct activation_factory *impl = impl_from_ISpeechRecognitionListConstraintFactory(iface);
++
++    TRACE("iface %p\n", iface);
++
++    /* IUnknown_Release already defined by IActivationFactory_iface. Redirect there. */
++    return IActivationFactory_Release(&impl->IActivationFactory_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_factory_GetIids(
++    ISpeechRecognitionListConstraintFactory *iface, ULONG *iid_count, IID **iids)
++{
++    struct activation_factory *impl = impl_from_ISpeechRecognitionListConstraintFactory(iface);
++
++    TRACE("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++
++    /* IInspectable_GetIids already defined by ISpeechRecognizer_iface. Redirect there. */
++    return IActivationFactory_GetIids(&impl->IActivationFactory_iface, iid_count, iids);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_factory_GetRuntimeClassName(
++    ISpeechRecognitionListConstraintFactory *iface, HSTRING *class_name)
++{
++    struct activation_factory *impl = impl_from_ISpeechRecognitionListConstraintFactory(iface);
++
++    TRACE("iface %p, class_name %p stub!\n", iface, class_name);
++
++    /* IInspectable_GetRuntimeClassName already defined by IActivationFactory_iface. Redirect there. */
++    return IActivationFactory_GetRuntimeClassName(&impl->IActivationFactory_iface, class_name);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_factory_GetTrustLevel(
++    ISpeechRecognitionListConstraintFactory *iface, TrustLevel *trust_level)
++{
++    struct activation_factory *impl = impl_from_ISpeechRecognitionListConstraintFactory(iface);
++
++    TRACE("iface %p, trust_level %p stub!\n", iface, trust_level);
++
++    /* IInspectable_GetTrustLevel already defined by IActivationFactory_iface. Redirect there. */
++    return IActivationFactory_GetTrustLevel(&impl->IActivationFactory_iface, trust_level);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_factory_Create(
++    ISpeechRecognitionListConstraintFactory *iface,
++    IIterable_HSTRING *commands,
++    ISpeechRecognitionListConstraint** listconstraint)
++{
++    TRACE("iface %p, listconstraint %p, commands %p stub!\n", iface, listconstraint, commands);
++
++    return speech_recognition_list_constraint_create_with_commands(
++        &IID_ISpeechRecognitionListConstraint, (void**) listconstraint, commands);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_factory_CreateWithTag(
++    ISpeechRecognitionListConstraintFactory *iface,
++    IIterable_HSTRING *commands,
++    HSTRING tag,
++    ISpeechRecognitionListConstraint** listconstraint)
++{
++    TRACE("iface %p, listconstraint %p, commands %p, tag %p stub!\n", iface, listconstraint, commands, tag);
++
++    return speech_recognition_list_constraint_create_with_commands_tag(
++        &IID_ISpeechRecognitionListConstraint, (void**) listconstraint, commands, tag);
++}
++
++static const struct ISpeechRecognitionListConstraintFactoryVtbl speech_recognition_list_constraint_factory_vtbl =
++{
++        /* IUnknown methods */
++        speech_recognition_list_constraint_factory_QueryInterface,
++        speech_recognition_list_constraint_factory_AddRef,
++        speech_recognition_list_constraint_factory_Release,
++        /* IInspectable methods */
++        speech_recognition_list_constraint_factory_GetIids,
++        speech_recognition_list_constraint_factory_GetRuntimeClassName,
++        speech_recognition_list_constraint_factory_GetTrustLevel,
++        /* ISpeechRecognitionListConstraintFactory methods */
++        speech_recognition_list_constraint_factory_Create,
++        speech_recognition_list_constraint_factory_CreateWithTag,
++};
++
+ /*
+ *
+ * ActivationFactory instances
+ *
+ */
+ 
++static struct activation_factory speechrecognition_speechrecognitionlistconstraint_af =
++{
++    .IActivationFactory_iface = {&activation_factory_vtbl},
++    .ISpeechRecognitionListConstraintFactory_iface = {&speech_recognition_list_constraint_factory_vtbl},
++    .IInstalledVoicesStatic_iface = {&installed_voices_static_vtbl},
++    .create_instance = speech_recognition_list_constraint_create_default,
++    .ref = 1
++};
++
+ static struct activation_factory speechrecognition_speechrecognizer_af =
+ {
+     .IActivationFactory_iface = {&activation_factory_vtbl},
+@@ -186,6 +317,13 @@ HRESULT WINAPI DllGetActivationFactory(HSTRING classid, IActivationFactory **fac
+         IUnknown_AddRef(*factory);
+         return S_OK;
+     }
++    else if (IsEqualClassID(WindowsGetStringRawBuffer(classid, NULL),
++        L"Windows.Media.SpeechRecognition.SpeechRecognitionListConstraint"))
++    {
++        *factory = &speechrecognition_speechrecognitionlistconstraint_af.IActivationFactory_iface;
++        IUnknown_AddRef(*factory);
++        return S_OK;
++    }
+ 
+     ERR("Unknown classid %s.\n", debugstr_hstring(classid));
+     return CLASS_E_CLASSNOTAVAILABLE;
+diff --git a/dlls/windows.media.speech/speechrecognitionlistconstraint.c b/dlls/windows.media.speech/speechrecognitionlistconstraint.c
+new file mode 100644
+index 00000000000..9136712d74c
+--- /dev/null
++++ b/dlls/windows.media.speech/speechrecognitionlistconstraint.c
+@@ -0,0 +1,321 @@
++/* WinRT Windows.Media.SpeechRecognition implementation
++ *
++ * Copyright 2022 Bernhard Kölbl
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
++ */
++
++#include "windows_media_speech_private.h"
++
++WINE_DEFAULT_DEBUG_CHANNEL(speech);
++
++/*
++*
++* SpeechRecognitionListConstraint
++*
++*/
++
++struct speech_recognition_list_constraint
++{
++    ISpeechRecognitionListConstraint ISpeechRecognitionListConstraint_iface;
++    ISpeechRecognitionConstraint ISpeechRecognitionConstraint_iface;
++    //IIterable_HSTRING IIterable_HSTRING_iface;
++    //IVector_HSTRING IVector_HSTRING_iface;
++    LONG ref;
++};
++
++/*
++*
++* ISpeechRecognitionListConstraint
++*
++*/
++
++static inline struct speech_recognition_list_constraint
++        *impl_from_ISpeechRecognitionListConstraint(ISpeechRecognitionListConstraint *iface)
++{
++    return CONTAINING_RECORD(iface, struct speech_recognition_list_constraint, ISpeechRecognitionListConstraint_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_QueryInterface(ISpeechRecognitionListConstraint *iface, REFIID iid, void **out)
++{
++    struct speech_recognition_list_constraint *impl = impl_from_ISpeechRecognitionListConstraint(iface);
++
++    TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
++
++    if (IsEqualGUID(iid, &IID_IUnknown) ||
++        IsEqualGUID(iid, &IID_IInspectable) ||
++        IsEqualGUID(iid, &IID_ISpeechRecognitionListConstraint))
++    {
++        
++        IUnknown_AddRef(iface);
++        *out = iface;
++        return S_OK;
++    }
++
++    if(IsEqualGUID(iid, &IID_ISpeechRecognitionConstraint))
++    {
++        IUnknown_AddRef(iface);
++        *out = &impl->ISpeechRecognitionConstraint_iface;
++        return S_OK;
++    }
++
++    WARN("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
++    *out = NULL;
++    return E_NOINTERFACE;
++}
++
++static ULONG STDMETHODCALLTYPE speech_recognition_list_constraint_AddRef(ISpeechRecognitionListConstraint *iface)
++{
++    struct speech_recognition_list_constraint *impl = impl_from_ISpeechRecognitionListConstraint(iface);
++
++    ULONG ref = InterlockedIncrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    return ref;
++}
++
++static ULONG STDMETHODCALLTYPE speech_recognition_list_constraint_Release(ISpeechRecognitionListConstraint *iface)
++{
++    struct speech_recognition_list_constraint *impl = impl_from_ISpeechRecognitionListConstraint(iface);
++
++    ULONG ref = InterlockedDecrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    if(!ref)
++        heap_free(impl);
++
++    return ref;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_GetIids(ISpeechRecognitionListConstraint *iface, ULONG *iid_count, IID **iids)
++{
++    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_GetRuntimeClassName(ISpeechRecognitionListConstraint *iface, HSTRING *class_name)
++{
++    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_GetTrustLevel(ISpeechRecognitionListConstraint *iface, TrustLevel *trust_level)
++{
++    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_get_Commands(ISpeechRecognitionListConstraint *iface, IVector_HSTRING **value)
++{
++    FIXME("iface %p, value %p stub!\n", iface, value);
++    return E_NOTIMPL;
++}
++
++static const struct ISpeechRecognitionListConstraintVtbl i_speech_recognition_list_constraint_vtbl =
++{
++    /* IUnknown methods */
++    speech_recognition_list_constraint_QueryInterface,
++    speech_recognition_list_constraint_AddRef,
++    speech_recognition_list_constraint_Release,
++    /* IInspectable methods */
++    speech_recognition_list_constraint_GetIids,
++    speech_recognition_list_constraint_GetRuntimeClassName,
++    speech_recognition_list_constraint_GetTrustLevel,
++    /* ISpeechRecognitionListConstraint methods */
++    speech_recognition_list_constraint_get_Commands
++};
++
++/*
++*
++* ISpeechRecognitionConstraint
++*
++*/
++
++static inline struct speech_recognition_list_constraint
++        *impl_from_ISpeechRecognitionConstraint(ISpeechRecognitionConstraint *iface)
++{
++    return CONTAINING_RECORD(iface, struct speech_recognition_list_constraint, ISpeechRecognitionConstraint_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_constraint_QueryInterface(ISpeechRecognitionConstraint *iface, REFIID iid, void **out)
++{
++    struct speech_recognition_list_constraint *impl = impl_from_ISpeechRecognitionConstraint(iface);
++
++    TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
++
++    /* IUnknown_QueryInterface already defined by ISpeechRecognitionListConstraint_iface. Redirect there. */
++    return ISpeechRecognitionListConstraint_QueryInterface(&impl->ISpeechRecognitionListConstraint_iface, iid, out);
++}
++
++static ULONG STDMETHODCALLTYPE speech_recognition_constraint_AddRef(ISpeechRecognitionConstraint *iface)
++{
++    struct speech_recognition_list_constraint *impl = impl_from_ISpeechRecognitionConstraint(iface);
++
++    TRACE("iface %p.\n", iface);
++
++    /* IUnknown_AddRef already defined by ISpeechRecognitionListConstraint_iface. Redirect there. */
++    return ISpeechRecognitionListConstraint_AddRef(&impl->ISpeechRecognitionListConstraint_iface);
++}
++
++static ULONG STDMETHODCALLTYPE speech_recognition_constraint_Release(ISpeechRecognitionConstraint *iface)
++{
++    struct speech_recognition_list_constraint *impl = impl_from_ISpeechRecognitionConstraint(iface);
++
++    TRACE("iface %p.\n", iface);
++
++    /* IUnknown_Release already defined by ISpeechRecognitionListConstraint_iface. Redirect there. */
++    return ISpeechRecognitionListConstraint_Release(&impl->ISpeechRecognitionListConstraint_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_constraint_GetIids(ISpeechRecognitionConstraint *iface, ULONG *iid_count, IID **iids)
++{
++    struct speech_recognition_list_constraint *impl = impl_from_ISpeechRecognitionConstraint(iface);
++
++    TRACE("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++
++    /* IInspectable_GetIids already defined by ISpeechRecognitionListConstraint_iface. Redirect there. */
++    return ISpeechRecognitionListConstraint_GetIids(&impl->ISpeechRecognitionListConstraint_iface, iid_count, iids);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_constraint_GetRuntimeClassName(ISpeechRecognitionConstraint *iface, HSTRING *class_name)
++{
++    struct speech_recognition_list_constraint *impl = impl_from_ISpeechRecognitionConstraint(iface);
++
++    TRACE("iface %p, class_name %p stub!\n", iface, class_name);
++
++    /* IInspectable_GetRuntimeClassName already defined by ISpeechRecognitionListConstraint_iface. Redirect there. */
++    return ISpeechRecognitionListConstraint_GetRuntimeClassName(&impl->ISpeechRecognitionListConstraint_iface, class_name);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_constraint_GetTrustLevel(ISpeechRecognitionConstraint *iface, TrustLevel *trust_level)
++{
++    struct speech_recognition_list_constraint *impl = impl_from_ISpeechRecognitionConstraint(iface);
++
++    TRACE("iface %p, trust_level %p stub!\n", iface, trust_level);
++
++    /* IInspectable_GetTrustLevel already defined by ISpeechRecognitionListConstraint_iface. Redirect there. */
++    return ISpeechRecognitionListConstraint_GetTrustLevel(&impl->ISpeechRecognitionListConstraint_iface, trust_level);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_constraint_get_IsEnabled(
++    ISpeechRecognitionConstraint *iface, boolean *value)
++{
++    FIXME("iface %p, value %p stub!\n", iface, value);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_constraint_put_IsEnabled(
++    ISpeechRecognitionConstraint *iface, boolean value)
++{
++    FIXME("iface %p, value %u stub!\n", iface, value);
++
++    return S_OK;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_constraint_get_Tag(
++    ISpeechRecognitionConstraint *iface, HSTRING *value)
++{
++    FIXME("iface %p, value %p stub!\n", iface, value);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_constraint_put_Tag(
++    ISpeechRecognitionConstraint *iface, HSTRING value)
++{
++    FIXME("iface %p, value %p stub!\n", iface, value);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_constraint_get_Type(
++    ISpeechRecognitionConstraint *iface, SpeechRecognitionConstraintType *value)
++{
++    FIXME("iface %p, value %p stub!\n", iface, value);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_constraint_get_Probability(
++    ISpeechRecognitionConstraint *iface, SpeechRecognitionConstraintProbability *value)
++{
++    FIXME("iface %p, value %p stub!\n", iface, value);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_constraint_put_Probability(
++    ISpeechRecognitionConstraint *iface, SpeechRecognitionConstraintProbability value)
++{
++    FIXME("iface %p, value %u stub!\n", iface, value);
++
++    return E_NOTIMPL;
++}
++
++static const struct ISpeechRecognitionConstraintVtbl i_speech_recognition_constraint_vtbl =
++{
++    /* IUnknown methods */
++    speech_recognition_constraint_QueryInterface,
++    speech_recognition_constraint_AddRef,
++    speech_recognition_constraint_Release,
++    /* IInspectable methods */
++    speech_recognition_constraint_GetIids,
++    speech_recognition_constraint_GetRuntimeClassName,
++    speech_recognition_constraint_GetTrustLevel,
++    /* ISpeechRecognitionConstraint methods */
++    speech_recognition_constraint_get_IsEnabled,
++    speech_recognition_constraint_put_IsEnabled,
++    speech_recognition_constraint_get_Tag,
++    speech_recognition_constraint_put_Tag,
++    speech_recognition_constraint_get_Type,
++    speech_recognition_constraint_get_Probability,
++    speech_recognition_constraint_put_Probability,
++};
++
++HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_default(REFIID iid, void **obj)
++{
++    TRACE("iid %p, obj %p.\n", iid, obj);
++    return speech_recognition_list_constraint_create_with_commands_tag(iid, obj, NULL, NULL);
++}
++
++HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_commands(REFIID iid, void **obj, IIterable_HSTRING *commands)
++{
++    TRACE("iid %p, obj %p, commands %p.\n", iid, obj, commands);
++    return speech_recognition_list_constraint_create_with_commands_tag(iid, obj, commands, NULL);
++}
++
++HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_commands_tag(REFIID iid, void **obj, IIterable_HSTRING *commands, HSTRING tag)
++{
++    struct speech_recognition_list_constraint *impl;
++    HRESULT hr;
++
++    TRACE("iid %p, obj %p, *obj %p, commands %p, tag %p.\n", iid, obj, *obj, commands, tag);
++
++    if (!(impl = calloc(1, sizeof(*impl))))
++    {
++        *obj = NULL;
++        return E_OUTOFMEMORY;
++    }
++
++    impl->ISpeechRecognitionListConstraint_iface.lpVtbl = &i_speech_recognition_list_constraint_vtbl;
++    impl->ISpeechRecognitionConstraint_iface.lpVtbl = &i_speech_recognition_constraint_vtbl;
++    impl->ref = 1;
++    
++    hr = ISpeechRecognitionListConstraint_QueryInterface(&impl->ISpeechRecognitionListConstraint_iface, iid, obj);
++    ISpeechRecognitionListConstraint_Release(&impl->ISpeechRecognitionListConstraint_iface);
++
++    return hr;
++}
+diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
+index 9dad80fa8f5..7896716e0b4 100644
+--- a/dlls/windows.media.speech/windows_media_speech_private.h
++++ b/dlls/windows.media.speech/windows_media_speech_private.h
+@@ -68,6 +68,7 @@ struct activation_factory
+ {
+     /* Factories */
+     IActivationFactory IActivationFactory_iface;
++    ISpeechRecognitionListConstraintFactory ISpeechRecognitionListConstraintFactory_iface;
+     ISpeechRecognizerFactory ISpeechRecognizerFactory_iface;
+     /* Static interfaces */
+     IInstalledVoicesStatic IInstalledVoicesStatic_iface;
+@@ -82,6 +83,10 @@ struct activation_factory
+  * 
+  */
+ 
++HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_default(REFIID iid, void **obj) DECLSPEC_HIDDEN;
++HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_commands(REFIID iid, void **obj, IIterable_HSTRING *commands) DECLSPEC_HIDDEN;
++HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_commands_tag(REFIID iid, void **obj, IIterable_HSTRING *commands, HSTRING tag) DECLSPEC_HIDDEN;
++
+ HRESULT STDMETHODCALLTYPE speech_recognizer_create(REFIID iid, void **obj) DECLSPEC_HIDDEN;
+ 
+ /*
+-- 
+2.34.1
+

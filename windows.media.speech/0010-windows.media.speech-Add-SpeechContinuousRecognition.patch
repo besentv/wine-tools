@@ -1,0 +1,208 @@
+From 2dbd61a53e7f0ca441983822033ab773d26e068f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Thu, 6 Jan 2022 23:32:10 +0100
+Subject: [PATCH 10/10] windows.media.speech: Add
+ SpeechContinuousRecognitionCompletedEventArgs stub.
+
+---
+ dlls/windows.media.speech/Makefile.in         |   1 +
+ .../scr_completedeventargs.c                  | 161 ++++++++++++++++++
+ .../windows_media_speech_private.h            |   2 +
+ 3 files changed, 164 insertions(+)
+ create mode 100644 dlls/windows.media.speech/scr_completedeventargs.c
+
+diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
+index fd6e0b1ac63..0db72fbce61 100644
+--- a/dlls/windows.media.speech/Makefile.in
++++ b/dlls/windows.media.speech/Makefile.in
+@@ -3,6 +3,7 @@ IMPORTS = combase uuid
+ 
+ C_SRCS = \
+ 	main.c \
++	scr_completedeventargs.c \
+ 	speechrecognitionlistconstraint.c \
+ 	speechrecognitionresult.c \
+ 	speechrecognizer.c \
+diff --git a/dlls/windows.media.speech/scr_completedeventargs.c b/dlls/windows.media.speech/scr_completedeventargs.c
+new file mode 100644
+index 00000000000..929f8747408
+--- /dev/null
++++ b/dlls/windows.media.speech/scr_completedeventargs.c
+@@ -0,0 +1,161 @@
++/* WinRT Windows.Media.SpeechRecognition implementation
++ *
++ * Copyright 2022 Bernhard Kölbl
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
++ */
++
++#include "windows_media_speech_private.h"
++
++WINE_DEFAULT_DEBUG_CHANNEL(speech);
++
++/*
++*
++* SpeechContinuousRecognitionCompletedEventArgs
++*
++*/
++
++struct speech_continuous_recognition_completed_event_args
++{
++    ISpeechContinuousRecognitionCompletedEventArgs ISpeechContinuousRecognitionCompletedEventArgs_iface;
++    LONG ref;
++};
++
++
++/*
++*
++* ISpeechContinuousRecognitionCompletedEventArgs
++*
++*/
++
++static inline struct speech_continuous_recognition_completed_event_args *impl_from_ISpeechContinuousRecognitionCompletedEventArgs(
++        ISpeechContinuousRecognitionCompletedEventArgs *iface)
++{
++    return CONTAINING_RECORD(iface, struct speech_continuous_recognition_completed_event_args, ISpeechContinuousRecognitionCompletedEventArgs_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_QueryInterface(
++        ISpeechContinuousRecognitionCompletedEventArgs *iface, REFIID iid, void **out)
++{
++    TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
++
++    if (IsEqualGUID(iid, &IID_IUnknown) ||
++        IsEqualGUID(iid, &IID_IInspectable) ||
++        IsEqualGUID(iid, &IID_ISpeechContinuousRecognitionCompletedEventArgs))
++    {
++        IUnknown_AddRef(iface);
++        *out = iface;
++        return S_OK;
++    }
++
++
++    WARN("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
++    *out = NULL;
++    return E_NOINTERFACE;
++}
++
++static ULONG STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_AddRef(
++        ISpeechContinuousRecognitionCompletedEventArgs *iface)
++{
++    struct speech_continuous_recognition_completed_event_args *impl = impl_from_ISpeechContinuousRecognitionCompletedEventArgs(iface);
++
++    ULONG ref = InterlockedIncrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    return ref;
++}
++
++static ULONG STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_Release(
++        ISpeechContinuousRecognitionCompletedEventArgs *iface)
++{
++    struct speech_continuous_recognition_completed_event_args *impl = impl_from_ISpeechContinuousRecognitionCompletedEventArgs(iface);
++
++    ULONG ref = InterlockedDecrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    if(!ref)
++        heap_free(impl);
++
++    return ref;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_GetIids(
++        ISpeechContinuousRecognitionCompletedEventArgs *iface, ULONG *iid_count, IID **iids)
++{
++    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_GetRuntimeClassName(
++        ISpeechContinuousRecognitionCompletedEventArgs *iface, HSTRING *class_name)
++{
++    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_GetTrustLevel(
++        ISpeechContinuousRecognitionCompletedEventArgs *iface, TrustLevel *trust_level)
++{
++    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_get_Status(
++        ISpeechContinuousRecognitionCompletedEventArgs *iface, SpeechRecognitionResultStatus *value)
++{
++    FIXME("iface %p, value %p stub!\n", iface, value);
++    
++    return E_NOTIMPL;
++}
++
++static const struct ISpeechContinuousRecognitionCompletedEventArgsVtbl 
++        speech_continuous_recognition_completed_event_args_vtbl =
++{
++    /* IUnknown methods */
++    speech_continuous_recognition_completed_event_args_QueryInterface,
++    speech_continuous_recognition_completed_event_args_AddRef,
++    speech_continuous_recognition_completed_event_args_Release,
++    /* IInspectable methods */
++    speech_continuous_recognition_completed_event_args_GetIids,
++    speech_continuous_recognition_completed_event_args_GetRuntimeClassName,
++    speech_continuous_recognition_completed_event_args_GetTrustLevel,
++    /* ISpeechContinuousRecognitionCompletedEventArgs methods */
++    speech_continuous_recognition_completed_event_args_get_Status
++};
++
++HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_create(REFIID iid, void **obj)
++{
++    struct speech_continuous_recognition_completed_event_args *impl;
++    HRESULT hr;
++
++    TRACE("iid %p, obj %p.\n", iid, obj);
++
++    if (!(impl = calloc(1, sizeof(*impl))))
++    {
++        *obj = NULL;
++        return E_OUTOFMEMORY;
++    }
++
++    impl->ISpeechContinuousRecognitionCompletedEventArgs_iface.lpVtbl = &speech_continuous_recognition_completed_event_args_vtbl;
++    impl->ref = 1;
++
++    hr = ISpeechContinuousRecognitionCompletedEventArgs_QueryInterface(&impl->ISpeechContinuousRecognitionCompletedEventArgs_iface, iid, obj);
++    ISpeechContinuousRecognitionCompletedEventArgs_Release(&impl->ISpeechContinuousRecognitionCompletedEventArgs_iface);
++
++    return hr;
++}
+diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
+index 886291c4135..e3db39743ca 100644
+--- a/dlls/windows.media.speech/windows_media_speech_private.h
++++ b/dlls/windows.media.speech/windows_media_speech_private.h
+@@ -83,6 +83,8 @@ struct activation_factory
+  * 
+  */
+ 
++HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_create(REFIID iid, void **obj) DECLSPEC_HIDDEN;
++
+ HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_default(REFIID iid, void **obj) DECLSPEC_HIDDEN;
+ HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_commands(REFIID iid, void **obj, IIterable_HSTRING *commands) DECLSPEC_HIDDEN;
+ HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_commands_tag(REFIID iid, void **obj, IIterable_HSTRING *commands, HSTRING tag) DECLSPEC_HIDDEN;
+-- 
+2.34.1
+

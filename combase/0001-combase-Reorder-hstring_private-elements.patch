@@ -1,7 +1,7 @@
-From ddd1b3b3f75323b26685493fe81276b450c81d17 Mon Sep 17 00:00:00 2001
+From 41bcf78c605b372566fe759a043b9e4e3b2d2179 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Fri, 24 Dec 2021 22:31:29 +0100
-Subject: [PATCH v3] combase: Reorder hstring_private elements.
+Subject: [PATCH v4] combase: Reorder hstring_private elements.
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -16,15 +16,16 @@ a seperate pointer is used to point at the string-source.
 
 Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
 ---
+v4: Remove leftover debugging TRACE and minor style changes.
 v3: Add nested hstring_header struct to hstring_private and add a test for both.
 v2: I was mistaken about no reference counting being used.
 ---
- dlls/combase/string.c       | 127 ++++++++++++++++++++++--------------
- dlls/combase/tests/string.c |  71 +++++++++++++++++++-
- 2 files changed, 149 insertions(+), 49 deletions(-)
+ dlls/combase/string.c       | 126 ++++++++++++++++++++++--------------
+ dlls/combase/tests/string.c |  73 ++++++++++++++++++++-
+ 2 files changed, 150 insertions(+), 49 deletions(-)
 
 diff --git a/dlls/combase/string.c b/dlls/combase/string.c
-index 2092e4360a3..0b676c1e965 100644
+index 2092e4360a3..1677915c244 100644
 --- a/dlls/combase/string.c
 +++ b/dlls/combase/string.c
 @@ -26,44 +26,58 @@
@@ -43,7 +44,7 @@ index 2092e4360a3..0b676c1e965 100644
 -    LONG   refcount;
 +    UINT32 padding1;
 +    UINT32 padding2;
-+    LPCWSTR ptr;
++    const WCHAR *ptr;
  };
  
 +struct hstring_private
@@ -81,7 +82,7 @@ index 2092e4360a3..0b676c1e965 100644
  {
      struct hstring_private *priv;
 -    priv = HeapAlloc(GetProcessHeap(), 0, sizeof(*priv) + (len + 1) * sizeof(*priv->buffer));
-+    priv = HeapAlloc(GetProcessHeap(), 0, sizeof(*priv) + (len) * sizeof(*priv->buffer));
++    priv = HeapAlloc(GetProcessHeap(), 0, sizeof(*priv) + len * sizeof(*priv->buffer));
      if (!priv)
          return FALSE;
 -    priv->buffer = (LPWSTR)(priv + 1);
@@ -211,7 +212,7 @@ index 2092e4360a3..0b676c1e965 100644
  }
  
  /***********************************************************************
-@@ -274,9 +304,10 @@ HRESULT WINAPI WindowsStringHasEmbeddedNull(HSTRING str, BOOL *out)
+@@ -274,9 +304,9 @@ HRESULT WINAPI WindowsStringHasEmbeddedNull(HSTRING str, BOOL *out)
          *out = FALSE;
          return S_OK;
      }
@@ -219,12 +220,11 @@ index 2092e4360a3..0b676c1e965 100644
 +    for (i = 0; i < (priv->header.length); i++)
      {
 -        if (priv->buffer[i] == '\0')
-+        TRACE("->>>>>>>>>>>>>>%d,", i);
 +        if (priv->header.ptr[i] == '\0')
          {
              *out = TRUE;
              return S_OK;
-@@ -305,7 +336,7 @@ HRESULT WINAPI WindowsSubstring(HSTRING str, UINT32 start, HSTRING *out)
+@@ -305,7 +335,7 @@ HRESULT WINAPI WindowsSubstring(HSTRING str, UINT32 start, HSTRING *out)
          *out = NULL;
          return S_OK;
      }
@@ -233,7 +233,7 @@ index 2092e4360a3..0b676c1e965 100644
  }
  
  /***********************************************************************
-@@ -327,7 +358,7 @@ HRESULT WINAPI WindowsSubstringWithSpecifiedLength(HSTRING str, UINT32 start, UI
+@@ -327,7 +357,7 @@ HRESULT WINAPI WindowsSubstringWithSpecifiedLength(HSTRING str, UINT32 start, UI
          *out = NULL;
          return S_OK;
      }
@@ -242,7 +242,7 @@ index 2092e4360a3..0b676c1e965 100644
  }
  
  /***********************************************************************
-@@ -347,16 +378,16 @@ HRESULT WINAPI WindowsConcatString(HSTRING str1, HSTRING str2, HSTRING *out)
+@@ -347,16 +377,16 @@ HRESULT WINAPI WindowsConcatString(HSTRING str1, HSTRING str2, HSTRING *out)
          return WindowsDuplicateString(str2, out);
      if (str2 == NULL)
          return WindowsDuplicateString(str1, out);
@@ -263,7 +263,7 @@ index 2092e4360a3..0b676c1e965 100644
      return S_OK;
  }
  
-@@ -371,7 +402,7 @@ BOOL WINAPI WindowsIsStringEmpty(HSTRING str)
+@@ -371,7 +401,7 @@ BOOL WINAPI WindowsIsStringEmpty(HSTRING str)
  
      if (str == NULL)
          return TRUE;
@@ -272,7 +272,7 @@ index 2092e4360a3..0b676c1e965 100644
  }
  
  /***********************************************************************
-@@ -395,13 +426,13 @@ HRESULT WINAPI WindowsCompareStringOrdinal(HSTRING str1, HSTRING str2, INT32 *re
+@@ -395,13 +425,13 @@ HRESULT WINAPI WindowsCompareStringOrdinal(HSTRING str1, HSTRING str2, INT32 *re
      }
      if (str1)
      {
@@ -290,7 +290,7 @@ index 2092e4360a3..0b676c1e965 100644
      }
      *res = CompareStringOrdinal(buf1, len1, buf2, len2, FALSE) - CSTR_EQUAL;
      return S_OK;
-@@ -418,19 +449,19 @@ HRESULT WINAPI WindowsTrimStringStart(HSTRING str1, HSTRING str2, HSTRING *out)
+@@ -418,19 +448,19 @@ HRESULT WINAPI WindowsTrimStringStart(HSTRING str1, HSTRING str2, HSTRING *out)
  
      TRACE("(%p, %p, %p)\n", str1, str2, out);
  
@@ -314,7 +314,7 @@ index 2092e4360a3..0b676c1e965 100644
                     WindowsDuplicateString(str1, out);
  }
  
-@@ -445,18 +476,18 @@ HRESULT WINAPI WindowsTrimStringEnd(HSTRING str1, HSTRING str2, HSTRING *out)
+@@ -445,18 +475,18 @@ HRESULT WINAPI WindowsTrimStringEnd(HSTRING str1, HSTRING str2, HSTRING *out)
  
      TRACE("(%p, %p, %p)\n", str1, str2, out);
  
@@ -338,7 +338,7 @@ index 2092e4360a3..0b676c1e965 100644
                                     WindowsDuplicateString(str1, out);
  }
 diff --git a/dlls/combase/tests/string.c b/dlls/combase/tests/string.c
-index 5ebf669a426..f796bbeef18 100644
+index 5ebf669a426..bb477503a4b 100644
 --- a/dlls/combase/tests/string.c
 +++ b/dlls/combase/tests/string.c
 @@ -37,7 +37,7 @@ static void _check_string(int line, HSTRING str, LPCWSTR content, UINT32 length,
@@ -350,22 +350,24 @@ index 5ebf669a426..f796bbeef18 100644
      ok_(__FILE__, line)(WindowsGetStringLen(str) == length, "WindowsGetStringLen failed\n");
      ptr = WindowsGetStringRawBuffer(str, &out_length);
      /* WindowsGetStringRawBuffer should return a non-null, null terminated empty string
-@@ -479,6 +479,74 @@ static void test_trim(void)
+@@ -479,6 +479,76 @@ static void test_trim(void)
      ok(WindowsDeleteString(str1) == S_OK, "Failed to delete string\n");
  }
  
 +static void test_hstring_struct(void)
 +{
++    struct hstring_header
++    {
++        UINT32 flags;
++        UINT32 length;
++        UINT32 padding1;
++        UINT32 padding2;
++        const WCHAR *ptr;
++    };
++
 +    struct hstring_private
 +    {
-+        struct hstring_header
-+        {
-+            UINT32 flags;
-+            UINT32 length;
-+            UINT32 padding1;
-+            UINT32 padding2;
-+            LPCWSTR ptr;
-+        }header;
++        struct hstring_header header;
 +        LONG refcount;
 +        WCHAR buffer[1];
 +    };
@@ -378,9 +380,9 @@ index 5ebf669a426..f796bbeef18 100644
 +
 +    BOOL arch64 = (sizeof(void*) == 8);
 +
-+    ok(arch64 ? (sizeof(prv->header) == 24) : (sizeof(prv->header) == 20), "hstring_header size incorrect!\n");
++    ok(arch64 ? (sizeof(prv->header) == 24) : (sizeof(prv->header) == 20), "hstring_header size incorrect.\n");
 +
-+    ok(WindowsCreateString(input_string, 6, &str) == S_OK, "Failed to create string\n");
++    ok(WindowsCreateString(input_string, 6, &str) == S_OK, "Failed to create string.\n");
 +
 +    prv = CONTAINING_RECORD(str, struct hstring_private, header);
 +
@@ -389,21 +391,21 @@ index 5ebf669a426..f796bbeef18 100644
 +    ok(prv->header.ptr != NULL, "Unexpected nullptr in ptr field.\n");
 +    ok(prv->refcount == 1, "Expected 1 in refcount, got %d.\n", prv->refcount);
 +    ok(prv->header.ptr == prv->buffer, "Expected ptr to point at buffer, instead pointing at %p.\n", prv->header.ptr);
-+    ok(wcscmp(input_string, prv->buffer) == 0, "Strings didn't match!\n");
++    ok(wcscmp(input_string, prv->buffer) == 0, "Strings didn't match.\n");
 +
-+    trace("str ptr(%p), flags(%d), length(%d), padding1(%p), padding2(%p), ptr(%p), refcount(%d), str(%ls)->addr(%p)\n",
++    trace("hstr ptr(%p), flags(%d), length(%d), padding1(%p), padding2(%p), ptr(%p), refcount(%d), str(%ls)->addr(%p)\n",
 +        prv, prv->header.flags, prv->header.length, &prv->header.padding1, &prv->header.padding2,
 +        prv->header.ptr, prv->refcount, prv->buffer, prv->buffer);
 +
-+    ok(WindowsDuplicateString(str, &str2) == S_OK, "Failed to duplicate string\n");
++    ok(WindowsDuplicateString(str, &str2) == S_OK, "Failed to duplicate string.\n");
 +
 +    prv2 = CONTAINING_RECORD(str2, struct hstring_private, header);
 +
 +    ok(prv->refcount == 2, "Expected 2 in refcount, got %d.\n", prv->refcount);
 +    ok(prv2->refcount == 2, "Expected 2 in refcount, got %d.\n", prv2->refcount);
-+    ok(wcscmp(input_string, prv2->buffer) == 0, "Strings didn't match!\n");
++    ok(wcscmp(input_string, prv2->buffer) == 0, "Strings didn't match.\n");
 +
-+    ok(WindowsDeleteString(str) == S_OK, "Failed to delete string\n");
++    ok(WindowsDeleteString(str) == S_OK, "Failed to delete string.\n");
 +
 +    ok(prv->refcount == 1, "Expected 1 in refcount, got %d.\n", prv->refcount);
 +
@@ -425,7 +427,7 @@ index 5ebf669a426..f796bbeef18 100644
  START_TEST(string)
  {
      test_create_delete();
-@@ -489,4 +557,5 @@ START_TEST(string)
+@@ -489,4 +559,5 @@ START_TEST(string)
      test_concat();
      test_compare();
      test_trim();
