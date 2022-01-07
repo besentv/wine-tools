@@ -1,4 +1,4 @@
-From f13a957c370d9844b7ed4fe67eca557394ca2c66 Mon Sep 17 00:00:00 2001
+From fbb925d08ea92e060cc6b0a705a39ae2e3faf306 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 22:51:28 +0100
 Subject: [PATCH 07/10] windows.media.speech: Add SpeechRecognizer stub.
@@ -6,10 +6,10 @@ Subject: [PATCH 07/10] windows.media.speech: Add SpeechRecognizer stub.
 ---
  dlls/windows.media.speech/Makefile.in         |   1 +
  dlls/windows.media.speech/classes.idl         |   1 +
- dlls/windows.media.speech/main.c              | 124 ++++++
- dlls/windows.media.speech/speechrecognizer.c  | 389 ++++++++++++++++++
+ dlls/windows.media.speech/main.c              | 124 +++++
+ dlls/windows.media.speech/speechrecognizer.c  | 497 ++++++++++++++++++
  .../windows_media_speech_private.h            |  14 +
- 5 files changed, 529 insertions(+)
+ 5 files changed, 637 insertions(+)
  create mode 100644 dlls/windows.media.speech/speechrecognizer.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
@@ -35,7 +35,7 @@ index 6c141bf4768..4dd43cf6eed 100644
 +#include "windows.media.speechrecognition.idl"
  #include "windows.media.speechsynthesis.idl"
 diff --git a/dlls/windows.media.speech/main.c b/dlls/windows.media.speech/main.c
-index 1ba59efdf67..ff778bd6121 100644
+index 6e06c591d84..1e6578a75fd 100644
 --- a/dlls/windows.media.speech/main.c
 +++ b/dlls/windows.media.speech/main.c
 @@ -58,6 +58,13 @@ static HRESULT STDMETHODCALLTYPE activation_factory_QueryInterface(
@@ -191,10 +191,10 @@ index 1ba59efdf67..ff778bd6121 100644
      return CLASS_E_CLASSNOTAVAILABLE;
 diff --git a/dlls/windows.media.speech/speechrecognizer.c b/dlls/windows.media.speech/speechrecognizer.c
 new file mode 100644
-index 00000000000..734e63e3693
+index 00000000000..3ca0d26d30e
 --- /dev/null
 +++ b/dlls/windows.media.speech/speechrecognizer.c
-@@ -0,0 +1,389 @@
+@@ -0,0 +1,497 @@
 +/* WinRT Windows.Media.SpeechRecognition implementation
 + *
 + * Copyright 2022 Bernhard Kölbl
@@ -227,6 +227,7 @@ index 00000000000..734e63e3693
 +struct speech_recognizer
 +{
 +    ISpeechRecognizer ISpeechRecognizer_iface;
++    IClosable IClosable_iface;
 +    ISpeechRecognizer2 ISpeechRecognizer2_iface;
 +    LONG ref;
 +};
@@ -254,6 +255,13 @@ index 00000000000..734e63e3693
 +    {
 +        IUnknown_AddRef(iface);
 +        *out = iface;
++        return S_OK;
++    }
++
++    if(IsEqualGUID(iid, &IID_IClosable))
++    {
++        IUnknown_AddRef(iface);
++        *out = &impl->IClosable_iface;
 +        return S_OK;
 +    }
 +
@@ -426,6 +434,105 @@ index 00000000000..734e63e3693
 +
 +/*
 +*
++* IClosable
++*
++*/
++
++static inline struct speech_recognizer *impl_from_IClosable(IClosable *iface)
++{
++    return CONTAINING_RECORD(iface, struct speech_recognizer, IClosable_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE closable_QueryInterface(
++        IClosable *iface, REFIID iid, void **out)
++{
++    struct speech_recognizer *impl = impl_from_IClosable(iface);
++
++    TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
++
++    /* IUnknown_QueryInterface already defined by ISpeechRecognizer_iface. Redirect there. */
++    return ISpeechRecognizer_QueryInterface(&impl->ISpeechRecognizer_iface, iid, out);
++}
++
++static ULONG STDMETHODCALLTYPE closable_AddRef(
++        IClosable *iface)
++{
++    struct speech_recognizer *impl = impl_from_IClosable(iface);
++
++    TRACE("iface %p.\n", iface);
++
++    /* IUnknown_AddRef already defined by ISpeechRecognizer_iface. Redirect there. */
++    return ISpeechRecognizer_AddRef(&impl->ISpeechRecognizer_iface);
++}
++
++static ULONG STDMETHODCALLTYPE closable_Release(
++        IClosable *iface)
++{
++    struct speech_recognizer *impl = impl_from_IClosable(iface);
++
++    TRACE("iface %p.\n", iface);
++
++    /* IUnknown_Release already defined by ISpeechRecognizer_iface. Redirect there. */
++    return ISpeechRecognizer_Release(&impl->ISpeechRecognizer_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE closable_GetIids(
++        IClosable *iface, ULONG *iid_count, IID **iids)
++{
++    struct speech_recognizer *impl = impl_from_IClosable(iface);
++
++    TRACE("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++
++    /* IInspectable_GetIids already defined by ISpeechRecognizer_iface. Redirect there. */
++    return ISpeechRecognizer_GetIids(&impl->ISpeechRecognizer_iface, iid_count, iids);
++}
++
++static HRESULT STDMETHODCALLTYPE closable_GetRuntimeClassName(
++        IClosable *iface, HSTRING *class_name)
++{
++    struct speech_recognizer *impl = impl_from_IClosable(iface);
++
++    TRACE("iface %p, class_name %p stub!\n", iface, class_name);
++
++    /* IInspectable_GetRuntimeClassName already defined by ISpeechRecognizer_iface. Redirect there. */
++    return ISpeechRecognizer_GetRuntimeClassName(&impl->ISpeechRecognizer_iface, class_name);
++}
++
++static HRESULT STDMETHODCALLTYPE closable_GetTrustLevel(
++        IClosable *iface, TrustLevel *trust_level)
++{
++    struct speech_recognizer *impl = impl_from_IClosable(iface);
++
++    TRACE("iface %p, trust_level %p stub!\n", iface, trust_level);
++
++    /* IInspectable_GetTrustLevel already defined by ISpeechRecognizer_iface. Redirect there. */
++    return ISpeechRecognizer_GetTrustLevel(&impl->ISpeechRecognizer_iface, trust_level);
++}
++
++static HRESULT STDMETHODCALLTYPE closable_Close(
++        IClosable *iface)
++{
++    FIXME("iface %p stub.\n", iface);
++
++    return E_NOTIMPL;
++}
++
++static const struct IClosableVtbl closable_vtbl =
++{
++    /* IUnknown methods */
++    closable_QueryInterface,
++    closable_AddRef,
++    closable_Release,
++    /* IInspectable methods */
++    closable_GetIids,
++    closable_GetRuntimeClassName,
++    closable_GetTrustLevel,
++    /* IClosable methods */
++    closable_Close,
++};
++
++/*
++*
 +* ISpeechRecognizer2
 +*
 +*/
@@ -437,62 +544,62 @@ index 00000000000..734e63e3693
 +
 +static HRESULT STDMETHODCALLTYPE speech_recognizer2_QueryInterface(ISpeechRecognizer2 *iface, REFIID iid, void **out)
 +{
-+    struct speech_recognizer *This = impl_from_ISpeechRecognizer2(iface);
++    struct speech_recognizer *impl = impl_from_ISpeechRecognizer2(iface);
 +
 +    TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
 +
 +    /* IUnknown_QueryInterface already defined by ISpeechRecognizer_iface. Redirect there. */
-+    return ISpeechRecognizer_QueryInterface(&This->ISpeechRecognizer_iface, iid, out);
++    return ISpeechRecognizer_QueryInterface(&impl->ISpeechRecognizer_iface, iid, out);
 +}
 +
 +static ULONG STDMETHODCALLTYPE speech_recognizer2_AddRef(ISpeechRecognizer2 *iface)
 +{
-+    struct speech_recognizer *This = impl_from_ISpeechRecognizer2(iface);
++    struct speech_recognizer *impl = impl_from_ISpeechRecognizer2(iface);
 +
 +    TRACE("iface %p.\n", iface);
 +
 +    /* IUnknown_AddRef already defined by ISpeechRecognizer_iface. Redirect there. */
-+    return ISpeechRecognizer_AddRef(&This->ISpeechRecognizer_iface);
++    return ISpeechRecognizer_AddRef(&impl->ISpeechRecognizer_iface);
 +}
 +
 +static ULONG STDMETHODCALLTYPE speech_recognizer2_Release(ISpeechRecognizer2 *iface)
 +{
-+    struct speech_recognizer *This = impl_from_ISpeechRecognizer2(iface);
++    struct speech_recognizer *impl = impl_from_ISpeechRecognizer2(iface);
 +
 +    TRACE("iface %p.\n", iface);
 +
 +    /* IUnknown_Release already defined by ISpeechRecognizer_iface. Redirect there. */
-+    return ISpeechRecognizer_Release(&This->ISpeechRecognizer_iface);
++    return ISpeechRecognizer_Release(&impl->ISpeechRecognizer_iface);
 +}
 +
 +static HRESULT STDMETHODCALLTYPE speech_recognizer2_GetIids(ISpeechRecognizer2 *iface, ULONG *iid_count, IID **iids)
 +{
-+    struct speech_recognizer *This = impl_from_ISpeechRecognizer2(iface);
++    struct speech_recognizer *impl = impl_from_ISpeechRecognizer2(iface);
 +
-+    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++    TRACE("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
 +
 +    /* IInspectable_GetIids already defined by ISpeechRecognizer_iface. Redirect there. */
-+    return ISpeechRecognizer_GetIids(&This->ISpeechRecognizer_iface, iid_count, iids);
++    return ISpeechRecognizer_GetIids(&impl->ISpeechRecognizer_iface, iid_count, iids);
 +}
 +
 +static HRESULT STDMETHODCALLTYPE speech_recognizer2_GetRuntimeClassName(ISpeechRecognizer2 *iface, HSTRING *class_name)
 +{
-+    struct speech_recognizer *This = impl_from_ISpeechRecognizer2(iface);
++    struct speech_recognizer *impl = impl_from_ISpeechRecognizer2(iface);
 +
-+    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
++    TRACE("iface %p, class_name %p stub!\n", iface, class_name);
 +
 +    /* IInspectable_GetRuntimeClassName already defined by ISpeechRecognizer_iface. Redirect there. */
-+    return ISpeechRecognizer_GetRuntimeClassName(&This->ISpeechRecognizer_iface, class_name);
++    return ISpeechRecognizer_GetRuntimeClassName(&impl->ISpeechRecognizer_iface, class_name);
 +}
 +
 +static HRESULT STDMETHODCALLTYPE speech_recognizer2_GetTrustLevel(ISpeechRecognizer2 *iface, TrustLevel *trust_level)
 +{
-+    struct speech_recognizer *This = impl_from_ISpeechRecognizer2(iface);
++    struct speech_recognizer *impl = impl_from_ISpeechRecognizer2(iface);
 +
-+    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
++    TRACE("iface %p, trust_level %p stub!\n", iface, trust_level);
 +
 +    /* IInspectable_GetTrustLevel already defined by ISpeechRecognizer_iface. Redirect there. */
-+    return ISpeechRecognizer_GetTrustLevel(&This->ISpeechRecognizer_iface, trust_level);
++    return ISpeechRecognizer_GetTrustLevel(&impl->ISpeechRecognizer_iface, trust_level);
 +}
 +
 +static HRESULT STDMETHODCALLTYPE speech_recognizer2_get_ContinuousRecognitionSession(ISpeechRecognizer2 *iface,
@@ -573,9 +680,10 @@ index 00000000000..734e63e3693
 +        return E_OUTOFMEMORY;
 +    }
 +
-+    /* Stub! Language not used. */
++    /* Stub! ILanguage not used. */
 +
 +    impl->ISpeechRecognizer_iface.lpVtbl = &speech_recognizer_vtbl;
++    impl->IClosable_iface.lpVtbl = &closable_vtbl;
 +    impl->ISpeechRecognizer2_iface.lpVtbl = &speech_recognizer2_vtbl;
 +    impl->ref = 1;
 +

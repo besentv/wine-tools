@@ -1,4 +1,4 @@
-From 82f145b592303aa2012484aec761ecb36d9272f0 Mon Sep 17 00:00:00 2001
+From 6362a30bb3c69910d4d86ba9f30d06fa89daa8ce Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 22:28:43 +0100
 Subject: [PATCH 06/10] windows.media.speech: Move speechsynthesis into a
@@ -7,9 +7,9 @@ Subject: [PATCH 06/10] windows.media.speech: Move speechsynthesis into a
 ---
  dlls/windows.media.speech/Makefile.in         |   3 +-
  dlls/windows.media.speech/main.c              | 565 ++----------------
- dlls/windows.media.speech/speechsynthesis.c   | 513 ++++++++++++++++
+ dlls/windows.media.speech/speechsynthesis.c   | 505 ++++++++++++++++
  .../windows_media_speech_private.h            |  84 +++
- 4 files changed, 665 insertions(+), 500 deletions(-)
+ 4 files changed, 657 insertions(+), 500 deletions(-)
  create mode 100644 dlls/windows.media.speech/speechsynthesis.c
  create mode 100644 dlls/windows.media.speech/windows_media_speech_private.h
 
@@ -27,7 +27,7 @@ index 9fbff8e132f..57f2500d651 100644
  
  IDL_SRCS = classes.idl
 diff --git a/dlls/windows.media.speech/main.c b/dlls/windows.media.speech/main.c
-index b607f9a8203..1ba59efdf67 100644
+index b607f9a8203..6e06c591d84 100644
 --- a/dlls/windows.media.speech/main.c
 +++ b/dlls/windows.media.speech/main.c
 @@ -17,401 +17,27 @@
@@ -505,7 +505,7 @@ index b607f9a8203..1ba59efdf67 100644
 +    IActivationFactory *iface, IInspectable **instance)
  {
 -    struct speech_synthesizer *obj;
-+    struct activation_factory *This = impl_from_IActivationFactory(iface);
++    struct activation_factory *impl = impl_from_IActivationFactory(iface);
 +
 +    TRACE("iface %p, instance %p\n", iface, instance);
  
@@ -514,11 +514,11 @@ index b607f9a8203..1ba59efdf67 100644
 +        return E_INVALIDARG;
  
 -    if (!(obj = calloc(1, sizeof(*obj))))
-+    if (This)
++    if (impl)
      {
 -        *instance = NULL;
 -        return E_OUTOFMEMORY;
-+        return This->create_instance(instance);
++        return impl->create_instance(instance);
      }
  
 -    obj->ISpeechSynthesizer_iface.lpVtbl = &speech_synthesizer_vtbl;
@@ -671,10 +671,10 @@ index b607f9a8203..1ba59efdf67 100644
  }
 diff --git a/dlls/windows.media.speech/speechsynthesis.c b/dlls/windows.media.speech/speechsynthesis.c
 new file mode 100644
-index 00000000000..47c670f75cc
+index 00000000000..47528c58378
 --- /dev/null
 +++ b/dlls/windows.media.speech/speechsynthesis.c
-@@ -0,0 +1,513 @@
+@@ -0,0 +1,505 @@
 +/* WinRT Windows.Media.Speech implementation
 + *
 + * Copyright 2021 Rémi Bernon for CodeWeavers
@@ -697,14 +697,6 @@ index 00000000000..47c670f75cc
 +#include "windows_media_speech_private.h"
 +
 +WINE_DEFAULT_DEBUG_CHANNEL(speech);
-+
-+struct windows_media_speech
-+{
-+    IActivationFactory IActivationFactory_iface;
-+    IInstalledVoicesStatic IInstalledVoicesStatic_iface;
-+
-+    LONG ref;
-+};
 +
 +/*
 +*
