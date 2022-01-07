@@ -1,4 +1,4 @@
-From af506e331841561b7414d5bf26c2af0366e3a87e Mon Sep 17 00:00:00 2001
+From beac49843ca7ee864cdce0e081055ca629350bc8 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 23:29:58 +0100
 Subject: [PATCH 09/10] windows.media.speech: Add SpeechRecognitionResult stub.
@@ -354,18 +354,18 @@ index 00000000000..3b161508df6
 +    return hr;
 +}
 diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
-index 7896716e0b4..886291c4135 100644
+index 911c4c5137c..c7ce4102b42 100644
 --- a/dlls/windows.media.speech/windows_media_speech_private.h
 +++ b/dlls/windows.media.speech/windows_media_speech_private.h
-@@ -87,6 +87,8 @@ HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_default(REFI
- HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_commands(REFIID iid, void **obj, IIterable_HSTRING *commands) DECLSPEC_HIDDEN;
- HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_commands_tag(REFIID iid, void **obj, IIterable_HSTRING *commands, HSTRING tag) DECLSPEC_HIDDEN;
+@@ -87,6 +87,8 @@ HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_default(IIns
+ HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create(IIterable_HSTRING *commands, ISpeechRecognitionListConstraint **listconstraint) DECLSPEC_HIDDEN;
+ HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_tag(IIterable_HSTRING *commands, HSTRING tag, ISpeechRecognitionListConstraint **listconstraint) DECLSPEC_HIDDEN;
  
 +HRESULT STDMETHODCALLTYPE speech_recognition_result_create(REFIID iid, void **obj) DECLSPEC_HIDDEN;
 +
- HRESULT STDMETHODCALLTYPE speech_recognizer_create(REFIID iid, void **obj) DECLSPEC_HIDDEN;
+ HRESULT STDMETHODCALLTYPE speech_recognizer_create_default(IInspectable **inspectable) DECLSPEC_HIDDEN;
+ HRESULT STDMETHODCALLTYPE speech_recognizer_create(ILanguage *language, ISpeechRecognizer **speechrecognizer) DECLSPEC_HIDDEN;
  
- /*
 -- 
 2.34.1
 

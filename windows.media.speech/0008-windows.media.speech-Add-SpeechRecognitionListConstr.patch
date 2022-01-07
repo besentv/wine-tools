@@ -1,4 +1,4 @@
-From 21562484715aeed9b12cb6999eea5f84c3ed3919 Mon Sep 17 00:00:00 2001
+From fe53137c2561bae211813401f303fe1f3bda96c0 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 23:21:54 +0100
 Subject: [PATCH 08/10] windows.media.speech: Add
@@ -6,10 +6,10 @@ Subject: [PATCH 08/10] windows.media.speech: Add
 
 ---
  dlls/windows.media.speech/Makefile.in         |   1 +
- dlls/windows.media.speech/main.c              | 138 ++++++++
+ dlls/windows.media.speech/main.c              | 137 ++++++++
  .../speechrecognitionlistconstraint.c         | 321 ++++++++++++++++++
  .../windows_media_speech_private.h            |   5 +
- 4 files changed, 465 insertions(+)
+ 4 files changed, 464 insertions(+)
  create mode 100644 dlls/windows.media.speech/speechrecognitionlistconstraint.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
@@ -25,25 +25,25 @@ index c1c70538f3e..0f7a993fee5 100644
  	speechsynthesis.c
  
 diff --git a/dlls/windows.media.speech/main.c b/dlls/windows.media.speech/main.c
-index f842de910d9..24a45218925 100644
+index ff778bd6121..15bcb2af3a5 100644
 --- a/dlls/windows.media.speech/main.c
 +++ b/dlls/windows.media.speech/main.c
-@@ -58,6 +58,13 @@ static HRESULT STDMETHODCALLTYPE activation_factory_QueryInterface(
+@@ -64,6 +64,13 @@ static HRESULT STDMETHODCALLTYPE activation_factory_QueryInterface(
+         *out = &impl->ISpeechRecognizerFactory_iface;
          return S_OK;
      }
- 
++    
 +    if (IsEqualGUID(iid, &IID_ISpeechRecognitionListConstraintFactory) && impl->ISpeechRecognitionListConstraintFactory_iface.lpVtbl)
 +    {
 +        IUnknown_AddRef(iface);
 +        *out = &impl->ISpeechRecognitionListConstraintFactory_iface;
 +        return S_OK;
 +    }
-+
+ 
      FIXME("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
      *out = NULL;
-     return E_NOINTERFACE;
-@@ -134,12 +141,136 @@ static const struct IActivationFactoryVtbl activation_factory_vtbl =
-         activation_factory_ActivateInstance,
+@@ -242,12 +249,135 @@ static const struct ISpeechRecognizerFactoryVtbl speech_recognizer_factory_vtbl
+         speech_recognizer_factory_Create
  };
  
 +/*
@@ -128,10 +128,9 @@ index f842de910d9..24a45218925 100644
 +    IIterable_HSTRING *commands,
 +    ISpeechRecognitionListConstraint** listconstraint)
 +{
-+    TRACE("iface %p, listconstraint %p, commands %p stub!\n", iface, listconstraint, commands);
++    TRACE("iface %p, commands %p, listconstraint %p.\n", iface, commands, listconstraint);
 +
-+    return speech_recognition_list_constraint_create_with_commands(
-+        &IID_ISpeechRecognitionListConstraint, (void**) listconstraint, commands);
++    return speech_recognition_list_constraint_create(commands, listconstraint);
 +}
 +
 +static HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_factory_CreateWithTag(
@@ -140,10 +139,9 @@ index f842de910d9..24a45218925 100644
 +    HSTRING tag,
 +    ISpeechRecognitionListConstraint** listconstraint)
 +{
-+    TRACE("iface %p, listconstraint %p, commands %p, tag %p stub!\n", iface, listconstraint, commands, tag);
++    TRACE("iface %p, commands %p, tag %p, listconstraint %p.\n", iface, commands, tag, listconstraint);
 +
-+    return speech_recognition_list_constraint_create_with_commands_tag(
-+        &IID_ISpeechRecognitionListConstraint, (void**) listconstraint, commands, tag);
++    return speech_recognition_list_constraint_create_with_tag(commands, tag, listconstraint);
 +}
 +
 +static const struct ISpeechRecognitionListConstraintFactoryVtbl speech_recognition_list_constraint_factory_vtbl =
@@ -160,6 +158,7 @@ index f842de910d9..24a45218925 100644
 +        speech_recognition_list_constraint_factory_Create,
 +        speech_recognition_list_constraint_factory_CreateWithTag,
 +};
++
 +
  /*
  *
@@ -179,7 +178,7 @@ index f842de910d9..24a45218925 100644
  static struct activation_factory speechrecognition_speechrecognizer_af =
  {
      .IActivationFactory_iface = {&activation_factory_vtbl},
-@@ -186,6 +317,13 @@ HRESULT WINAPI DllGetActivationFactory(HSTRING classid, IActivationFactory **fac
+@@ -295,6 +425,13 @@ HRESULT WINAPI DllGetActivationFactory(HSTRING classid, IActivationFactory **fac
          IUnknown_AddRef(*factory);
          return S_OK;
      }
@@ -195,7 +194,7 @@ index f842de910d9..24a45218925 100644
      return CLASS_E_CLASSNOTAVAILABLE;
 diff --git a/dlls/windows.media.speech/speechrecognitionlistconstraint.c b/dlls/windows.media.speech/speechrecognitionlistconstraint.c
 new file mode 100644
-index 00000000000..9136712d74c
+index 00000000000..84646c013ed
 --- /dev/null
 +++ b/dlls/windows.media.speech/speechrecognitionlistconstraint.c
 @@ -0,0 +1,321 @@
@@ -486,28 +485,28 @@ index 00000000000..9136712d74c
 +    speech_recognition_constraint_put_Probability,
 +};
 +
-+HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_default(REFIID iid, void **obj)
++HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_default(IInspectable **inspectable)
 +{
-+    TRACE("iid %p, obj %p.\n", iid, obj);
-+    return speech_recognition_list_constraint_create_with_commands_tag(iid, obj, NULL, NULL);
++    TRACE("inspectable %p.\n", inspectable);
++    return speech_recognition_list_constraint_create_with_tag(NULL, NULL, (ISpeechRecognitionListConstraint**)inspectable);
 +}
 +
-+HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_commands(REFIID iid, void **obj, IIterable_HSTRING *commands)
++HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create(IIterable_HSTRING *commands, ISpeechRecognitionListConstraint **listconstraint)
 +{
-+    TRACE("iid %p, obj %p, commands %p.\n", iid, obj, commands);
-+    return speech_recognition_list_constraint_create_with_commands_tag(iid, obj, commands, NULL);
++    TRACE("commands %p, listconstraint %p.\n", commands, listconstraint);
++    return speech_recognition_list_constraint_create_with_tag(commands, NULL, listconstraint);
 +}
 +
-+HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_commands_tag(REFIID iid, void **obj, IIterable_HSTRING *commands, HSTRING tag)
++HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_tag(IIterable_HSTRING *commands, HSTRING tag, ISpeechRecognitionListConstraint **listconstraint)
 +{
 +    struct speech_recognition_list_constraint *impl;
 +    HRESULT hr;
 +
-+    TRACE("iid %p, obj %p, *obj %p, commands %p, tag %p.\n", iid, obj, *obj, commands, tag);
++    TRACE("commands %p, tag %p, listconstraint %p.\n", commands, tag, listconstraint);
 +
 +    if (!(impl = calloc(1, sizeof(*impl))))
 +    {
-+        *obj = NULL;
++        *listconstraint = NULL;
 +        return E_OUTOFMEMORY;
 +    }
 +
@@ -515,13 +514,13 @@ index 00000000000..9136712d74c
 +    impl->ISpeechRecognitionConstraint_iface.lpVtbl = &i_speech_recognition_constraint_vtbl;
 +    impl->ref = 1;
 +    
-+    hr = ISpeechRecognitionListConstraint_QueryInterface(&impl->ISpeechRecognitionListConstraint_iface, iid, obj);
++    hr = ISpeechRecognitionListConstraint_QueryInterface(&impl->ISpeechRecognitionListConstraint_iface, &IID_ISpeechRecognitionListConstraint, (void**)listconstraint);
 +    ISpeechRecognitionListConstraint_Release(&impl->ISpeechRecognitionListConstraint_iface);
 +
 +    return hr;
 +}
 diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
-index 9dad80fa8f5..7896716e0b4 100644
+index a7a545f03fc..911c4c5137c 100644
 --- a/dlls/windows.media.speech/windows_media_speech_private.h
 +++ b/dlls/windows.media.speech/windows_media_speech_private.h
 @@ -68,6 +68,7 @@ struct activation_factory
@@ -536,13 +535,13 @@ index 9dad80fa8f5..7896716e0b4 100644
   * 
   */
  
-+HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_default(REFIID iid, void **obj) DECLSPEC_HIDDEN;
-+HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_commands(REFIID iid, void **obj, IIterable_HSTRING *commands) DECLSPEC_HIDDEN;
-+HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_commands_tag(REFIID iid, void **obj, IIterable_HSTRING *commands, HSTRING tag) DECLSPEC_HIDDEN;
++HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_default(IInspectable **inspectable) DECLSPEC_HIDDEN;
++HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create(IIterable_HSTRING *commands, ISpeechRecognitionListConstraint **listconstraint) DECLSPEC_HIDDEN;
++HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_tag(IIterable_HSTRING *commands, HSTRING tag, ISpeechRecognitionListConstraint **listconstraint) DECLSPEC_HIDDEN;
 +
- HRESULT STDMETHODCALLTYPE speech_recognizer_create(REFIID iid, void **obj) DECLSPEC_HIDDEN;
+ HRESULT STDMETHODCALLTYPE speech_recognizer_create_default(IInspectable **inspectable) DECLSPEC_HIDDEN;
+ HRESULT STDMETHODCALLTYPE speech_recognizer_create(ILanguage *language, ISpeechRecognizer **speechrecognizer) DECLSPEC_HIDDEN;
  
- /*
 -- 
 2.34.1
 

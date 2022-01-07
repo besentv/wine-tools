@@ -1,0 +1,630 @@
+From 4ade32d8ee7a4bf42abcfe58fc7399eed49af41b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Thu, 6 Jan 2022 22:51:28 +0100
+Subject: [PATCH 07/10] windows.media.speech: Add SpeechRecognizer stub.
+
+---
+ dlls/windows.media.speech/Makefile.in         |   1 +
+ dlls/windows.media.speech/classes.idl         |   1 +
+ dlls/windows.media.speech/main.c              | 124 ++++++
+ dlls/windows.media.speech/speechrecognizer.c  | 389 ++++++++++++++++++
+ .../windows_media_speech_private.h            |  14 +
+ 5 files changed, 529 insertions(+)
+ create mode 100644 dlls/windows.media.speech/speechrecognizer.c
+
+diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
+index 57f2500d651..c1c70538f3e 100644
+--- a/dlls/windows.media.speech/Makefile.in
++++ b/dlls/windows.media.speech/Makefile.in
+@@ -3,6 +3,7 @@ IMPORTS = combase uuid
+ 
+ C_SRCS = \
+ 	main.c \
++	speechrecognizer.c \
+ 	speechsynthesis.c
+ 
+ IDL_SRCS = classes.idl
+diff --git a/dlls/windows.media.speech/classes.idl b/dlls/windows.media.speech/classes.idl
+index 6c141bf4768..4dd43cf6eed 100644
+--- a/dlls/windows.media.speech/classes.idl
++++ b/dlls/windows.media.speech/classes.idl
+@@ -16,4 +16,5 @@
+ 
+ #pragma makedep register
+ 
++#include "windows.media.speechrecognition.idl"
+ #include "windows.media.speechsynthesis.idl"
+diff --git a/dlls/windows.media.speech/main.c b/dlls/windows.media.speech/main.c
+index 1ba59efdf67..ff778bd6121 100644
+--- a/dlls/windows.media.speech/main.c
++++ b/dlls/windows.media.speech/main.c
+@@ -58,6 +58,13 @@ static HRESULT STDMETHODCALLTYPE activation_factory_QueryInterface(
+         return S_OK;
+     }
+ 
++    if (IsEqualGUID(iid, &IID_ISpeechRecognizerFactory))
++    {
++        IUnknown_AddRef(iface);
++        *out = &impl->ISpeechRecognizerFactory_iface;
++        return S_OK;
++    }
++
+     FIXME("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
+     *out = NULL;
+     return E_NOINTERFACE;
+@@ -134,12 +141,122 @@ static const struct IActivationFactoryVtbl activation_factory_vtbl =
+         activation_factory_ActivateInstance,
+ };
+ 
++/*
++*
++* ISpeechRecognizerFactory
++*
++*/
++
++static inline struct activation_factory *impl_from_ISpeechRecognizerFactory(ISpeechRecognizerFactory *iface)
++{
++    return CONTAINING_RECORD(iface, struct activation_factory, ISpeechRecognizerFactory_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_factory_QueryInterface(
++    ISpeechRecognizerFactory *iface, REFIID iid, void **out)
++{
++    struct activation_factory *impl = impl_from_ISpeechRecognizerFactory(iface);
++
++    TRACE("iface %p, iid %s, out %p stub!\n", iface, debugstr_guid(iid), out);
++
++    /* IUnknown_QueryInterface already defined by IActivationFactory_iface. Redirect there. */
++    return IActivationFactory_QueryInterface(&impl->IActivationFactory_iface, iid, out);
++}
++
++static ULONG STDMETHODCALLTYPE speech_recognizer_factory_AddRef(
++    ISpeechRecognizerFactory *iface)
++{
++    struct activation_factory *impl = impl_from_ISpeechRecognizerFactory(iface);
++
++    TRACE("iface %p\n", iface);
++
++    /* IUnknown_AddRef already defined by IActivationFactory_iface. Redirect there. */
++    return IActivationFactory_AddRef(&impl->IActivationFactory_iface);
++}
++
++static ULONG STDMETHODCALLTYPE speech_recognizer_factory_Release(
++    ISpeechRecognizerFactory *iface)
++{
++    struct activation_factory *impl = impl_from_ISpeechRecognizerFactory(iface);
++
++    TRACE("iface %p\n", iface);
++
++    /* IUnknown_Release already defined by IActivationFactory_iface. Redirect there. */
++    return IActivationFactory_Release(&impl->IActivationFactory_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_factory_GetIids(
++    ISpeechRecognizerFactory *iface, ULONG *iid_count, IID **iids)
++{
++    struct activation_factory *impl = impl_from_ISpeechRecognizerFactory(iface);
++
++    TRACE("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++
++    /* IInspectable_GetIids already defined by ISpeechRecognizer_iface. Redirect there. */
++    return IActivationFactory_GetIids(&impl->IActivationFactory_iface, iid_count, iids);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_factory_GetRuntimeClassName(
++    ISpeechRecognizerFactory *iface, HSTRING *class_name)
++{
++    struct activation_factory *impl = impl_from_ISpeechRecognizerFactory(iface);
++
++    TRACE("iface %p, class_name %p stub!\n", iface, class_name);
++
++    /* IInspectable_GetRuntimeClassName already defined by IActivationFactory_iface. Redirect there. */
++    return IActivationFactory_GetRuntimeClassName(&impl->IActivationFactory_iface, class_name);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_factory_GetTrustLevel(
++    ISpeechRecognizerFactory *iface, TrustLevel *trust_level)
++{
++    struct activation_factory *impl = impl_from_ISpeechRecognizerFactory(iface);
++
++    TRACE("iface %p, trust_level %p stub!\n", iface, trust_level);
++
++    /* IInspectable_GetTrustLevel already defined by IActivationFactory_iface. Redirect there. */
++    return IActivationFactory_GetTrustLevel(&impl->IActivationFactory_iface, trust_level);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_factory_Create(
++    ISpeechRecognizerFactory *iface,
++    ILanguage *language,
++    ISpeechRecognizer **speechrecognizer)
++{
++    TRACE("iface %p, language %p, speechrecognizer %p stub!\n", iface, language, speechrecognizer);
++
++    return speech_recognizer_create(language, speechrecognizer);
++}
++
++static const struct ISpeechRecognizerFactoryVtbl speech_recognizer_factory_vtbl =
++{
++        /* IUnknown methods */
++        speech_recognizer_factory_QueryInterface,
++        speech_recognizer_factory_AddRef,
++        speech_recognizer_factory_Release,
++        /* IInspectable methods */
++        speech_recognizer_factory_GetIids,
++        speech_recognizer_factory_GetRuntimeClassName,
++        speech_recognizer_factory_GetTrustLevel,
++        /* ISpeechRecognizerFactory methods */
++        speech_recognizer_factory_Create
++};
++
+ /*
+ *
+ * ActivationFactory instances
+ *
+ */
+ 
++static struct activation_factory speechrecognition_speechrecognizer_af =
++{
++    .IActivationFactory_iface = {&activation_factory_vtbl},
++    .ISpeechRecognizerFactory_iface = {&speech_recognizer_factory_vtbl},
++    .IInstalledVoicesStatic_iface = {&installed_voices_static_vtbl},
++    .create_instance = speech_recognizer_create_default,
++    .ref = 1
++};
++
+ static struct activation_factory speechsynthesis_speechsynthesizer_af =
+ {
+     .IActivationFactory_iface = {&activation_factory_vtbl},
+@@ -171,6 +288,13 @@ HRESULT WINAPI DllGetActivationFactory(HSTRING classid, IActivationFactory **fac
+         IUnknown_AddRef(*factory);
+         return S_OK;
+     }
++    else if (IsEqualClassID(WindowsGetStringRawBuffer(classid, NULL),
++        L"Windows.Media.SpeechRecognition.SpeechRecognizer"))
++    {
++        *factory = &speechrecognition_speechrecognizer_af.IActivationFactory_iface;
++        IUnknown_AddRef(*factory);
++        return S_OK;
++    }
+ 
+     ERR("Unknown classid %s.\n", debugstr_hstring(classid));
+     return CLASS_E_CLASSNOTAVAILABLE;
+diff --git a/dlls/windows.media.speech/speechrecognizer.c b/dlls/windows.media.speech/speechrecognizer.c
+new file mode 100644
+index 00000000000..734e63e3693
+--- /dev/null
++++ b/dlls/windows.media.speech/speechrecognizer.c
+@@ -0,0 +1,389 @@
++/* WinRT Windows.Media.SpeechRecognition implementation
++ *
++ * Copyright 2022 Bernhard Kölbl
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
++ */
++
++#include "windows_media_speech_private.h"
++
++WINE_DEFAULT_DEBUG_CHANNEL(speech);
++
++/*
++*
++* SpeechRecognizer
++*
++*/
++
++struct speech_recognizer
++{
++    ISpeechRecognizer ISpeechRecognizer_iface;
++    ISpeechRecognizer2 ISpeechRecognizer2_iface;
++    LONG ref;
++};
++
++/*
++*
++* ISpeechRecognizer
++*
++*/
++
++static inline struct speech_recognizer *impl_from_ISpeechRecognizer(ISpeechRecognizer *iface)
++{
++    return CONTAINING_RECORD(iface, struct speech_recognizer, ISpeechRecognizer_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_QueryInterface(ISpeechRecognizer *iface, REFIID iid, void **out)
++{
++    struct speech_recognizer *impl = impl_from_ISpeechRecognizer(iface);
++
++    TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
++
++    if (IsEqualGUID(iid, &IID_IUnknown) ||
++        IsEqualGUID(iid, &IID_IInspectable) ||
++        IsEqualGUID(iid, &IID_ISpeechRecognizer))
++    {
++        IUnknown_AddRef(iface);
++        *out = iface;
++        return S_OK;
++    }
++
++    if(IsEqualGUID(iid, &IID_ISpeechRecognizer2))
++    {
++        IUnknown_AddRef(iface);
++        *out = &impl->ISpeechRecognizer2_iface;
++        return S_OK;
++    }
++
++    WARN("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
++    *out = NULL;
++    return E_NOINTERFACE;
++}
++
++static ULONG STDMETHODCALLTYPE speech_recognizer_AddRef(ISpeechRecognizer *iface)
++{
++    struct speech_recognizer *impl = impl_from_ISpeechRecognizer(iface);
++
++    ULONG ref = InterlockedIncrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    return ref;
++}
++
++static ULONG STDMETHODCALLTYPE speech_recognizer_Release(ISpeechRecognizer *iface)
++{
++    struct speech_recognizer *impl = impl_from_ISpeechRecognizer(iface);
++
++    ULONG ref = InterlockedDecrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    if(!ref)
++        heap_free(impl);
++
++    return ref;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_GetIids(ISpeechRecognizer *iface, ULONG *iid_count, IID **iids)
++{
++    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_GetRuntimeClassName(ISpeechRecognizer *iface, HSTRING *class_name)
++{
++    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_GetTrustLevel(ISpeechRecognizer *iface, TrustLevel *trust_level)
++{
++    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_get_Constraints(ISpeechRecognizer *iface,
++    IVector_ISpeechRecognitionConstraint **vector)
++{
++    FIXME("iface %p, operation %p stub!\n", iface, vector);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_get_CurrentLanguage(ISpeechRecognizer *iface,
++    ILanguage **language)
++{
++    FIXME("iface %p, operation %p stub!\n", iface, language);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_get_Timeouts(ISpeechRecognizer *iface,
++    ISpeechRecognizerTimeouts **timeouts)
++{
++    FIXME("iface %p, operation %p stub!\n", iface, timeouts);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_get_UIOptions(ISpeechRecognizer *iface,
++    ISpeechRecognizerUIOptions **options)
++{
++    FIXME("iface %p, operation %p stub!\n", iface, options);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_CompileConstraintsAsync(ISpeechRecognizer *iface,
++    IAsyncOperation_SpeechRecognitionCompilationResult **operation)
++{
++    FIXME("iface %p, operation %p stub!\n", iface, operation);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_RecognizeAsync(ISpeechRecognizer *iface,
++    IAsyncOperation_SpeechRecognitionResult **operation)
++{
++    FIXME("iface %p, operation %p stub!\n", iface, operation);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_RecognizeWithUIAsync(ISpeechRecognizer *iface,
++    IAsyncOperation_SpeechRecognitionResult **operation)
++{
++    FIXME("iface %p, operation %p stub!\n", iface, operation);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_add_RecognitionQualityDegrading(ISpeechRecognizer *iface,
++    ITypedEventHandler_ISpeechRecognizer_ISpeechRecognitionQualityDegradingEventArgs *handler, EventRegistrationToken *token)
++{
++    FIXME("iface %p, operation %p, token %p, stub!\n", iface, handler, token);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_remove_RecognitionQualityDegrading(
++    ISpeechRecognizer *iface, EventRegistrationToken token)
++{
++    FIXME("iface %p, token %#I64x, stub!\n", iface, token);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_add_StateChanged(ISpeechRecognizer *iface,
++    ITypedEventHandler_ISpeechRecognizer_ISpeechRecognizerStateChangedEventArgs *handler, EventRegistrationToken *token)
++{
++    FIXME("iface %p, operation %p, token %p, stub!\n", iface, handler, token);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer_remove_StateChanged(
++    ISpeechRecognizer *iface, EventRegistrationToken token)
++{
++    FIXME("iface %p, token %#I64x, stub!\n", iface, token);
++    
++    return E_NOTIMPL;
++}
++
++static const struct ISpeechRecognizerVtbl speech_recognizer_vtbl =
++{
++    /* IUnknown methods */
++    speech_recognizer_QueryInterface,
++    speech_recognizer_AddRef,
++    speech_recognizer_Release,
++    /* IInspectable methods */
++    speech_recognizer_GetIids,
++    speech_recognizer_GetRuntimeClassName,
++    speech_recognizer_GetTrustLevel,
++    /* ISpeechRecognizer methods */
++    speech_recognizer_get_CurrentLanguage,
++    speech_recognizer_get_Constraints,
++    speech_recognizer_get_Timeouts,
++    speech_recognizer_get_UIOptions,
++    speech_recognizer_CompileConstraintsAsync,
++    speech_recognizer_RecognizeAsync,
++    speech_recognizer_RecognizeWithUIAsync,
++    speech_recognizer_add_RecognitionQualityDegrading,
++    speech_recognizer_remove_RecognitionQualityDegrading,
++    speech_recognizer_add_StateChanged,
++    speech_recognizer_remove_StateChanged,
++};
++
++/*
++*
++* ISpeechRecognizer2
++*
++*/
++
++static inline struct speech_recognizer *impl_from_ISpeechRecognizer2(ISpeechRecognizer2 *iface)
++{
++    return CONTAINING_RECORD(iface, struct speech_recognizer, ISpeechRecognizer2_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer2_QueryInterface(ISpeechRecognizer2 *iface, REFIID iid, void **out)
++{
++    struct speech_recognizer *This = impl_from_ISpeechRecognizer2(iface);
++
++    TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
++
++    /* IUnknown_QueryInterface already defined by ISpeechRecognizer_iface. Redirect there. */
++    return ISpeechRecognizer_QueryInterface(&This->ISpeechRecognizer_iface, iid, out);
++}
++
++static ULONG STDMETHODCALLTYPE speech_recognizer2_AddRef(ISpeechRecognizer2 *iface)
++{
++    struct speech_recognizer *This = impl_from_ISpeechRecognizer2(iface);
++
++    TRACE("iface %p.\n", iface);
++
++    /* IUnknown_AddRef already defined by ISpeechRecognizer_iface. Redirect there. */
++    return ISpeechRecognizer_AddRef(&This->ISpeechRecognizer_iface);
++}
++
++static ULONG STDMETHODCALLTYPE speech_recognizer2_Release(ISpeechRecognizer2 *iface)
++{
++    struct speech_recognizer *This = impl_from_ISpeechRecognizer2(iface);
++
++    TRACE("iface %p.\n", iface);
++
++    /* IUnknown_Release already defined by ISpeechRecognizer_iface. Redirect there. */
++    return ISpeechRecognizer_Release(&This->ISpeechRecognizer_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer2_GetIids(ISpeechRecognizer2 *iface, ULONG *iid_count, IID **iids)
++{
++    struct speech_recognizer *This = impl_from_ISpeechRecognizer2(iface);
++
++    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++
++    /* IInspectable_GetIids already defined by ISpeechRecognizer_iface. Redirect there. */
++    return ISpeechRecognizer_GetIids(&This->ISpeechRecognizer_iface, iid_count, iids);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer2_GetRuntimeClassName(ISpeechRecognizer2 *iface, HSTRING *class_name)
++{
++    struct speech_recognizer *This = impl_from_ISpeechRecognizer2(iface);
++
++    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
++
++    /* IInspectable_GetRuntimeClassName already defined by ISpeechRecognizer_iface. Redirect there. */
++    return ISpeechRecognizer_GetRuntimeClassName(&This->ISpeechRecognizer_iface, class_name);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer2_GetTrustLevel(ISpeechRecognizer2 *iface, TrustLevel *trust_level)
++{
++    struct speech_recognizer *This = impl_from_ISpeechRecognizer2(iface);
++
++    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
++
++    /* IInspectable_GetTrustLevel already defined by ISpeechRecognizer_iface. Redirect there. */
++    return ISpeechRecognizer_GetTrustLevel(&This->ISpeechRecognizer_iface, trust_level);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer2_get_ContinuousRecognitionSession(ISpeechRecognizer2 *iface,
++    ISpeechContinuousRecognitionSession **session)
++{
++    FIXME("iface %p, session %p stub!\n", iface, session);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer2_get_State(ISpeechRecognizer2 *iface,
++    SpeechRecognizerState *state)
++{
++    FIXME("iface %p, state %p stub!\n", iface, state);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer2_StopRecognitionAsync(ISpeechRecognizer2 *iface,
++    IAsyncAction **action)
++{
++    FIXME("iface %p, action %p stub!\n", iface, action);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer2_add_HypothesisGenerated(ISpeechRecognizer2 *iface,
++    ITypedEventHandler_ISpeechRecognizer2_ISpeechRecognitionHypothesisGeneratedEventArgs *handler, EventRegistrationToken *token)
++{
++    FIXME("iface %p, operation %p, token %p, stub!\n", iface, handler, token);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_recognizer2_remove_HypothesisGenerated(
++    ISpeechRecognizer2 *iface, EventRegistrationToken token)
++{
++    FIXME("iface %p, token %#I64x, stub!\n", iface, token);
++
++    return E_NOTIMPL;
++}
++
++static const struct ISpeechRecognizer2Vtbl speech_recognizer2_vtbl =
++{
++    /* IUnknown methods */
++    speech_recognizer2_QueryInterface,
++    speech_recognizer2_AddRef,
++    speech_recognizer2_Release,
++    /* IInspectable methods */
++    speech_recognizer2_GetIids,
++    speech_recognizer2_GetRuntimeClassName,
++    speech_recognizer2_GetTrustLevel,
++    /* ISpeechRecognizer2 methods */
++    speech_recognizer2_get_ContinuousRecognitionSession,
++    speech_recognizer2_get_State,
++    speech_recognizer2_StopRecognitionAsync,
++    speech_recognizer2_add_HypothesisGenerated,
++    speech_recognizer2_remove_HypothesisGenerated,
++};
++
++HRESULT STDMETHODCALLTYPE speech_recognizer_create_default(IInspectable **inspectable)
++{
++    TRACE("inspectable %p stub!\n", inspectable);
++
++    return speech_recognizer_create(NULL, (ISpeechRecognizer**)inspectable);
++}
++
++HRESULT STDMETHODCALLTYPE speech_recognizer_create(ILanguage *language, ISpeechRecognizer **speechrecognizer)
++{
++    struct speech_recognizer *impl;
++    HRESULT hr;
++
++    TRACE("language %p, speechrecognizer %p stub!\n", language, speechrecognizer);
++
++    if (!(impl = calloc(1, sizeof(*impl))))
++    {
++        *speechrecognizer = NULL;
++        return E_OUTOFMEMORY;
++    }
++
++    /* Stub! Language not used. */
++
++    impl->ISpeechRecognizer_iface.lpVtbl = &speech_recognizer_vtbl;
++    impl->ISpeechRecognizer2_iface.lpVtbl = &speech_recognizer2_vtbl;
++    impl->ref = 1;
++
++    hr = ISpeechRecognizer_QueryInterface(&impl->ISpeechRecognizer_iface, &IID_ISpeechRecognizer, (void**)speechrecognizer);
++    ISpeechRecognizer_Release(&impl->ISpeechRecognizer_iface);
++
++    return hr;
++}
+diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
+index fd42f0ff469..a7a545f03fc 100644
+--- a/dlls/windows.media.speech/windows_media_speech_private.h
++++ b/dlls/windows.media.speech/windows_media_speech_private.h
+@@ -40,8 +40,12 @@
+ #define WIDL_using_Windows_Foundation
+ #define WIDL_using_Windows_Foundation_Collections
+ #include "windows.foundation.h"
++#define WIDL_using_Windows_Globalization
++#include "windows.globalization.h"
+ #define WIDL_using_Windows_Media_SpeechSynthesis
+ #include "windows.media.speechsynthesis.h"
++#define WIDL_using_Windows_Media_SpeechRecognition
++#include "windows.media.speechrecognition.h"
+ 
+ #define IsEqualClassID(classid1, classid2) (!wcscmp(classid1, classid2))
+ 
+@@ -64,6 +68,7 @@ struct activation_factory
+ {
+     /* Factories */
+     IActivationFactory IActivationFactory_iface;
++    ISpeechRecognizerFactory ISpeechRecognizerFactory_iface;
+     /* Static interfaces */
+     IInstalledVoicesStatic IInstalledVoicesStatic_iface;
+     /* Variables */
+@@ -71,6 +76,15 @@ struct activation_factory
+     LONG ref;
+ };
+ 
++/*
++ *
++ * Windows.Media.SpeechRecognition
++ * 
++ */
++
++HRESULT STDMETHODCALLTYPE speech_recognizer_create_default(IInspectable **inspectable) DECLSPEC_HIDDEN;
++HRESULT STDMETHODCALLTYPE speech_recognizer_create(ILanguage *language, ISpeechRecognizer **speechrecognizer) DECLSPEC_HIDDEN;
++
+ /*
+  *
+  * Windows.Media.SpeechSynthesis
+-- 
+2.34.1
+
