@@ -1,12 +1,12 @@
-From 2600bd5994105933f363dceb83da1fd11a60491d Mon Sep 17 00:00:00 2001
+From 2e0b9790bcd99f54beee68114176cbf1d98fe178 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:36:08 +0100
 Subject: [PATCH 05/10] include: Add windows.media.speechrecognition.idl.
 
 ---
  include/Makefile.in                         |   1 +
- include/windows.media.speechrecognition.idl | 715 ++++++++++++++++++++
- 2 files changed, 716 insertions(+)
+ include/windows.media.speechrecognition.idl | 720 ++++++++++++++++++++
+ 2 files changed, 721 insertions(+)
  create mode 100644 include/windows.media.speechrecognition.idl
 
 diff --git a/include/Makefile.in b/include/Makefile.in
@@ -23,10 +23,10 @@ index 9c1ecb516ba..351e0eceef4 100644
  	windows.storage.streams.idl \
 diff --git a/include/windows.media.speechrecognition.idl b/include/windows.media.speechrecognition.idl
 new file mode 100644
-index 00000000000..2ca177271b3
+index 00000000000..bbcf9d7b99d
 --- /dev/null
 +++ b/include/windows.media.speechrecognition.idl
-@@ -0,0 +1,715 @@
+@@ -0,0 +1,720 @@
 +/*
 + * Copyright 2022 Bernhard Kölbl
 + *
@@ -249,7 +249,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechContinuousRecognitionResultGeneratedEventArgs),
-+                uuid(19091E1E-6E7E-5A46-40FB-76594F786504)
++                uuid(19091e1e-6e7e-5a46-40fb-76594f786504)
 +            ]
 +            interface ISpeechContinuousRecognitionResultGeneratedEventArgs : IInspectable
 +            {
@@ -259,7 +259,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechContinuousRecognitionSession),
-+                uuid(6A213C04-6614-49F8-99A2-B5E9B3A085C8)
++                uuid(6a213c04-6614-49f8-99a2-b5e9b3a085c8)
 +            ]
 +            interface ISpeechContinuousRecognitionSession : IInspectable
 +            {
@@ -284,7 +284,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult),
-+                uuid(407E6C5D-6AC7-4DA4-9CC1-2FCE32CF7489)
++                uuid(407e6c5d-6ac7-4da4-9cc1-2fce32cf7489)
 +            ]
 +            interface ISpeechRecognitionCompilationResult : IInspectable
 +            {
@@ -294,7 +294,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult),
-+                uuid(79AC1628-4D68-43C4-8911-40DC4101B55B)
++                uuid(79ac1628-4d68-43c4-8911-40dc4101b55b)
 +            ]
 +            interface ISpeechRecognitionConstraint : IInspectable
 +            {
@@ -310,7 +310,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionGrammarFileConstraint),
-+                uuid(B5031A8F-85CA-4FA4-B11A-474FC41B3835)
++                uuid(b5031a8f-85ca-4fa4-b11a-474fc41b3835)
 +            ]
 +            interface ISpeechRecognitionGrammarFileConstraint : IInspectable
 +                requires
@@ -322,7 +322,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionGrammarFileConstraint),
-+                uuid(3DA770EB-C479-4C27-9F19-89974EF392D1)
++                uuid(3da770eb-c479-4c27-9f19-89974ef392d1)
 +            ]
 +            interface ISpeechRecognitionGrammarFileConstraintFactory : IInspectable
 +            {
@@ -333,7 +333,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionGrammarFileConstraint),
-+                uuid(3DA770EB-C479-4C27-9F19-89974EF392D1)
++                uuid(3da770eb-c479-4c27-9f19-89974ef392d1)
 +            ]
 +            interface ISpeechRecognitionHypothesis : IInspectable
 +            {
@@ -343,7 +343,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionHypothesisGeneratedEventArgs),
-+                uuid(55161A7A-8023-5866-411D-1213BB271476)
++                uuid(55161a7a-8023-5866-411d-1213bb271476)
 +            ]
 +            interface ISpeechRecognitionHypothesisGeneratedEventArgs : IInspectable
 +            {
@@ -353,7 +353,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionListConstraint),
-+                uuid(09C487E9-E4AD-4526-81F2-4946FB481D98)
++                uuid(09c487e9-e4ad-4526-81f2-4946fb481d98)
 +            ]
 +            interface ISpeechRecognitionListConstraint : IInspectable
 +            {
@@ -363,7 +363,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionListConstraint),
-+                uuid(40F3CDC7-562A-426A-9F3B-3B4E282BE1D5)
++                uuid(40f3cdc7-562a-426a-9f3b-3b4e282be1d5)
 +            ]
 +            interface ISpeechRecognitionListConstraintFactory : IInspectable
 +            {
@@ -381,7 +381,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionQualityDegradingEventArgs),
-+                uuid(4FE24105-8C3A-4C7E-8D0A-5BD4F5B14AD8)
++                uuid(4fe24105-8c3a-4c7e-8d0a-5bd4f5b14ad8)
 +            ]
 +            interface ISpeechRecognitionQualityDegradingEventArgs : IInspectable
 +            {
@@ -391,7 +391,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionResult),
-+                uuid(4E303157-034E-4652-857E-D0454CC4BEEC)
++                uuid(4e303157-034e-4652-857e-d0454cc4beec)
 +            ]
 +            interface ISpeechRecognitionResult : IInspectable
 +            {
@@ -408,7 +408,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionResult),
-+                uuid(AF7ED1BA-451B-4166-A0C1-1FFE84032D03)
++                uuid(af7ed1ba-451b-4166-a0c1-1ffe84032d03)
 +            ]
 +            interface ISpeechRecognitionResult2 : IInspectable
 +            {
@@ -419,7 +419,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionSemanticInterpretation),
-+                uuid(AAE1DA9B-7E32-4C1F-89FE-0C65F486F52E)
++                uuid(aae1da9b-7e32-4c1f-89fe-0c65f486f52e)
 +            ]
 +            interface ISpeechRecognitionSemanticInterpretation : IInspectable
 +            {
@@ -431,7 +431,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionTopicConstraint),
-+                uuid(BF6FDF19-825D-4E69-A681-36E48CF1C93E)
++                uuid(bf6fdf19-825d-4e69-a681-36e48cf1c93e)
 +            ]
 +            interface ISpeechRecognitionTopicConstraint : IInspectable
 +                requires
@@ -444,7 +444,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionTopicConstraint),
-+                uuid(6E6863DF-EC05-47D7-A5DF-56A3431E58D2)
++                uuid(6e6863df-ec05-47d7-a5df-56a3431e58d2)
 +            ]
 +            interface ISpeechRecognitionTopicConstraintFactory : IInspectable
 +            {
@@ -455,7 +455,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionVoiceCommandDefinitionConstraint),
-+                uuid(F2791C2B-1EF4-4AE7-9D77-B6FF10B8A3C2)
++                uuid(f2791c2b-1ef4-4ae7-9d77-b6ff10b8a3c2)
 +            ]
 +            interface ISpeechRecognitionVoiceCommandDefinitionConstraint : IInspectable
 +            {
@@ -465,7 +465,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechContinuousRecognitionCompletedEventArgs),
-+                uuid(0BC3C9CB-C26A-40F2-AEB5-8096B2E48073)
++                uuid(0bc3c9cb-c26a-40f2-aeb5-8096b2e48073)
 +            ]
 +            interface ISpeechRecognizer : IInspectable
 +                requires
@@ -494,7 +494,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechContinuousRecognitionCompletedEventArgs),
-+                uuid(63C9BAF1-91E3-4EA4-86A1-7C3867D084A6)
++                uuid(63c9baf1-91e3-4ea4-86a1-7c3867d084a6)
 +            ]
 +            interface ISpeechRecognizer2 : IInspectable
 +            {
@@ -511,7 +511,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognizer),
-+                uuid(60C488DD-7FB8-4033-AC70-D046F64818E1)
++                uuid(60c488dd-7fb8-4033-ac70-d046f64818e1)
 +            ]
 +            interface ISpeechRecognizerFactory : IInspectable
 +            {
@@ -523,7 +523,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult),
-+                uuid(563D4F09-BA03-4BAD-AD81-DDC6C4DAB0C3)
++                uuid(563d4f09-ba03-4bad-ad81-ddc6c4dab0c3)
 +            ]
 +            interface ISpeechRecognizerStateChangedEventArgs : IInspectable
 +            {
@@ -533,7 +533,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognizer),
-+                uuid(87A35EAC-A7DC-4B0B-BCC9-24F47C0B7EBF)
++                uuid(87a35eac-a7dc-4b0b-bcc9-24f47c0b7ebf)
 +            ]
 +            interface ISpeechRecognizerStatics : IInspectable
 +            {
@@ -545,7 +545,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognizer),
-+                uuid(1D1B0D95-7565-4EF9-A2F3-BA15162A96CF)
++                uuid(1d1b0d95-7565-4ef9-a2f3-ba15162a96cf)
 +            ]
 +            interface ISpeechRecognizerStatics2 : IInspectable
 +            {
@@ -555,7 +555,7 @@ index 00000000000..2ca177271b3
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
 +                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognizerTimeouts),
-+                uuid(2EF76FCA-6A3C-4DCA-A153-DF1BC88A79AF)
++                uuid(2ef76fca-6a3c-4dca-a153-df1bc88a79af)
 +            ]
 +            interface ISpeechRecognizerTimeouts : IInspectable
 +            {
@@ -570,7 +570,7 @@ index 00000000000..2ca177271b3
 +            [
 +            contract(Windows.Foundation.UniversalApiContract, 1.0),
 +            exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognizerUIOptions),
-+            uuid(7888D641-B92B-44BA-A25F-D1864630641F)
++            uuid(7888d641-b92b-44ba-a25f-d1864630641f)
 +            ]
 +            interface ISpeechRecognizerUIOptions : IInspectable
 +            {
@@ -586,7 +586,8 @@ index 00000000000..2ca177271b3
 +
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
-+                marshaling_behavior(agile)
++                marshaling_behavior(agile),
++                threading(both)
 +            ]
 +            runtimeclass SpeechContinuousRecognitionCompletedEventArgs
 +            {
@@ -595,7 +596,8 @@ index 00000000000..2ca177271b3
 +
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
-+                marshaling_behavior(agile)
++                marshaling_behavior(agile),
++                threading(both)
 +            ]
 +            runtimeclass SpeechContinuousRecognitionResultGeneratedEventArgs
 +            {
@@ -604,7 +606,8 @@ index 00000000000..2ca177271b3
 +
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
-+                marshaling_behavior(agile)
++                marshaling_behavior(agile),
++                threading(both)
 +            ]
 +            runtimeclass SpeechContinuousRecognitionSession
 +            {
@@ -633,7 +636,8 @@ index 00000000000..2ca177271b3
 +
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
-+                marshaling_behavior(agile)
++                marshaling_behavior(agile),
++                threading(both)
 +            ]
 +            runtimeclass SpeechRecognitionHypothesis
 +            {
@@ -642,7 +646,8 @@ index 00000000000..2ca177271b3
 +
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
-+                marshaling_behavior(agile)
++                marshaling_behavior(agile),
++                threading(both)
 +            ]
 +            runtimeclass SpeechRecognitionHypothesisGeneratedEventArgs
 +            {
@@ -676,7 +681,7 @@ index 00000000000..2ca177271b3
 +            runtimeclass SpeechRecognitionResult
 +            {
 +                [default] interface Windows.Media.SpeechRecognition.ISpeechRecognitionResult;
-+                interface Windows.Media.SpeechRecognition.ISpeechRecognitionResult2;
++                [contract(Windows.Foundation.UniversalApiContract, 1.0)] interface Windows.Media.SpeechRecognition.ISpeechRecognitionResult2;
 +            }
 +
 +            [
@@ -702,15 +707,15 @@ index 00000000000..2ca177271b3
 +            [
 +                activatable(Windows.Foundation.UniversalApiContract, 1.0),
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
-+                marshaling_behavior(agile)
-+                //static(Windows.Media.SpeechRecognition.ISpeechRecognizerStatics),
-+                //static(Windows.Media.SpeechRecognition.ISpeechRecognizerStatics2)
++                marshaling_behavior(agile),
++                static(Windows.Media.SpeechRecognition.ISpeechRecognizerStatics, Windows.Foundation.UniversalApiContract, 1.0),
++                static(Windows.Media.SpeechRecognition.ISpeechRecognizerStatics2, Windows.Foundation.UniversalApiContract, 5.0)
 +            ]
 +            runtimeclass SpeechRecognizer
 +            {
 +                [default] interface Windows.Media.SpeechRecognition.ISpeechRecognizer;
 +                interface Windows.Foundation.IClosable;
-+                interface Windows.Media.SpeechRecognition.ISpeechRecognizer2;
++                [contract(Windows.Foundation.UniversalApiContract, 1.0)] interface Windows.Media.SpeechRecognition.ISpeechRecognizer2;
 +            }
 +
 +            [

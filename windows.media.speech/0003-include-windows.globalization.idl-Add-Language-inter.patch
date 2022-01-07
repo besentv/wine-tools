@@ -1,69 +1,65 @@
-From a3b2cc81315f6ed25ec338e871ced5e9f3ee9f78 Mon Sep 17 00:00:00 2001
+From 2177d4ffd7d646d0a970f7f6a8b70275e11b1e68 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:07:10 +0100
 Subject: [PATCH 03/10] include/windows.globalization.idl: Add Language
  interface and class stubs.
 
 ---
- include/windows.globalization.idl | 42 +++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ include/windows.globalization.idl | 38 +++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
 diff --git a/include/windows.globalization.idl b/include/windows.globalization.idl
-index c08f7bd27d9..405c24ae728 100644
+index c08f7bd27d9..619cbcaec71 100644
 --- a/include/windows.globalization.idl
 +++ b/include/windows.globalization.idl
-@@ -29,6 +29,10 @@ import "windows.foundation.idl";
+@@ -29,6 +29,9 @@ import "windows.foundation.idl";
  namespace Windows {
      namespace Globalization {
          typedef enum DayOfWeek DayOfWeek;
 +        interface ILanguage;
-+        interface ILanguage2;
-+        interface ILanguage3;
++        interface ILanguageExtensionSubtags;
 +        runtimeclass Language;
      }
  }
  
-@@ -45,5 +49,43 @@ namespace Windows {
+@@ -45,5 +48,40 @@ namespace Windows {
              Friday    = 5,
              Saturday  = 6
          };
 +
 +        [
++            contract(Windows.Foundation.FoundationContract, 1.0),
 +            exclusiveto(Windows.Globalization.Language),
-+            uuid(EA79A752-F7C2-4265-B1BD-C4DEC4E4F080)
++            uuid(ea79a752-f7c2-4265-b1bd-c4dec4e4f080)
 +        ]
 +        interface ILanguage : IInspectable
 +        {
-+
++            /* Stub! */
 +        }
 +
 +        [
++            contract(Windows.Foundation.FoundationContract, 1.0),
 +            exclusiveto(Windows.Globalization.Language),
-+            uuid(6A47E5B5-D94D-4886-A404-A5A5B9D5B494)
++            uuid(7d7daf45-368d-4364-852b-dec927037b85)
 +        ]
-+        interface ILanguage2 : IInspectable
++        interface ILanguageExtensionSubtags : IInspectable
 +        {
-+
++            /* Stub! */
 +        }
 +
 +        [
-+            exclusiveto(Windows.Globalization.Language),
-+            uuid(C6AF3D10-641A-5BA4-BB43-5E12AED75954)
-+        ]
-+        interface ILanguage3 : IInspectable
-+        {
-+
-+        }
-+
-+        [
++            activatable(Windows.Foundation.UniversalApiContract, 1.0),
++            contract(Windows.Foundation.FoundationContract, 1.0),
 +            marshaling_behavior(agile),
-+            uuid(144B0F3D-2D59-5DD2-B012-908EC3E06435)
++            /* Fixme: ILanguageStatics, ILanguageStatics2 not defined yet:
++            static(Windows.Globalization.ILanguageStatics, Windows.Foundation.UniversalApiContract, 1.0),
++            static(Windows.Globalization.ILanguageStatics2, Windows.Foundation.UniversalApiContract, 1.0), */
++            threading(both)
 +        ]
 +        runtimeclass Language
 +        {
-+            [default] interface Windows.Globalization.ILanguage;
-+            interface Windows.Globalization.ILanguage2;
-+            interface Windows.Globalization.ILanguage3;
++            [contract(Windows.Foundation.UniversalApiContract, 1.0)] [default] interface Windows.Globalization.ILanguage;
++            [contract(Windows.Foundation.UniversalApiContract, 1.0)] interface Windows.Globalization.ILanguageExtensionSubtags;
 +        }
      }
  }

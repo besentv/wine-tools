@@ -1,4 +1,4 @@
-From 4ade32d8ee7a4bf42abcfe58fc7399eed49af41b Mon Sep 17 00:00:00 2001
+From f13a957c370d9844b7ed4fe67eca557394ca2c66 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 22:51:28 +0100
 Subject: [PATCH 07/10] windows.media.speech: Add SpeechRecognizer stub.

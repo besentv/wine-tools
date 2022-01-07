@@ -1,12 +1,12 @@
-From ffc2ca5d426178c0aa65e7ab507bf89fbf98f6f8 Mon Sep 17 00:00:00 2001
+From 7e97482c4ca6ec6edf3f92b119ebb1427322c09a Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:34:51 +0100
 Subject: [PATCH 04/10] include: Add windows.storage.idl.
 
 ---
  include/Makefile.in         |  1 +
- include/windows.storage.idl | 60 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 61 insertions(+)
+ include/windows.storage.idl | 61 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 62 insertions(+)
  create mode 100644 include/windows.storage.idl
 
 diff --git a/include/Makefile.in b/include/Makefile.in
@@ -23,10 +23,10 @@ index e5ae8429ed0..9c1ecb516ba 100644
  	windows.system.userprofile.idl \
 diff --git a/include/windows.storage.idl b/include/windows.storage.idl
 new file mode 100644
-index 00000000000..f1146d84256
+index 00000000000..5684f576f63
 --- /dev/null
 +++ b/include/windows.storage.idl
-@@ -0,0 +1,60 @@
+@@ -0,0 +1,61 @@
 +/*
 + * Copyright 2022 Bernhard Kölbl
 + *
@@ -69,21 +69,22 @@ index 00000000000..f1146d84256
 +    {
 +        [
 +            contract(Windows.Foundation.FoundationContract, 1.0),
-+            uuid(FA3F6186-4214-428C-A64C-14C9AC7315EA)
++            uuid(fa3f6186-4214-428c-a64c-14c9ac7315ea)
 +        ]
 +        interface IStorageFile : IInspectable
 +        {
-+            /* Stub! */
++            /* Fixme: Methods and requires missing. Stub! */
 +        }
-+
 +
 +        [
 +            contract(Windows.Foundation.UniversalApiContract, 1.0),
-+            marshaling_behavior(agile)
++            /* Fixme: Static Interface not defined yet:
++            static(Windows.Storage.IStorageFileStatics, Windows.Foundation.UniversalApiContract, 1.0) */
 +        ]
 +        runtimeclass StorageFile
 +        {
 +            [default] interface Windows.Storage.IStorageFile;
++            /* Fixme: Intefaces missing. Stub! */
 +        }
 +    }
 +}
