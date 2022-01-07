@@ -1,4 +1,4 @@
-From 3cb398c7e2b5ecb1226a0be57a897c08e6261517 Mon Sep 17 00:00:00 2001
+From fb6c83dcdca255990ad1e9d2a45b51dfbc5e9117 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 23:21:54 +0100
 Subject: [PATCH 08/10] windows.media.speech: Add
@@ -8,8 +8,9 @@ Subject: [PATCH 08/10] windows.media.speech: Add
  dlls/windows.media.speech/Makefile.in         |   1 +
  dlls/windows.media.speech/main.c              | 137 ++++++++
  .../speechrecognitionlistconstraint.c         | 319 ++++++++++++++++++
+ dlls/windows.media.speech/tests/speech.c      |  51 +++
  .../windows_media_speech_private.h            |   5 +
- 4 files changed, 462 insertions(+)
+ 5 files changed, 513 insertions(+)
  create mode 100644 dlls/windows.media.speech/speechrecognitionlistconstraint.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
@@ -517,6 +518,71 @@ index 00000000000..9c8e2e504b4
 +
 +    return hr;
 +}
+diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speech.c
+index 190c73becee..6f3824f9de1 100644
+--- a/dlls/windows.media.speech/tests/speech.c
++++ b/dlls/windows.media.speech/tests/speech.c
+@@ -260,9 +260,60 @@ static void test_SpeechRecognizer(void)
+     RoUninitialize();
+ }
+ 
++static void test_SpeechRecognitionListConstraint(void)
++{
++    static const WCHAR *speech_recognition_list_constraint_name = L"Windows.Media.SpeechRecognition.SpeechRecognitionListConstraint";
++    ISpeechRecognitionListConstraintFactory *listconstraint_factory = NULL;
++    ISpeechRecognitionListConstraint *listconstraint = NULL;
++    ISpeechRecognitionConstraint *constraint = NULL;
++    IActivationFactory *factory = NULL;
++    IInspectable *inspectable = NULL;
++    HSTRING str;
++    HRESULT hr;
++    LONG ref;
++
++    hr = RoInitialize(RO_INIT_MULTITHREADED);
++    ok(hr == S_OK, "RoInitialize failed, hr %#x\n", hr);
++
++    hr = WindowsCreateString(speech_recognition_list_constraint_name, wcslen(speech_recognition_list_constraint_name), &str);
++    ok(hr == S_OK, "WindowsCreateString failed, hr %#x\n", hr);
++
++    hr = RoGetActivationFactory(str, &IID_IActivationFactory, (void **)&factory);
++    ok(hr == S_OK, "RoGetActivationFactory failed, hr %#x\n", hr);
++
++    hr = IActivationFactory_QueryInterface(factory, &IID_ISpeechRecognitionListConstraintFactory, (void **)&listconstraint_factory);
++    ok(hr == S_OK, "IActivationFactory_QueryInterface IID_ISpeechRecognizer failed, hr %#x\n", hr);
++
++    ISpeechRecognitionListConstraintFactory_Release(listconstraint_factory);
++    IActivationFactory_Release(factory);
++
++    hr = RoActivateInstance(str, &inspectable);
++    ok(hr == S_OK, "Got unexpected hr %#x.\n", hr); 
++
++    hr = IInspectable_QueryInterface(inspectable, &IID_ISpeechRecognitionListConstraint, (void **)&listconstraint);
++    ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++
++    hr = IInspectable_QueryInterface(inspectable, &IID_ISpeechRecognitionConstraint, (void **)&constraint);
++    ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++
++    ref = ISpeechRecognitionConstraint_Release(constraint);
++    ok(ref == 2, "Got unexpected ref %u.\n", ref);
++
++    ref = ISpeechRecognitionListConstraint_Release(listconstraint);
++    ok(ref == 1, "Got unexpected ref %u.\n", ref);
++
++    ref = IInspectable_Release(inspectable);
++    ok(!ref, "Got unexpected ref %u.\n", ref);
++
++    WindowsDeleteString(str);
++
++    RoUninitialize();
++}
++
+ START_TEST(speech)
+ {
+     test_SpeechSynthesizer();
+     test_VoiceInformation();
+     test_SpeechRecognizer();
++    test_SpeechRecognitionListConstraint();
+ }
 diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
 index 02cababb7d5..04b874af7bd 100644
 --- a/dlls/windows.media.speech/windows_media_speech_private.h

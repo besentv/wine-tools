@@ -1,4 +1,4 @@
-From 336aa18d7df5f3f26fb63af6013e4356f0e94b8b Mon Sep 17 00:00:00 2001
+From 845bd8bb26a7e8bf7e0c1d04834092bb48bd6f2e Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 22:51:28 +0100
 Subject: [PATCH 07/10] windows.media.speech: Add SpeechRecognizer stub.
@@ -8,8 +8,9 @@ Subject: [PATCH 07/10] windows.media.speech: Add SpeechRecognizer stub.
  dlls/windows.media.speech/classes.idl         |   1 +
  dlls/windows.media.speech/main.c              | 124 +++++
  dlls/windows.media.speech/speechrecognizer.c  | 497 ++++++++++++++++++
+ dlls/windows.media.speech/tests/speech.c      |  60 +++
  .../windows_media_speech_private.h            |  14 +
- 5 files changed, 637 insertions(+)
+ 6 files changed, 697 insertions(+)
  create mode 100644 dlls/windows.media.speech/speechrecognizer.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
@@ -692,6 +693,86 @@ index 00000000000..2cef739f467
 +
 +    return hr;
 +}
+diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speech.c
+index 38fd5c90dd0..190c73becee 100644
+--- a/dlls/windows.media.speech/tests/speech.c
++++ b/dlls/windows.media.speech/tests/speech.c
+@@ -31,6 +31,8 @@
+ #include "windows.foundation.h"
+ #define WIDL_using_Windows_Media_SpeechSynthesis
+ #include "windows.media.speechsynthesis.h"
++#define WIDL_using_Windows_Media_SpeechRecognition
++#include "windows.media.speechrecognition.h"
+ 
+ #include "wine/test.h"
+ 
+@@ -201,8 +203,66 @@ static void test_VoiceInformation(void)
+     RoUninitialize();
+ }
+ 
++static void test_SpeechRecognizer(void)
++{
++    static const WCHAR *speech_recognition_name = L"Windows.Media.SpeechRecognition.SpeechRecognizer";
++    ISpeechRecognizerFactory *sr_factory = NULL;
++    ISpeechRecognizer *recognizer = NULL;
++    ISpeechRecognizer2 *recognizer2 = NULL;
++    IActivationFactory *factory = NULL;
++    IInspectable *inspectable = NULL;
++    IClosable *closable = NULL;
++    HSTRING str;
++    HRESULT hr;
++    LONG ref;
++
++    hr = RoInitialize(RO_INIT_MULTITHREADED);
++    ok(hr == S_OK, "RoInitialize failed, hr %#x\n", hr);
++
++    hr = WindowsCreateString(speech_recognition_name, wcslen(speech_recognition_name), &str);
++    ok(hr == S_OK, "WindowsCreateString failed, hr %#x\n", hr);
++
++    hr = RoGetActivationFactory(str, &IID_IActivationFactory, (void **)&factory);
++    ok(hr == S_OK, "RoGetActivationFactory failed, hr %#x\n", hr);
++
++    hr = IActivationFactory_QueryInterface(factory, &IID_ISpeechRecognizerFactory, (void **)&sr_factory);
++    ok(hr == S_OK, "IActivationFactory_QueryInterface IID_ISpeechRecognizer failed, hr %#x\n", hr);
++
++    ISpeechRecognizerFactory_Release(sr_factory);
++    IActivationFactory_Release(factory);
++
++    hr = RoActivateInstance(str, &inspectable);
++    ok(hr == S_OK, "Got unexpected hr %#x.\n", hr); 
++
++    hr = IInspectable_QueryInterface(inspectable, &IID_ISpeechRecognizer, (void **)&recognizer);
++    ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++
++    hr = IInspectable_QueryInterface(inspectable, &IID_ISpeechRecognizer2, (void **)&recognizer2);
++    ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++
++    hr = IInspectable_QueryInterface(inspectable, &IID_IClosable, (void **)&closable);
++    ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++
++    ref = IClosable_Release(closable);
++    ok(ref == 3, "Got unexpected ref %u.\n", ref);
++
++    ref = ISpeechRecognizer2_Release(recognizer2);
++    ok(ref == 2, "Got unexpected ref %u.\n", ref);
++
++    ref = ISpeechRecognizer_Release(recognizer);
++    ok(ref == 1, "Got unexpected ref %u.\n", ref);
++
++    ref = IInspectable_Release(inspectable);
++    ok(!ref, "Got unexpected ref %u.\n", ref);
++
++    WindowsDeleteString(str);
++
++    RoUninitialize();
++}
++
+ START_TEST(speech)
+ {
+     test_SpeechSynthesizer();
+     test_VoiceInformation();
++    test_SpeechRecognizer();
+ }
 diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
 index 471eb4ef281..02cababb7d5 100644
 --- a/dlls/windows.media.speech/windows_media_speech_private.h

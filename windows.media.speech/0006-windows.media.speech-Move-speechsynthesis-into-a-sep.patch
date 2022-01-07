@@ -1,4 +1,4 @@
-From 58c204e8b0f71f0aca5bed0283d14c6dc1b47279 Mon Sep 17 00:00:00 2001
+From 24f287483e47fbb0aed714eaffdcea2b21fd2dbb Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 22:28:43 +0100
 Subject: [PATCH 06/10] windows.media.speech: Move speechsynthesis into a
@@ -8,12 +8,9 @@ Subject: [PATCH 06/10] windows.media.speech: Move speechsynthesis into a
  dlls/windows.media.speech/Makefile.in         |   3 +-
  dlls/windows.media.speech/main.c              | 565 ++----------------
  dlls/windows.media.speech/speechsynthesis.c   | 505 ++++++++++++++++
- dlls/windows.media.speech/tests/Makefile.in   |   2 +-
- .../tests/{speech.c => speechsynthesis.c}     |   2 +-
  .../windows_media_speech_private.h            |  84 +++
- 6 files changed, 659 insertions(+), 502 deletions(-)
+ 4 files changed, 657 insertions(+), 500 deletions(-)
  create mode 100644 dlls/windows.media.speech/speechsynthesis.c
- rename dlls/windows.media.speech/tests/{speech.c => speechsynthesis.c} (99%)
  create mode 100644 dlls/windows.media.speech/windows_media_speech_private.h
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
@@ -1184,32 +1181,6 @@ index 00000000000..e24b42c8914
 +    return hr;
 +}
 \ No newline at end of file
-diff --git a/dlls/windows.media.speech/tests/Makefile.in b/dlls/windows.media.speech/tests/Makefile.in
-index 2ee10d3db21..1e4a6d5e2a0 100644
---- a/dlls/windows.media.speech/tests/Makefile.in
-+++ b/dlls/windows.media.speech/tests/Makefile.in
-@@ -2,4 +2,4 @@ TESTDLL = windows.media.speech.dll
- IMPORTS = combase uuid
- 
- C_SRCS = \
--	speech.c
-+	speechsynthesis.c
-diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speechsynthesis.c
-similarity index 99%
-rename from dlls/windows.media.speech/tests/speech.c
-rename to dlls/windows.media.speech/tests/speechsynthesis.c
-index 38fd5c90dd0..8e1a5fc7065 100644
---- a/dlls/windows.media.speech/tests/speech.c
-+++ b/dlls/windows.media.speech/tests/speechsynthesis.c
-@@ -201,7 +201,7 @@ static void test_VoiceInformation(void)
-     RoUninitialize();
- }
- 
--START_TEST(speech)
-+START_TEST(speechsynthesis)
- {
-     test_SpeechSynthesizer();
-     test_VoiceInformation();
 diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
 new file mode 100644
 index 00000000000..471eb4ef281
