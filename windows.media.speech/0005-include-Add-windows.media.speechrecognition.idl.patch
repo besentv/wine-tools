@@ -1,12 +1,12 @@
-From 2e0b9790bcd99f54beee68114176cbf1d98fe178 Mon Sep 17 00:00:00 2001
+From 18c002c6b7ff8013d49df63ff216aebf074fe220 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:36:08 +0100
 Subject: [PATCH 05/10] include: Add windows.media.speechrecognition.idl.
 
 ---
  include/Makefile.in                         |   1 +
- include/windows.media.speechrecognition.idl | 720 ++++++++++++++++++++
- 2 files changed, 721 insertions(+)
+ include/windows.media.speechrecognition.idl | 722 ++++++++++++++++++++
+ 2 files changed, 723 insertions(+)
  create mode 100644 include/windows.media.speechrecognition.idl
 
 diff --git a/include/Makefile.in b/include/Makefile.in
@@ -23,10 +23,10 @@ index 9c1ecb516ba..351e0eceef4 100644
  	windows.storage.streams.idl \
 diff --git a/include/windows.media.speechrecognition.idl b/include/windows.media.speechrecognition.idl
 new file mode 100644
-index 00000000000..bbcf9d7b99d
+index 00000000000..c4ec08b1cb9
 --- /dev/null
 +++ b/include/windows.media.speechrecognition.idl
-@@ -0,0 +1,720 @@
+@@ -0,0 +1,722 @@
 +/*
 + * Copyright 2022 Bernhard Kölbl
 + *
@@ -458,8 +458,10 @@ index 00000000000..bbcf9d7b99d
 +                uuid(f2791c2b-1ef4-4ae7-9d77-b6ff10b8a3c2)
 +            ]
 +            interface ISpeechRecognitionVoiceCommandDefinitionConstraint : IInspectable
++                requires
++                    Windows.Media.SpeechRecognition.ISpeechRecognitionConstraint
 +            {
-+
++                /* FIXME - Does this interface really have no methods? */
 +            }
 +
 +            [

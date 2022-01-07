@@ -1,4 +1,4 @@
-From 0c94b916261ea13088a9d161df7cdcfa01a6e74a Mon Sep 17 00:00:00 2001
+From 5d2ff4bba3a1c823409026fb7e18513a10b7786e Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 23:29:58 +0100
 Subject: [PATCH 09/10] windows.media.speech: Add SpeechRecognitionResult stub.
@@ -24,7 +24,7 @@ index 0f7a993fee5..fd6e0b1ac63 100644
  
 diff --git a/dlls/windows.media.speech/speechrecognitionresult.c b/dlls/windows.media.speech/speechrecognitionresult.c
 new file mode 100644
-index 00000000000..3b161508df6
+index 00000000000..c46b9ccbf44
 --- /dev/null
 +++ b/dlls/windows.media.speech/speechrecognitionresult.c
 @@ -0,0 +1,325 @@
@@ -52,10 +52,10 @@ index 00000000000..3b161508df6
 +WINE_DEFAULT_DEBUG_CHANNEL(speech);
 +
 +/*
-+*
-+* SpeechRecognitionResult
-+*
-+*/
++ *
++ * SpeechRecognitionResult
++ *
++ */
 +
 +struct speech_recognition_result
 +{
@@ -65,10 +65,10 @@ index 00000000000..3b161508df6
 +};
 +
 +/*
-+*
-+* ISpeechRecognitionResult
-+*
-+*/
++ *
++ * ISpeechRecognitionResult
++ *
++ */
 +
 +static inline struct speech_recognition_result *impl_from_ISpeechRecognitionResult(ISpeechRecognitionResult *iface)
 +{
@@ -232,10 +232,10 @@ index 00000000000..3b161508df6
 +};
 +
 +/*
-+*
-+* ISpeechRecognitionResult2
-+*
-+*/
++ *
++ * ISpeechRecognitionResult2
++ *
++ */
 +
 +static inline struct speech_recognition_result *impl_from_ISpeechRecognitionResult2(ISpeechRecognitionResult2 *iface)
 +{
@@ -354,7 +354,7 @@ index 00000000000..3b161508df6
 +    return hr;
 +}
 diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
-index 911c4c5137c..c7ce4102b42 100644
+index 04b874af7bd..98190d99a9a 100644
 --- a/dlls/windows.media.speech/windows_media_speech_private.h
 +++ b/dlls/windows.media.speech/windows_media_speech_private.h
 @@ -87,6 +87,8 @@ HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_default(IIns
