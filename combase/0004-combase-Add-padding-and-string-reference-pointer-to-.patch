@@ -1,9 +1,13 @@
-From 68f0c7662071648b691b9e7484b89b3b8e5c89cc Mon Sep 17 00:00:00 2001
+From 511355f51b78aa71ce5ca61d88c717ac362dda0e Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Wed, 12 Jan 2022 23:33:56 +0100
-Subject: [PATCH 4/5] combase: Add padding and string reference pointer to
+Subject: [PATCH v5 4/5] combase: Add padding and string reference pointer to
  hstring_header.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
+Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
 ---
  dlls/combase/string.c       | 32 ++++++++++++++++++--------------
  dlls/combase/tests/string.c |  1 -

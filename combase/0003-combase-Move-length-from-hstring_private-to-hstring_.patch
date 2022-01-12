@@ -1,9 +1,13 @@
-From 86317d9025cdc416ea17bf0ca61958edb7d3e8bb Mon Sep 17 00:00:00 2001
+From 84cb1f3fc604fe87428ec939e19c6dbed5551226 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Wed, 12 Jan 2022 22:32:29 +0100
-Subject: [PATCH 3/5] combase: Move length from hstring_private to
+Subject: [PATCH v5 3/5] combase: Move length from hstring_private to
  hstring_header.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
+Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
 ---
  dlls/combase/string.c       | 46 ++++++++++++++++++-------------------
  dlls/combase/tests/string.c |  2 --

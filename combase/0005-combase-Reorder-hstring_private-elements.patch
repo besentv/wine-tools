@@ -1,13 +1,18 @@
-From ff318cd629f00a415d2888ed17a2951a471d897e Mon Sep 17 00:00:00 2001
+From eb22a5a0f6b2781a541b63d9a555917e05170102 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Wed, 12 Jan 2022 23:54:31 +0100
-Subject: [PATCH 5/5] combase: Reorder hstring_private elements.
+Subject: [PATCH v5 5/5] combase: Reorder hstring_private elements.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
 Wine-Bug: https://bugs.winehq.org/show_bug.cgi?id=51017
 
 Put the string buffer at the end of the struct to
 match the Windows behaviour and avoid unnecessary
 pointer arithmetic.
+
+Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
 ---
  dlls/combase/string.c       | 8 ++++----
  dlls/combase/tests/string.c | 8 --------

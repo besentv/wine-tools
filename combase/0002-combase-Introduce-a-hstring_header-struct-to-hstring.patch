@@ -1,10 +1,15 @@
-From d47c632f061ae15ebcbf14733f88019e2497fd88 Mon Sep 17 00:00:00 2001
+From 29caff93fc43ced29e5fee59f64da3ee7ecbc994 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Wed, 12 Jan 2022 17:32:54 +0100
-Subject: [PATCH 2/5] combase: Introduce a hstring_header struct to
+Subject: [PATCH v5 2/5] combase: Introduce a hstring_header struct to
  hstring_private.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
 Also move the reference flag to the hstring_header struct.
+
+Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
 ---
  dlls/combase/string.c       | 44 +++++++++++++++++++++++++------------
  dlls/combase/tests/string.c |  2 --
