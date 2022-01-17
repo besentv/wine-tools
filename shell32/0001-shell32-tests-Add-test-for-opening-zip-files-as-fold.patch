@@ -1,4 +1,4 @@
-From 7cd116ebdc0651d92ba611ac9f1d19e62867935d Mon Sep 17 00:00:00 2001
+From 67b5b6af4e813f0133fc5f970fd6017bbb721de7 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Mon, 17 Jan 2022 18:35:07 +0100
 Subject: [PATCH] shell32/tests: Add test for opening zip files as folder.
@@ -8,7 +8,7 @@ Subject: [PATCH] shell32/tests: Add test for opening zip files as folder.
  1 file changed, 40 insertions(+), 1 deletion(-)
 
 diff --git a/dlls/shell32/tests/shelldispatch.c b/dlls/shell32/tests/shelldispatch.c
-index 8e69a0bfa4e..cb3eae0cc81 100644
+index 8e69a0bfa4e..48a662cd96c 100644
 --- a/dlls/shell32/tests/shelldispatch.c
 +++ b/dlls/shell32/tests/shelldispatch.c
 @@ -127,9 +127,11 @@ static void test_namespace(void)
