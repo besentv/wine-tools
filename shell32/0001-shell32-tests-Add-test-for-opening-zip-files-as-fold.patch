@@ -40,7 +40,7 @@ index 8e69a0bfa4e..cb3eae0cc81 100644
 +        successful = CreateDirectoryW(appdata_local, NULL);
 +        ok(successful == TRUE || GetLastError() == ERROR_ALREADY_EXISTS, "Failed to create directory.\n");
 +
-+        wcscat(appdata_local, L"\\tmp.yeet");
++        wcscat(appdata_local, L"\\tmp.zip");
 +        handle = CreateFileW(appdata_local, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 +        ok(handle != NULL, "Failed to create file %#x.\n", GetLastError());
 +
