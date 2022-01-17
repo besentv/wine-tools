@@ -1,7 +1,7 @@
-From 2177d4ffd7d646d0a970f7f6a8b70275e11b1e68 Mon Sep 17 00:00:00 2001
+From 37c7a14c7a726a4478a5b85570599103c0a7256a Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:07:10 +0100
-Subject: [PATCH 03/10] include/windows.globalization.idl: Add Language
+Subject: [PATCH 03/11] include/windows.globalization.idl: Add Language
  interface and class stubs.
 
 ---

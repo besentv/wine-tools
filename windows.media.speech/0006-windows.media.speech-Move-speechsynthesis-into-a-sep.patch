@@ -1,7 +1,7 @@
-From 24f287483e47fbb0aed714eaffdcea2b21fd2dbb Mon Sep 17 00:00:00 2001
+From f6d7b72bccbf11fd71aeada5d6d817e6cfa32386 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 22:28:43 +0100
-Subject: [PATCH 06/10] windows.media.speech: Move speechsynthesis into a
+Subject: [PATCH 06/11] windows.media.speech: Move speechsynthesis into a
  seperate file.
 
 ---

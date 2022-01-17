@@ -1,7 +1,7 @@
-From 18c002c6b7ff8013d49df63ff216aebf074fe220 Mon Sep 17 00:00:00 2001
+From 38aed8d520251f3459fb0472f245af7c46842387 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:36:08 +0100
-Subject: [PATCH 05/10] include: Add windows.media.speechrecognition.idl.
+Subject: [PATCH 05/11] include: Add windows.media.speechrecognition.idl.
 
 ---
  include/Makefile.in                         |   1 +

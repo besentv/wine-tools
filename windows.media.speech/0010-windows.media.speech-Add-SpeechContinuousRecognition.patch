@@ -1,7 +1,7 @@
-From b73be80e495514372767aaa7e02868ccac28e0ec Mon Sep 17 00:00:00 2001
+From 8f6a8d5102c0de38421a120f4dc6a240037c08f2 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 23:32:10 +0100
-Subject: [PATCH 10/10] windows.media.speech: Add
+Subject: [PATCH 10/11] windows.media.speech: Add
  SpeechContinuousRecognitionCompletedEventArgs stub.
 
 ---
