@@ -1,7 +1,7 @@
-From 38aed8d520251f3459fb0472f245af7c46842387 Mon Sep 17 00:00:00 2001
+From 8fe36bfc8a0625882b719abcbbe0393f5f055519 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:36:08 +0100
-Subject: [PATCH 05/11] include: Add windows.media.speechrecognition.idl.
+Subject: [PATCH 05/13] include: Add windows.media.speechrecognition.idl.
 
 ---
  include/Makefile.in                         |   1 +
@@ -23,7 +23,7 @@ index 9c1ecb516ba..351e0eceef4 100644
  	windows.storage.streams.idl \
 diff --git a/include/windows.media.speechrecognition.idl b/include/windows.media.speechrecognition.idl
 new file mode 100644
-index 00000000000..c4ec08b1cb9
+index 00000000000..5b116cadd24
 --- /dev/null
 +++ b/include/windows.media.speechrecognition.idl
 @@ -0,0 +1,722 @@
@@ -524,12 +524,12 @@ index 00000000000..c4ec08b1cb9
 +
 +            [
 +                contract(Windows.Foundation.UniversalApiContract, 1.0),
-+                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionCompilationResult),
++                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognizerStateChangedEventArgs),
 +                uuid(563d4f09-ba03-4bad-ad81-ddc6c4dab0c3)
 +            ]
 +            interface ISpeechRecognizerStateChangedEventArgs : IInspectable
 +            {
-+                [propget] HRESULT Problem([out, retval] Windows.Media.SpeechRecognition.SpeechRecognizerState *value);
++                [propget] HRESULT State([out, retval] Windows.Media.SpeechRecognition.SpeechRecognizerState *value);
 +            }
 +
 +            [

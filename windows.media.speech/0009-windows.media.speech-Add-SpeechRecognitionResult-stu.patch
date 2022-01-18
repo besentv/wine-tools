@@ -1,7 +1,7 @@
-From 0b5af0c85bdba46be2743b0547439db26bae7a2f Mon Sep 17 00:00:00 2001
+From 17dd3f4fa9d02440d6f4190cdcf3d87a65326a11 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 23:29:58 +0100
-Subject: [PATCH 09/11] windows.media.speech: Add SpeechRecognitionResult stub.
+Subject: [PATCH 09/13] windows.media.speech: Add SpeechRecognitionResult stub.
 
 ---
  dlls/windows.media.speech/Makefile.in         |   1 +
@@ -24,7 +24,7 @@ index 0f7a993fee5..fd6e0b1ac63 100644
  
 diff --git a/dlls/windows.media.speech/speechrecognitionresult.c b/dlls/windows.media.speech/speechrecognitionresult.c
 new file mode 100644
-index 00000000000..c46b9ccbf44
+index 00000000000..3403161d27a
 --- /dev/null
 +++ b/dlls/windows.media.speech/speechrecognitionresult.c
 @@ -0,0 +1,325 @@
@@ -146,64 +146,64 @@ index 00000000000..c46b9ccbf44
 +    return E_NOTIMPL;
 +}
 +
-+static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_Status(ISpeechRecognitionResult *iface,
-+    SpeechRecognitionResultStatus *value)
++static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_Status(
++    ISpeechRecognitionResult *iface, SpeechRecognitionResultStatus *value)
 +{
 +    FIXME("iface %p, operation %p stub!\n", iface, value);
 +
 +    return E_NOTIMPL;
 +}
 +
-+static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_Text(ISpeechRecognitionResult *iface,
-+    HSTRING *value)
++static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_Text(
++    ISpeechRecognitionResult *iface, HSTRING *value)
 +{
 +    FIXME("iface %p, operation %p stub!\n", iface, value);
 +
 +    return E_NOTIMPL;
 +}
 +
-+static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_Confidence(ISpeechRecognitionResult *iface,
-+    SpeechRecognitionConfidence *value)
++static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_Confidence(
++    ISpeechRecognitionResult *iface, SpeechRecognitionConfidence *value)
 +{
 +    FIXME("iface %p, operation %p stub!\n", iface, value);
 +
 +    return E_NOTIMPL;
 +}
 +
-+static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_SemanticInterpretation(ISpeechRecognitionResult *iface,
-+    ISpeechRecognitionSemanticInterpretation **value)
++static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_SemanticInterpretation(
++    ISpeechRecognitionResult *iface, ISpeechRecognitionSemanticInterpretation **value)
 +{
 +    FIXME("iface %p, operation %p stub!\n", iface, value);
 +
 +    return E_NOTIMPL;
 +}
 +
-+static HRESULT STDMETHODCALLTYPE speech_recognition_result_GetAlternatives(ISpeechRecognitionResult *iface,
-+    UINT32 max_amount, IVectorView_SpeechRecognitionResult **results)
++static HRESULT STDMETHODCALLTYPE speech_recognition_result_GetAlternatives(
++    ISpeechRecognitionResult *iface, UINT32 max_amount, IVectorView_SpeechRecognitionResult **results)
 +{
 +    FIXME("iface %p, max_amount %u, results %p stub!\n", iface, max_amount, results);
 +
 +    return E_NOTIMPL;
 +}
 +
-+static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_Constraint(ISpeechRecognitionResult *iface,
-+    ISpeechRecognitionConstraint **value)
++static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_Constraint(
++    ISpeechRecognitionResult *iface, ISpeechRecognitionConstraint **value)
 +{
 +    FIXME("iface %p, operation %p stub!\n", iface, value);
 +
 +    return E_NOTIMPL;
 +}
 +
-+static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_RulePath(ISpeechRecognitionResult *iface,
-+    IVectorView_HSTRING **value)
++static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_RulePath(
++    ISpeechRecognitionResult *iface, IVectorView_HSTRING **value)
 +{
 +    FIXME("iface %p, operation %p stub!\n", iface, value);
 +
 +    return E_NOTIMPL;
 +}
 +
-+static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_RawConfidence(ISpeechRecognitionResult *iface,
-+    DOUBLE *value)
++static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_RawConfidence(
++    ISpeechRecognitionResult *iface, DOUBLE *value)
 +{
 +    FIXME("iface %p, operation %p stub!\n", iface, value);
 +
@@ -331,7 +331,7 @@ index 00000000000..c46b9ccbf44
 +    speech_recognition_result2_get_PhraseDuration
 +};
 +
-+HRESULT STDMETHODCALLTYPE speech_recognition_result_create(REFIID iid, void **obj)
++HRESULT STDMETHODCALLTYPE speech_recognition_result_create_from_iid(REFIID iid, void **obj)
 +{
 +    struct speech_recognition_result *impl;
 +    HRESULT hr;
@@ -354,14 +354,14 @@ index 00000000000..c46b9ccbf44
 +    return hr;
 +}
 diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
-index 04b874af7bd..98190d99a9a 100644
+index 04b874af7bd..f7a3b89e072 100644
 --- a/dlls/windows.media.speech/windows_media_speech_private.h
 +++ b/dlls/windows.media.speech/windows_media_speech_private.h
 @@ -87,6 +87,8 @@ HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_default(IIns
  HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create(IIterable_HSTRING *commands, ISpeechRecognitionListConstraint **listconstraint) DECLSPEC_HIDDEN;
  HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_tag(IIterable_HSTRING *commands, HSTRING tag, ISpeechRecognitionListConstraint **listconstraint) DECLSPEC_HIDDEN;
  
-+HRESULT STDMETHODCALLTYPE speech_recognition_result_create(REFIID iid, void **obj) DECLSPEC_HIDDEN;
++HRESULT STDMETHODCALLTYPE speech_recognition_result_create_from_iid(REFIID iid, void **obj) DECLSPEC_HIDDEN;
 +
  HRESULT STDMETHODCALLTYPE speech_recognizer_create_default(IInspectable **inspectable) DECLSPEC_HIDDEN;
  HRESULT STDMETHODCALLTYPE speech_recognizer_create(ILanguage *language, ISpeechRecognizer **speechrecognizer) DECLSPEC_HIDDEN;

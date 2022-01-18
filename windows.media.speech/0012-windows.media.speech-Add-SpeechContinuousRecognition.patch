@@ -1,18 +1,18 @@
-From 8f6a8d5102c0de38421a120f4dc6a240037c08f2 Mon Sep 17 00:00:00 2001
+From 7b451a9e955785d71594997fc064753778bfbb4a Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 23:32:10 +0100
-Subject: [PATCH 10/11] windows.media.speech: Add
+Subject: [PATCH 12/13] windows.media.speech: Add
  SpeechContinuousRecognitionCompletedEventArgs stub.
 
 ---
  dlls/windows.media.speech/Makefile.in         |   1 +
- .../scr_completedeventargs.c                  | 161 ++++++++++++++++++
+ .../scr_completedeventargs.c                  | 160 ++++++++++++++++++
  .../windows_media_speech_private.h            |   2 +
- 3 files changed, 164 insertions(+)
+ 3 files changed, 163 insertions(+)
  create mode 100644 dlls/windows.media.speech/scr_completedeventargs.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
-index fd6e0b1ac63..0db72fbce61 100644
+index 4bfe68f06d9..d7b42939b4e 100644
 --- a/dlls/windows.media.speech/Makefile.in
 +++ b/dlls/windows.media.speech/Makefile.in
 @@ -3,6 +3,7 @@ IMPORTS = combase uuid
@@ -20,15 +20,15 @@ index fd6e0b1ac63..0db72fbce61 100644
  C_SRCS = \
  	main.c \
 +	scr_completedeventargs.c \
+ 	speechrecognitioncompilationresult.c \
  	speechrecognitionlistconstraint.c \
  	speechrecognitionresult.c \
- 	speechrecognizer.c \
 diff --git a/dlls/windows.media.speech/scr_completedeventargs.c b/dlls/windows.media.speech/scr_completedeventargs.c
 new file mode 100644
-index 00000000000..5ce2ded25ff
+index 00000000000..89c70089065
 --- /dev/null
 +++ b/dlls/windows.media.speech/scr_completedeventargs.c
-@@ -0,0 +1,161 @@
+@@ -0,0 +1,160 @@
 +/* WinRT Windows.Media.SpeechRecognition implementation
 + *
 + * Copyright 2022 Bernhard Kölbl
@@ -64,7 +64,6 @@ index 00000000000..5ce2ded25ff
 +    LONG ref;
 +};
 +
-+
 +/*
 + *
 + * ISpeechContinuousRecognitionCompletedEventArgs
@@ -72,13 +71,13 @@ index 00000000000..5ce2ded25ff
 + */
 +
 +static inline struct speech_continuous_recognition_completed_event_args *impl_from_ISpeechContinuousRecognitionCompletedEventArgs(
-+        ISpeechContinuousRecognitionCompletedEventArgs *iface)
++    ISpeechContinuousRecognitionCompletedEventArgs *iface)
 +{
 +    return CONTAINING_RECORD(iface, struct speech_continuous_recognition_completed_event_args, ISpeechContinuousRecognitionCompletedEventArgs_iface);
 +}
 +
 +static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_QueryInterface(
-+        ISpeechContinuousRecognitionCompletedEventArgs *iface, REFIID iid, void **out)
++    ISpeechContinuousRecognitionCompletedEventArgs *iface, REFIID iid, void **out)
 +{
 +    TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
 +
@@ -98,7 +97,7 @@ index 00000000000..5ce2ded25ff
 +}
 +
 +static ULONG STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_AddRef(
-+        ISpeechContinuousRecognitionCompletedEventArgs *iface)
++    ISpeechContinuousRecognitionCompletedEventArgs *iface)
 +{
 +    struct speech_continuous_recognition_completed_event_args *impl = impl_from_ISpeechContinuousRecognitionCompletedEventArgs(iface);
 +
@@ -109,7 +108,7 @@ index 00000000000..5ce2ded25ff
 +}
 +
 +static ULONG STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_Release(
-+        ISpeechContinuousRecognitionCompletedEventArgs *iface)
++    ISpeechContinuousRecognitionCompletedEventArgs *iface)
 +{
 +    struct speech_continuous_recognition_completed_event_args *impl = impl_from_ISpeechContinuousRecognitionCompletedEventArgs(iface);
 +
@@ -123,7 +122,7 @@ index 00000000000..5ce2ded25ff
 +}
 +
 +static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_GetIids(
-+        ISpeechContinuousRecognitionCompletedEventArgs *iface, ULONG *iid_count, IID **iids)
++    ISpeechContinuousRecognitionCompletedEventArgs *iface, ULONG *iid_count, IID **iids)
 +{
 +    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
 +
@@ -139,7 +138,7 @@ index 00000000000..5ce2ded25ff
 +}
 +
 +static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_GetTrustLevel(
-+        ISpeechContinuousRecognitionCompletedEventArgs *iface, TrustLevel *trust_level)
++    ISpeechContinuousRecognitionCompletedEventArgs *iface, TrustLevel *trust_level)
 +{
 +    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
 +
@@ -155,7 +154,7 @@ index 00000000000..5ce2ded25ff
 +}
 +
 +static const struct ISpeechContinuousRecognitionCompletedEventArgsVtbl 
-+        speech_continuous_recognition_completed_event_args_vtbl =
++    speech_continuous_recognition_completed_event_args_vtbl =
 +{
 +    /* IUnknown methods */
 +    speech_continuous_recognition_completed_event_args_QueryInterface,
@@ -169,7 +168,7 @@ index 00000000000..5ce2ded25ff
 +    speech_continuous_recognition_completed_event_args_get_Status
 +};
 +
-+HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_create(REFIID iid, void **obj)
++HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_create_from_iid(REFIID iid, void **obj)
 +{
 +    struct speech_continuous_recognition_completed_event_args *impl;
 +    HRESULT hr;
@@ -191,18 +190,18 @@ index 00000000000..5ce2ded25ff
 +    return hr;
 +}
 diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
-index 98190d99a9a..fdeffc11a1d 100644
+index c8c66612c07..56be8ec0fd4 100644
 --- a/dlls/windows.media.speech/windows_media_speech_private.h
 +++ b/dlls/windows.media.speech/windows_media_speech_private.h
 @@ -83,6 +83,8 @@ struct activation_factory
   * 
   */
  
-+HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_create(REFIID iid, void **obj) DECLSPEC_HIDDEN;
++HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_create_from_iid(REFIID iid, void **obj) DECLSPEC_HIDDEN;
 +
+ HRESULT STDMETHODCALLTYPE speech_recognition_compilation_result_create_from_iid(REFIID iid, void **obj) DECLSPEC_HIDDEN;
+ 
  HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_default(IInspectable **inspectable) DECLSPEC_HIDDEN;
- HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create(IIterable_HSTRING *commands, ISpeechRecognitionListConstraint **listconstraint) DECLSPEC_HIDDEN;
- HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_tag(IIterable_HSTRING *commands, HSTRING tag, ISpeechRecognitionListConstraint **listconstraint) DECLSPEC_HIDDEN;
 -- 
 2.34.1
 

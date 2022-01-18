@@ -1,7 +1,7 @@
-From 97b7e2e11edd485dbdedcefaa3b67084104f7d97 Mon Sep 17 00:00:00 2001
+From ce3a9987f7925b13bdc1110185e74856b6322c2f Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 22:51:28 +0100
-Subject: [PATCH 07/11] windows.media.speech: Add SpeechRecognizer stub.
+Subject: [PATCH 07/13] windows.media.speech: Add SpeechRecognizer stub.
 
 ---
  dlls/windows.media.speech/Makefile.in         |   1 +
@@ -192,7 +192,7 @@ index 1e2947fd026..9ca4c82588a 100644
      return CLASS_E_CLASSNOTAVAILABLE;
 diff --git a/dlls/windows.media.speech/speechrecognizer.c b/dlls/windows.media.speech/speechrecognizer.c
 new file mode 100644
-index 00000000000..2cef739f467
+index 00000000000..b1d80212fd2
 --- /dev/null
 +++ b/dlls/windows.media.speech/speechrecognizer.c
 @@ -0,0 +1,497 @@
@@ -404,7 +404,7 @@ index 00000000000..2cef739f467
 +static HRESULT STDMETHODCALLTYPE speech_recognizer_remove_StateChanged(
 +    ISpeechRecognizer *iface, EventRegistrationToken token)
 +{
-+    FIXME("iface %p, token %#I64x, stub!\n", iface, token);
++    FIXME("iface %p, token %p, stub!\n", iface, token);
 +    
 +    return E_NOTIMPL;
 +}
@@ -445,7 +445,7 @@ index 00000000000..2cef739f467
 +}
 +
 +static HRESULT STDMETHODCALLTYPE closable_QueryInterface(
-+        IClosable *iface, REFIID iid, void **out)
++    IClosable *iface, REFIID iid, void **out)
 +{
 +    struct speech_recognizer *impl = impl_from_IClosable(iface);
 +
@@ -456,7 +456,7 @@ index 00000000000..2cef739f467
 +}
 +
 +static ULONG STDMETHODCALLTYPE closable_AddRef(
-+        IClosable *iface)
++    IClosable *iface)
 +{
 +    struct speech_recognizer *impl = impl_from_IClosable(iface);
 +
@@ -467,7 +467,7 @@ index 00000000000..2cef739f467
 +}
 +
 +static ULONG STDMETHODCALLTYPE closable_Release(
-+        IClosable *iface)
++    IClosable *iface)
 +{
 +    struct speech_recognizer *impl = impl_from_IClosable(iface);
 +
@@ -478,7 +478,7 @@ index 00000000000..2cef739f467
 +}
 +
 +static HRESULT STDMETHODCALLTYPE closable_GetIids(
-+        IClosable *iface, ULONG *iid_count, IID **iids)
++    IClosable *iface, ULONG *iid_count, IID **iids)
 +{
 +    struct speech_recognizer *impl = impl_from_IClosable(iface);
 +
@@ -489,7 +489,7 @@ index 00000000000..2cef739f467
 +}
 +
 +static HRESULT STDMETHODCALLTYPE closable_GetRuntimeClassName(
-+        IClosable *iface, HSTRING *class_name)
++    IClosable *iface, HSTRING *class_name)
 +{
 +    struct speech_recognizer *impl = impl_from_IClosable(iface);
 +
@@ -500,7 +500,7 @@ index 00000000000..2cef739f467
 +}
 +
 +static HRESULT STDMETHODCALLTYPE closable_GetTrustLevel(
-+        IClosable *iface, TrustLevel *trust_level)
++    IClosable *iface, TrustLevel *trust_level)
 +{
 +    struct speech_recognizer *impl = impl_from_IClosable(iface);
 +
@@ -511,7 +511,7 @@ index 00000000000..2cef739f467
 +}
 +
 +static HRESULT STDMETHODCALLTYPE closable_Close(
-+        IClosable *iface)
++    IClosable *iface)
 +{
 +    FIXME("iface %p stub.\n", iface);
 +
