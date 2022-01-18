@@ -1,4 +1,4 @@
-From 2d39fff997982bff1aec9880d4a9bcd9562e7592 Mon Sep 17 00:00:00 2001
+From 6982cbd422f06d88b6b2262a6f1d861adf0deaf0 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 23:21:54 +0100
 Subject: [PATCH 08/13] windows.media.speech: Add
@@ -195,7 +195,7 @@ index 9ca4c82588a..996838efc9f 100644
      return CLASS_E_CLASSNOTAVAILABLE;
 diff --git a/dlls/windows.media.speech/speechrecognitionlistconstraint.c b/dlls/windows.media.speech/speechrecognitionlistconstraint.c
 new file mode 100644
-index 00000000000..9b8027b8e52
+index 00000000000..56263639b1f
 --- /dev/null
 +++ b/dlls/windows.media.speech/speechrecognitionlistconstraint.c
 @@ -0,0 +1,329 @@
@@ -429,7 +429,7 @@ index 00000000000..9b8027b8e52
 +{
 +    FIXME("iface %p, value %u stub!\n", iface, value);
 +
-+    return S_OK;
++    return E_NOTIMPL;
 +}
 +
 +static HRESULT STDMETHODCALLTYPE speech_recognition_constraint_get_Tag(
