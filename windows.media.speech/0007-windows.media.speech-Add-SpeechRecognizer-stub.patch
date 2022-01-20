@@ -1,7 +1,7 @@
-From ce3a9987f7925b13bdc1110185e74856b6322c2f Mon Sep 17 00:00:00 2001
+From 25bd851afe526429de5de5c0cc16643dad06e2f3 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 22:51:28 +0100
-Subject: [PATCH 07/13] windows.media.speech: Add SpeechRecognizer stub.
+Subject: [PATCH v2 07/12] windows.media.speech: Add SpeechRecognizer stub.
 
 ---
  dlls/windows.media.speech/Makefile.in         |   1 +

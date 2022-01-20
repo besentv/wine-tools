@@ -1,15 +1,17 @@
-From 7a419a0a9b64081567a9b2f9f74200354beef067 Mon Sep 17 00:00:00 2001
+From 43fa52c8ecb7a33819dbd8982ec92180689dfdee Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 17:56:38 +0100
-Subject: [PATCH 01/13] include/windows.foundation.collections.idl: Add
- Windows.Foundation.Collections.IVector interface.
+Subject: [PATCH v2 01/12] include/windows.foundation.collections.idl: Add
+ IVector<T> interface.
 
+---
+v2: Added missing parameters and attributes.
 ---
  include/windows.foundation.collections.idl | 20 ++++++++++++++++++++
  1 file changed, 20 insertions(+)
 
 diff --git a/include/windows.foundation.collections.idl b/include/windows.foundation.collections.idl
-index 876e15336a2..d671b09e5d2 100644
+index 876e15336a2..a2d2d75ec4f 100644
 --- a/include/windows.foundation.collections.idl
 +++ b/include/windows.foundation.collections.idl
 @@ -118,6 +118,26 @@ cpp_quote("#endif")
@@ -23,18 +25,18 @@ index 876e15336a2..d671b09e5d2 100644
 +            ]
 +            interface IVector<T> : IInspectable
 +            {
-+                HRESULT GetAt([in] UINT32 index, [out, retval] T *value);
++                HRESULT GetAt([in, optional] UINT32 index, [out, retval] T *value);
 +                [propget] HRESULT Size([out, retval] UINT32 *value);
 +                HRESULT GetView([out, retval] IVectorView<T> **value);
 +                HRESULT IndexOf([in, optional] T element, [out] UINT32 *index, [out, retval] BOOLEAN *value);
-+                HRESULT SetAt([in] UINT32 index, [in] T value);
-+                HRESULT InsertAt([in] UINT32 index, T value);
++                HRESULT SetAt([in] UINT32 index, [in, optional] T value);
++                HRESULT InsertAt([in] UINT32 index, [in, optional] T value);
 +                HRESULT RemoveAt([in] UINT32 index);
 +                HRESULT Append([in, optional] T value);
 +                HRESULT RemoveAtEnd();
 +                HRESULT Clear();
 +                HRESULT GetMany([in] UINT32 start_index, [in] UINT32 items_size, [out] T *items, [out, retval] UINT32 *value);
-+                HRESULT ReplaceAll([in] T *items);
++                HRESULT ReplaceAll([in] UINT32 count, [in] T *items);
 +            }
          }
  #endif

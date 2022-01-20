@@ -1,8 +1,14 @@
-From 7b5131922db3e301403a127b06aa021894dd5713 Mon Sep 17 00:00:00 2001
+From d5ee60672214739ee751df2eb85fee438f107793 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:34:51 +0100
-Subject: [PATCH 04/13] include: Add windows.storage.idl.
+Subject: [PATCH v2 04/12] include: Add windows.storage.idl.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
+And add stubs for StorageFile and IStorageFile.
+
+Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
 ---
  include/Makefile.in         |  1 +
  include/windows.storage.idl | 61 +++++++++++++++++++++++++++++++++++++

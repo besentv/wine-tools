@@ -1,9 +1,11 @@
-From 589f93bce0864bf2c9a70438dff65394c3df14bb Mon Sep 17 00:00:00 2001
+From f768391013097b200dc46868eaf8aac7dfeb5f66 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 22:28:43 +0100
-Subject: [PATCH 06/13] windows.media.speech: Move speechsynthesis into a
+Subject: [PATCH v2 06/12] windows.media.speech: Move speechsynthesis into a
  seperate file.
 
+Do this to seperate the activation factory from the COM object
+implementations.
 ---
  dlls/windows.media.speech/Makefile.in         |   3 +-
  dlls/windows.media.speech/main.c              | 565 ++----------------

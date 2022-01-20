@@ -1,15 +1,17 @@
-From 3b0477ce798c9ac474e747d9f5ef4ba396c8fd0a Mon Sep 17 00:00:00 2001
+From 6f3f0b1d229cc9c83c1e80a99b35b9e889b3797a Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:05:56 +0100
-Subject: [PATCH 02/13] include/windows.foundation.idl: Add IAsyncAction
+Subject: [PATCH v2 02/12] include/windows.foundation.idl: Add IAsyncAction
  interface.
 
 ---
- include/windows.foundation.idl | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+v2: Add missing required interface.
+---
+ include/windows.foundation.idl | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
 diff --git a/include/windows.foundation.idl b/include/windows.foundation.idl
-index 292522f2c49..0fa86ec315c 100644
+index 292522f2c49..a4ee7303ddb 100644
 --- a/include/windows.foundation.idl
 +++ b/include/windows.foundation.idl
 @@ -27,6 +27,12 @@ import "windowscontracts.idl";
@@ -38,7 +40,7 @@ index 292522f2c49..0fa86ec315c 100644
          [contract(Windows.Foundation.FoundationContract, 1.0)]
          enum PropertyType {
              Empty       = 0,
-@@ -128,6 +140,17 @@ namespace Windows {
+@@ -128,6 +140,18 @@ namespace Windows {
          {
              HRESULT Close();
          }
@@ -48,6 +50,7 @@ index 292522f2c49..0fa86ec315c 100644
 +            uuid(5a648006-843a-4da9-865b-9d26e5dfad7b)
 +        ]
 +        interface IAsyncAction : IInspectable
++            requires IAsyncInfo
 +        {
 +            [propput] HRESULT Completed([in] Windows.Foundation.AsyncActionCompletedHandler *handler);
 +            [propget] HRESULT Completed([out, retval] Windows.Foundation.AsyncActionCompletedHandler **handler);
