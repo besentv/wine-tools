@@ -1,4 +1,4 @@
-From c7c3d7083447150a645f6c05b67351ac8840ea7c Mon Sep 17 00:00:00 2001
+From 536f4ce2fbdd2e7721d607e520529d928d1dcea9 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:07:10 +0100
 Subject: [PATCH v2 03/12] include/windows.globalization.idl: Add Language

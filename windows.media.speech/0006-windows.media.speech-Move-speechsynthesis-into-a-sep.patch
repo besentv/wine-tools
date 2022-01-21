@@ -1,4 +1,4 @@
-From f768391013097b200dc46868eaf8aac7dfeb5f66 Mon Sep 17 00:00:00 2001
+From d0376b87e7e44385d42beff39fb6d35974b36ae7 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 22:28:43 +0100
 Subject: [PATCH v2 06/12] windows.media.speech: Move speechsynthesis into a

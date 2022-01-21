@@ -1,4 +1,4 @@
-From 93485b4b3eaac05172950499a54542ed94839c36 Mon Sep 17 00:00:00 2001
+From cee4d1be7f0e992616711edbea80fd6ab62bfd98 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:36:08 +0100
 Subject: [PATCH v2 05/12] include: Add windows.media.speechrecognition.idl.
@@ -23,7 +23,7 @@ index 9c1ecb516ba..351e0eceef4 100644
  	windows.storage.streams.idl \
 diff --git a/include/windows.media.speechrecognition.idl b/include/windows.media.speechrecognition.idl
 new file mode 100644
-index 00000000000..5b116cadd24
+index 00000000000..cfe58613af3
 --- /dev/null
 +++ b/include/windows.media.speechrecognition.idl
 @@ -0,0 +1,722 @@
@@ -265,8 +265,8 @@ index 00000000000..5b116cadd24
 +            {
 +                [propget] HRESULT AutoStopSilenceTimeout([out, retval] Windows.Foundation.TimeSpan *value);
 +                [propput] HRESULT AutoStopSilenceTimeout([in] Windows.Foundation.TimeSpan value);
-+                /*[overload("StartAsync")]*/ HRESULT StartAsync([out, retval] Windows.Foundation.IAsyncAction **action);
-+                /*[overload("StartAsync")]*/ HRESULT StartWithModeAsync([in] Windows.Media.SpeechRecognition.SpeechContinuousRecognitionMode mode, [out, retval] Windows.Foundation.IAsyncAction **action);
++                [overload("StartAsync")] HRESULT StartAsync([out, retval] Windows.Foundation.IAsyncAction **action);
++                [overload("StartAsync")] HRESULT StartWithModeAsync([in] Windows.Media.SpeechRecognition.SpeechContinuousRecognitionMode mode, [out, retval] Windows.Foundation.IAsyncAction **action);
 +                HRESULT StopAsync([out, retval] Windows.Foundation.IAsyncAction **action);
 +                HRESULT CancelAsync([out, retval] Windows.Foundation.IAsyncAction **action);
 +                HRESULT PauseAsync([out, retval] Windows.Foundation.IAsyncAction **action);

@@ -1,4 +1,4 @@
-From 43fa52c8ecb7a33819dbd8982ec92180689dfdee Mon Sep 17 00:00:00 2001
+From 273c32aefa91797d3b31a037f6601d1eda239410 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 17:56:38 +0100
 Subject: [PATCH v2 01/12] include/windows.foundation.collections.idl: Add
