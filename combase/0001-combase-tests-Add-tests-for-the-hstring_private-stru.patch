@@ -1,7 +1,7 @@
-From 79da4aca1c1974e7e1b301c24235c399a999967d Mon Sep 17 00:00:00 2001
+From c0f0b871e4ad3f622272a3e4c4cf18892d3386e9 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Wed, 12 Jan 2022 16:23:08 +0100
-Subject: [PATCH v5 1/5] combase/tests: Add tests for the hstring_private
+Subject: [PATCH v6 1/5] combase/tests: Add tests for the hstring_private
  struct.
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -15,14 +15,14 @@ the combase dll.
 
 Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
 ---
- dlls/combase/tests/string.c | 80 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 80 insertions(+)
+ dlls/combase/tests/string.c | 76 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 76 insertions(+)
 
 diff --git a/dlls/combase/tests/string.c b/dlls/combase/tests/string.c
-index 5ebf669a426..713f08d342b 100644
+index 5ebf669a426..799a79017fc 100644
 --- a/dlls/combase/tests/string.c
 +++ b/dlls/combase/tests/string.c
-@@ -479,6 +479,85 @@ static void test_trim(void)
+@@ -479,6 +479,81 @@ static void test_trim(void)
      ok(WindowsDeleteString(str1) == S_OK, "Failed to delete string\n");
  }
  
@@ -61,8 +61,6 @@ index 5ebf669a426..713f08d342b 100644
 +    todo_wine
 +    ok(prv->header.flags == 0, "Expected 0 in flags field, got %#x.\n", prv->header.flags);
 +    todo_wine
-+    ok(prv->header.length == 6, "Expected 6 in length field, got %u.\n", prv->header.length);
-+    todo_wine
 +    ok(prv->header.str == prv->buffer, "Expected str to point at buffer, instead pointing at %p.\n", prv->header.str);
 +    todo_wine
 +    ok(prv->refcount == 1, "Expected 1 in refcount, got %u.\n", prv->refcount);
@@ -98,8 +96,6 @@ index 5ebf669a426..713f08d342b 100644
 +    todo_wine
 +    ok(prv2->header.flags == 1, "Expected HSTRING_REFERENCE_FLAG to be set, got %#x.\n", prv2->header.flags);
 +    todo_wine
-+    ok(prv2->header.length == 6, "Expected 6 in length field, got %u.\n", prv2->header.length);
-+    todo_wine
 +    ok(prv2->header.str == input_string, "Expected str to point at input_string, instead pointing at %p.\n", prv2->header.str);
 +
 +    ok(WindowsDeleteString(str) == S_OK, "Failed to delete string ref.\n");
@@ -108,7 +104,7 @@ index 5ebf669a426..713f08d342b 100644
  START_TEST(string)
  {
      test_create_delete();
-@@ -489,4 +568,5 @@ START_TEST(string)
+@@ -489,4 +564,5 @@ START_TEST(string)
      test_concat();
      test_compare();
      test_trim();

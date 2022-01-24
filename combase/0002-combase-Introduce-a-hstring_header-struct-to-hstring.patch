@@ -1,7 +1,7 @@
-From 29caff93fc43ced29e5fee59f64da3ee7ecbc994 Mon Sep 17 00:00:00 2001
+From 6a7c5cd3f34639b15a475a37e902d0c030c8ca38 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Wed, 12 Jan 2022 17:32:54 +0100
-Subject: [PATCH v5 2/5] combase: Introduce a hstring_header struct to
+Subject: [PATCH v6 2/5] combase: Introduce a hstring_header struct to
  hstring_private.
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -16,7 +16,7 @@ Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
  2 files changed, 30 insertions(+), 16 deletions(-)
 
 diff --git a/dlls/combase/string.c b/dlls/combase/string.c
-index 2092e4360a3..9443583d90e 100644
+index 2092e4360a3..796fe607ad0 100644
 --- a/dlls/combase/string.c
 +++ b/dlls/combase/string.c
 @@ -26,31 +26,38 @@
@@ -98,7 +98,7 @@ index 2092e4360a3..9443583d90e 100644
      if (str == NULL)
          return S_OK;
 -    if (priv->reference)
-+    if (priv->header.flags == HSTRING_REFERENCE_FLAG)
++    if (priv->header.flags & HSTRING_REFERENCE_FLAG)
          return S_OK;
      if (InterlockedDecrement(&priv->refcount) == 0)
          HeapFree(GetProcessHeap(), 0, priv);
@@ -107,7 +107,7 @@ index 2092e4360a3..9443583d90e 100644
          return S_OK;
      }
 -    if (priv->reference)
-+    if (priv->header.flags == HSTRING_REFERENCE_FLAG)
++    if (priv->header.flags & HSTRING_REFERENCE_FLAG)
          return WindowsCreateString(priv->buffer, priv->length, out);
      InterlockedIncrement(&priv->refcount);
      *out = str;
@@ -141,7 +141,7 @@ index 2092e4360a3..9443583d90e 100644
          return S_OK;
      }
 -    if (priv->buffer[priv->length] != 0 || priv->reference || priv->refcount != 1)
-+    if (priv->buffer[priv->length] != 0 || priv->header.flags == HSTRING_REFERENCE_FLAG || priv->refcount != 1)
++    if (priv->buffer[priv->length] != 0 || priv->header.flags & HSTRING_REFERENCE_FLAG || priv->refcount != 1)
          return E_INVALIDARG;
 -    *out = (HSTRING)buf;
 +    *out = (HSTRING)priv;
@@ -149,7 +149,7 @@ index 2092e4360a3..9443583d90e 100644
  }
  
 diff --git a/dlls/combase/tests/string.c b/dlls/combase/tests/string.c
-index 713f08d342b..59a60f7b202 100644
+index 799a79017fc..ea3285f6008 100644
 --- a/dlls/combase/tests/string.c
 +++ b/dlls/combase/tests/string.c
 @@ -511,7 +511,6 @@ static void test_hstring_struct(void)
@@ -159,15 +159,15 @@ index 713f08d342b..59a60f7b202 100644
 -    todo_wine
      ok(prv->header.flags == 0, "Expected 0 in flags field, got %#x.\n", prv->header.flags);
      todo_wine
-     ok(prv->header.length == 6, "Expected 6 in length field, got %u.\n", prv->header.length);
-@@ -548,7 +547,6 @@ static void test_hstring_struct(void)
+     ok(prv->header.str == prv->buffer, "Expected str to point at buffer, instead pointing at %p.\n", prv->header.str);
+@@ -546,7 +545,6 @@ static void test_hstring_struct(void)
      prv2 = CONTAINING_RECORD(str, struct hstring_private, header);
  
      ok(prv == prv2, "Pointers not identical.\n");
 -    todo_wine
      ok(prv2->header.flags == 1, "Expected HSTRING_REFERENCE_FLAG to be set, got %#x.\n", prv2->header.flags);
      todo_wine
-     ok(prv2->header.length == 6, "Expected 6 in length field, got %u.\n", prv2->header.length);
+     ok(prv2->header.str == input_string, "Expected str to point at input_string, instead pointing at %p.\n", prv2->header.str);
 -- 
 2.34.1
 

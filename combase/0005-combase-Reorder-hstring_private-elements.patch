@@ -1,7 +1,7 @@
-From eb22a5a0f6b2781a541b63d9a555917e05170102 Mon Sep 17 00:00:00 2001
+From 5626cbeaa72948362d4ba0009be5823a0f50c1bb Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Wed, 12 Jan 2022 23:54:31 +0100
-Subject: [PATCH v5 5/5] combase: Reorder hstring_private elements.
+Subject: [PATCH v6 5/5] combase: Reorder hstring_private elements.
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -14,12 +14,18 @@ pointer arithmetic.
 
 Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
 ---
+v6: Fix incorrect buf len and move failing test into a later commit.
+v5: Split the patch into multiple commits and minor code changes.
+v4: Remove leftover debugging TRACE and minor style changes.
+v3: Add nested hstring_header struct to hstring_private and add a test for both.
+v2: I was mistaken about no reference counting being used.
+---
  dlls/combase/string.c       | 8 ++++----
  dlls/combase/tests/string.c | 8 --------
  2 files changed, 4 insertions(+), 12 deletions(-)
 
 diff --git a/dlls/combase/string.c b/dlls/combase/string.c
-index 24d1e4dd8f9..fa35262fbf9 100644
+index 8c4d9a2cfbf..59e39f59956 100644
 --- a/dlls/combase/string.c
 +++ b/dlls/combase/string.c
 @@ -40,8 +40,8 @@ struct hstring_header
@@ -38,7 +44,7 @@ index 24d1e4dd8f9..fa35262fbf9 100644
  {
      struct hstring_private *priv;
 -    priv = HeapAlloc(GetProcessHeap(), 0, sizeof(*priv) + (len + 1) * sizeof(*priv->buffer));
-+    priv = HeapAlloc(GetProcessHeap(), 0, offsetof(struct hstring_private, buffer[len]));
++    priv = HeapAlloc(GetProcessHeap(), 0, offsetof(struct hstring_private, buffer[len+1]));
      if (!priv)
          return FALSE;
  

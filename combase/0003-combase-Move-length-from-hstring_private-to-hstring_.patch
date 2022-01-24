@@ -1,7 +1,7 @@
-From 84cb1f3fc604fe87428ec939e19c6dbed5551226 Mon Sep 17 00:00:00 2001
+From 37d9382c2b9d20ee4d94fa80a1379065f057aa6b Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Wed, 12 Jan 2022 22:32:29 +0100
-Subject: [PATCH v5 3/5] combase: Move length from hstring_private to
+Subject: [PATCH v6 3/5] combase: Move length from hstring_private to
  hstring_header.
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -10,11 +10,11 @@ Content-Transfer-Encoding: 8bit
 Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
 ---
  dlls/combase/string.c       | 46 ++++++++++++++++++-------------------
- dlls/combase/tests/string.c |  2 --
- 2 files changed, 23 insertions(+), 25 deletions(-)
+ dlls/combase/tests/string.c |  2 ++
+ 2 files changed, 25 insertions(+), 23 deletions(-)
 
 diff --git a/dlls/combase/string.c b/dlls/combase/string.c
-index 9443583d90e..a0a025d6889 100644
+index 796fe607ad0..1e1e60db758 100644
 --- a/dlls/combase/string.c
 +++ b/dlls/combase/string.c
 @@ -31,13 +31,13 @@ WINE_DEFAULT_DEBUG_CHANNEL(winstring);
@@ -53,7 +53,7 @@ index 9443583d90e..a0a025d6889 100644
 @@ -168,7 +168,7 @@ HRESULT WINAPI WindowsDuplicateString(HSTRING str, HSTRING *out)
          return S_OK;
      }
-     if (priv->header.flags == HSTRING_REFERENCE_FLAG)
+     if (priv->header.flags & HSTRING_REFERENCE_FLAG)
 -        return WindowsCreateString(priv->buffer, priv->length, out);
 +        return WindowsCreateString(priv->buffer, priv->header.length, out);
      InterlockedIncrement(&priv->refcount);
@@ -63,8 +63,8 @@ index 9443583d90e..a0a025d6889 100644
          *out = NULL;
          return S_OK;
      }
--    if (priv->buffer[priv->length] != 0 || priv->header.flags == HSTRING_REFERENCE_FLAG || priv->refcount != 1)
-+    if (priv->buffer[priv->header.length] != 0 || priv->header.flags == HSTRING_REFERENCE_FLAG || priv->refcount != 1)
+-    if (priv->buffer[priv->length] != 0 || priv->header.flags & HSTRING_REFERENCE_FLAG || priv->refcount != 1)
++    if (priv->buffer[priv->header.length] != 0 || priv->header.flags & HSTRING_REFERENCE_FLAG || priv->refcount != 1)
          return E_INVALIDARG;
      *out = (HSTRING)priv;
      return S_OK;
@@ -188,25 +188,25 @@ index 9443583d90e..a0a025d6889 100644
                                     WindowsDuplicateString(str1, out);
  }
 diff --git a/dlls/combase/tests/string.c b/dlls/combase/tests/string.c
-index 59a60f7b202..9e4c6281866 100644
+index ea3285f6008..9e4c6281866 100644
 --- a/dlls/combase/tests/string.c
 +++ b/dlls/combase/tests/string.c
-@@ -512,7 +512,6 @@ static void test_hstring_struct(void)
+@@ -512,6 +512,7 @@ static void test_hstring_struct(void)
      prv = CONTAINING_RECORD(str, struct hstring_private, header);
  
      ok(prv->header.flags == 0, "Expected 0 in flags field, got %#x.\n", prv->header.flags);
--    todo_wine
-     ok(prv->header.length == 6, "Expected 6 in length field, got %u.\n", prv->header.length);
++    ok(prv->header.length == 6, "Expected 6 in length field, got %u.\n", prv->header.length);
      todo_wine
      ok(prv->header.str == prv->buffer, "Expected str to point at buffer, instead pointing at %p.\n", prv->header.str);
-@@ -548,7 +547,6 @@ static void test_hstring_struct(void)
+     todo_wine
+@@ -546,6 +547,7 @@ static void test_hstring_struct(void)
  
      ok(prv == prv2, "Pointers not identical.\n");
      ok(prv2->header.flags == 1, "Expected HSTRING_REFERENCE_FLAG to be set, got %#x.\n", prv2->header.flags);
--    todo_wine
-     ok(prv2->header.length == 6, "Expected 6 in length field, got %u.\n", prv2->header.length);
++    ok(prv2->header.length == 6, "Expected 6 in length field, got %u.\n", prv2->header.length);
      todo_wine
      ok(prv2->header.str == input_string, "Expected str to point at input_string, instead pointing at %p.\n", prv2->header.str);
+ 
 -- 
 2.34.1
 

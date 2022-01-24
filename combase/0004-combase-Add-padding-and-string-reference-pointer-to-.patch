@@ -1,7 +1,7 @@
-From 511355f51b78aa71ce5ca61d88c717ac362dda0e Mon Sep 17 00:00:00 2001
+From 8340215f9da02857343404242964797891db7bed Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Wed, 12 Jan 2022 23:33:56 +0100
-Subject: [PATCH v5 4/5] combase: Add padding and string reference pointer to
+Subject: [PATCH v6 4/5] combase: Add padding and string reference pointer to
  hstring_header.
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -14,7 +14,7 @@ Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
  2 files changed, 18 insertions(+), 15 deletions(-)
 
 diff --git a/dlls/combase/string.c b/dlls/combase/string.c
-index a0a025d6889..24d1e4dd8f9 100644
+index 1e1e60db758..8c4d9a2cfbf 100644
 --- a/dlls/combase/string.c
 +++ b/dlls/combase/string.c
 @@ -32,6 +32,9 @@ struct hstring_header
@@ -47,7 +47,7 @@ index a0a025d6889..24d1e4dd8f9 100644
 @@ -168,7 +172,7 @@ HRESULT WINAPI WindowsDuplicateString(HSTRING str, HSTRING *out)
          return S_OK;
      }
-     if (priv->header.flags == HSTRING_REFERENCE_FLAG)
+     if (priv->header.flags & HSTRING_REFERENCE_FLAG)
 -        return WindowsCreateString(priv->buffer, priv->header.length, out);
 +        return WindowsCreateString(priv->header.str, priv->header.length, out);
      InterlockedIncrement(&priv->refcount);
