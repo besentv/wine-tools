@@ -1,4 +1,4 @@
-From 23e6191e95caa6d61f1672bdf9f033aab1c5f613 Mon Sep 17 00:00:00 2001
+From be48bce577334769745bb08c7abcc1d0a4e8b637 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 27 Jan 2022 15:26:00 +0100
 Subject: [PATCH] widl: Allow the reuse of nested declared p-Types from
@@ -7,8 +7,8 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Currently Widl can't import declared nested parameterized types from
-other idl files, so one has to delcare them all in the same file.
+Currently widl can't import declarations of nested parameterized types
+from other idl files, so one has to delcare them all in the same file.
 An example:
 
 import "windows.foundation.idl";
@@ -17,7 +17,7 @@ namespace Windows {
   namespace Example {
     declare{
       interface Windows.Foundation.Collections.IVectorView<HSTRING>;
-        ^~~~ In the WinRT SDK this is already declared in windows.foundation.idl, which makes this declare redundant.
+        ^~~~ In the WinRT SDK this is already declared in windows.foundation.idl, which makes this line redundant.
 
       interface Windows.Foundation.Collections.IIterator<Windows.Foundation.Collections.IVectorView<HSTRING> >;
       interface Windows.Foundation.Collections.IIterable<Windows.Foundation.Collections.IVectorView<HSTRING> >;
@@ -25,12 +25,14 @@ namespace Windows {
   }
 }
 
-This commit fixes this by adding the declared types from imported files to
-the parameterized statements list as STMT_TYPEREF so they are ignored
-in header generation.
+This commit fixes this by adding the declared p-types from imported files to
+the parameterized statements list as STMT_TYPEREF, so they are ignored in the
+header generation process.
 
 Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
 ---
+Thanks to Rémi Bernon for helping me on this one. :)
+
  tools/widl/parser.y | 13 ++++++++-----
  1 file changed, 8 insertions(+), 5 deletions(-)
 
