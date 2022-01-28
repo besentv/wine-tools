@@ -1,11 +1,11 @@
-From f9c2ec1e6a47b2765821fdf45012e138cc848b38 Mon Sep 17 00:00:00 2001
+From 8b624c421a29f7e542bf8af996e21c02db12e516 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:05:56 +0100
-Subject: [PATCH v2 02/12] include/windows.foundation.idl: Add IAsyncAction
+Subject: [PATCH 02/14] include/windows.foundation.idl: Add IAsyncAction
  interface.
 
 ---
-v2: Add missing required interface.
+v2: Add missing required interface. Supersedes #223674
 ---
  include/windows.foundation.idl | 24 ++++++++++++++++++++++++
  1 file changed, 24 insertions(+)

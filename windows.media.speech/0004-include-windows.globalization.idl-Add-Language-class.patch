@@ -1,20 +1,20 @@
-From 536f4ce2fbdd2e7721d607e520529d928d1dcea9 Mon Sep 17 00:00:00 2001
+From e400eef77bca8edc7d1ab0df8f7f20aafc16b5fd Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:07:10 +0100
-Subject: [PATCH v2 03/12] include/windows.globalization.idl: Add Language
- class and interfaces.
+Subject: [PATCH 04/14] include/windows.globalization.idl: Add Language class
+ and interfaces.
 
 ---
 v2: Full write out of the stubs. Supersedes: #223693
 ---
- include/windows.globalization.idl | 130 ++++++++++++++++++++++++++++++
- 1 file changed, 130 insertions(+)
+ include/windows.globalization.idl | 132 ++++++++++++++++++++++++++++++
+ 1 file changed, 132 insertions(+)
 
 diff --git a/include/windows.globalization.idl b/include/windows.globalization.idl
-index c08f7bd27d9..983dc1acade 100644
+index c08f7bd27d9..03c44703b7e 100644
 --- a/include/windows.globalization.idl
 +++ b/include/windows.globalization.idl
-@@ -29,6 +29,26 @@ import "windows.foundation.idl";
+@@ -29,9 +29,31 @@ import "windows.foundation.idl";
  namespace Windows {
      namespace Globalization {
          typedef enum DayOfWeek DayOfWeek;
@@ -28,20 +28,25 @@ index c08f7bd27d9..983dc1acade 100644
 +        interface ILanguageStatics2;
 +        interface ILanguageStatics3;
 +        runtimeclass Language;
-+    }
-+}
-+
-+namespace Windows {
-+    namespace Globalization {
-+        declare {
-+            interface Windows.Foundation.Collections.IIterable<HSTRING>;
-+            interface Windows.Foundation.Collections.IIterator<HSTRING>;
-+            interface Windows.Foundation.Collections.IVector<HSTRING>;
-+        }
      }
  }
  
-@@ -45,5 +65,115 @@ namespace Windows {
++namespace Windows {
++    namespace Globalization {
++        declare{
++            interface Windows.Foundation.Collections.IIterable<Windows.Globalization.Language*>;
++            interface Windows.Foundation.Collections.IIterator<Windows.Globalization.Language*>;
++            interface Windows.Foundation.Collections.IVectorView<Windows.Globalization.Language*>;
++            interface Windows.Foundation.Collections.IVector<Windows.Globalization.Language*>;
++        }
++    }
++}
++
++
+ namespace Windows {
+     namespace Globalization {
+         [contract(Windows.Foundation.UniversalApiContract, 1.0)]
+@@ -45,5 +67,115 @@ namespace Windows {
              Friday    = 5,
              Saturday  = 6
          };

@@ -1,7 +1,7 @@
-From 9329e206e714ec1150b7148ba5ebda8d54736e95 Mon Sep 17 00:00:00 2001
+From 2fbaa21aaaebfc4763b152290d352e725d99e7e7 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 23:32:10 +0100
-Subject: [PATCH v2 12/12] windows.media.speech: Add
+Subject: [PATCH 13/14] windows.media.speech: Add
  SpeechContinuousRecognitionCompletedEventArgs stub.
 
 ---
@@ -12,10 +12,10 @@ Subject: [PATCH v2 12/12] windows.media.speech: Add
  create mode 100644 dlls/windows.media.speech/scr_completedeventargs.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
-index 4bfe68f06d9..d7b42939b4e 100644
+index 0ae01c3b816..9378ceb6409 100644
 --- a/dlls/windows.media.speech/Makefile.in
 +++ b/dlls/windows.media.speech/Makefile.in
-@@ -3,6 +3,7 @@ IMPORTS = combase uuid
+@@ -4,6 +4,7 @@ IMPORTS = combase uuid
  
  C_SRCS = \
  	main.c \

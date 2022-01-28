@@ -1,7 +1,7 @@
-From d0376b87e7e44385d42beff39fb6d35974b36ae7 Mon Sep 17 00:00:00 2001
+From b5ab90ec8fde292227c1a349c71d8d9647f6e77f Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 22:28:43 +0100
-Subject: [PATCH v2 06/12] windows.media.speech: Move speechsynthesis into a
+Subject: [PATCH 06/14] windows.media.speech: Move speechsynthesis into a
  seperate file.
 
 Do this to seperate the activation factory from the COM object
@@ -16,10 +16,10 @@ implementations.
  create mode 100644 dlls/windows.media.speech/windows_media_speech_private.h
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
-index 9fbff8e132f..57f2500d651 100644
+index fc01608d62c..ebb8249be8c 100644
 --- a/dlls/windows.media.speech/Makefile.in
 +++ b/dlls/windows.media.speech/Makefile.in
-@@ -2,6 +2,7 @@ MODULE = windows.media.speech.dll
+@@ -3,6 +3,7 @@ MODULE = windows.media.speech.dll
  IMPORTS = combase uuid
  
  C_SRCS = \
