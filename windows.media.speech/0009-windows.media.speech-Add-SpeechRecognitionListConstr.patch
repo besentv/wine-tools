@@ -1,4 +1,4 @@
-From bd5a47a201fc23d33090318d0af5afdb36ebc68f Mon Sep 17 00:00:00 2001
+From d888426b68cddddc7ab5edd6f0b9dadeb5bb1708 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 23:21:54 +0100
 Subject: [PATCH 09/14] windows.media.speech: Add
@@ -529,10 +529,10 @@ index 00000000000..56263639b1f
 +    return hr;
 +}
 diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speech.c
-index faf7ba08799..03e14d156d6 100644
+index 5b5448fa04c..cef9f1da6d7 100644
 --- a/dlls/windows.media.speech/tests/speech.c
 +++ b/dlls/windows.media.speech/tests/speech.c
-@@ -313,10 +313,61 @@ static void test_SpeechRecognizer(void)
+@@ -357,10 +357,61 @@ static void test_SpeechRecognizer(void)
      RoUninitialize();
  }
  

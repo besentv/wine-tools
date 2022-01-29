@@ -1,4 +1,4 @@
-From 2fbaa21aaaebfc4763b152290d352e725d99e7e7 Mon Sep 17 00:00:00 2001
+From 19367311fa21b1b3fd2dfe79763363c0ee6dc2e3 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 23:32:10 +0100
 Subject: [PATCH 13/14] windows.media.speech: Add

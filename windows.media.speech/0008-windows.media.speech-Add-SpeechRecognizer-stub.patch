@@ -1,4 +1,4 @@
-From 2ea3696545014fbb58dec5b21045cdf886214389 Mon Sep 17 00:00:00 2001
+From 2d3ff83dc04f46e15036dc8ae3d496ed04c07091 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 22:51:28 +0100
 Subject: [PATCH 08/14] windows.media.speech: Add SpeechRecognizer stub.
@@ -694,7 +694,7 @@ index 00000000000..b1d80212fd2
 +    return hr;
 +}
 diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speech.c
-index 2c7aa9db60f..faf7ba08799 100644
+index 83a2180c47b..5b5448fa04c 100644
 --- a/dlls/windows.media.speech/tests/speech.c
 +++ b/dlls/windows.media.speech/tests/speech.c
 @@ -33,6 +33,8 @@
@@ -706,7 +706,7 @@ index 2c7aa9db60f..faf7ba08799 100644
  
  #include "wine/test.h"
  
-@@ -254,9 +256,67 @@ static void test_VoiceInformation(void)
+@@ -298,9 +300,67 @@ static void test_VoiceInformation(void)
      RoUninitialize();
  }
  
