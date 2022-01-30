@@ -1,18 +1,17 @@
-From ff32018bdc8ddf27ca6e8a001903923ba1a419bf Mon Sep 17 00:00:00 2001
+From 260c34868af1f3f9e1fbdb9ac62571d064efbc14 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
-Date: Tue, 18 Jan 2022 14:21:49 +0100
-Subject: [PATCH 11/14] windows.media.speech: Add
+Date: Sun, 30 Jan 2022 15:27:04 +0100
+Subject: [PATCH 13/16] windows.media.speech: Add
  SpeechRecognitionCompilationResult stub.
 
 ---
  dlls/windows.media.speech/Makefile.in         |   1 +
  .../speechrecognitioncompilationresult.c      | 151 ++++++++++++++++++
- .../windows_media_speech_private.h            |   2 +
- 3 files changed, 154 insertions(+)
+ 2 files changed, 152 insertions(+)
  create mode 100644 dlls/windows.media.speech/speechrecognitioncompilationresult.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
-index 94d6dafd501..1a5d0803873 100644
+index ee3e1deb2ad..8e22da0cd1e 100644
 --- a/dlls/windows.media.speech/Makefile.in
 +++ b/dlls/windows.media.speech/Makefile.in
 @@ -4,6 +4,7 @@ IMPORTS = combase uuid
@@ -181,19 +180,6 @@ index 00000000000..d177127a26b
 +    return hr;
 +}
 \ No newline at end of file
-diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
-index f7a3b89e072..88eb9a01140 100644
---- a/dlls/windows.media.speech/windows_media_speech_private.h
-+++ b/dlls/windows.media.speech/windows_media_speech_private.h
-@@ -83,6 +83,8 @@ struct activation_factory
-  * 
-  */
- 
-+HRESULT STDMETHODCALLTYPE speech_recognition_compilation_result_create_from_iid(REFIID iid, void **obj) DECLSPEC_HIDDEN;
-+
- HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_default(IInspectable **inspectable) DECLSPEC_HIDDEN;
- HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create(IIterable_HSTRING *commands, ISpeechRecognitionListConstraint **listconstraint) DECLSPEC_HIDDEN;
- HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_tag(IIterable_HSTRING *commands, HSTRING tag, ISpeechRecognitionListConstraint **listconstraint) DECLSPEC_HIDDEN;
 -- 
 2.34.1
 

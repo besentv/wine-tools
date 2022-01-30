@@ -1,7 +1,7 @@
-From 011d8de5f37ece4d84bd26adf3c0f997744c7332 Mon Sep 17 00:00:00 2001
+From 55d2c576d684cc3d5eaab9ea32c25068a7cda997 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Tue, 18 Jan 2022 15:19:01 +0100
-Subject: [PATCH 12/14] windows.media.speech: Add
+Subject: [PATCH 14/16] windows.media.speech: Add
  SpeechRecognizerStateChangedEventArgs stub.
 
 ---
@@ -12,7 +12,7 @@ Subject: [PATCH 12/14] windows.media.speech: Add
  create mode 100644 dlls/windows.media.speech/speechrecognizerstatechangedrventargs.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
-index 1a5d0803873..0ae01c3b816 100644
+index 8e22da0cd1e..78092c29a15 100644
 --- a/dlls/windows.media.speech/Makefile.in
 +++ b/dlls/windows.media.speech/Makefile.in
 @@ -8,6 +8,7 @@ C_SRCS = \
@@ -20,7 +20,7 @@ index 1a5d0803873..0ae01c3b816 100644
  	speechrecognitionresult.c \
  	speechrecognizer.c \
 +	speechrecognizerstatechangedrventargs.c \
- 	speechsynthesis.c
+ 	speecsynthesizer.c
  
  IDL_SRCS = classes.idl
 diff --git a/dlls/windows.media.speech/speechrecognizerstatechangedrventargs.c b/dlls/windows.media.speech/speechrecognizerstatechangedrventargs.c
@@ -187,12 +187,12 @@ index 00000000000..66e8b562566
 +}
 \ No newline at end of file
 diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
-index 88eb9a01140..c8c66612c07 100644
+index 3dcfd4a6656..ca9933e0dc2 100644
 --- a/dlls/windows.media.speech/windows_media_speech_private.h
 +++ b/dlls/windows.media.speech/windows_media_speech_private.h
-@@ -94,6 +94,8 @@ HRESULT STDMETHODCALLTYPE speech_recognition_result_create_from_iid(REFIID iid,
- HRESULT STDMETHODCALLTYPE speech_recognizer_create_default(IInspectable **inspectable) DECLSPEC_HIDDEN;
- HRESULT STDMETHODCALLTYPE speech_recognizer_create(ILanguage *language, ISpeechRecognizer **speechrecognizer) DECLSPEC_HIDDEN;
+@@ -67,6 +67,8 @@ static inline const char *debugstr_hstring(HSTRING hstr)
+ void STDMETHODCALLTYPE speech_recognition_list_constraint_get_activation_factory(IActivationFactory **factory) DECLSPEC_HIDDEN;
+ void STDMETHODCALLTYPE speech_recognizer_get_activation_factory(IActivationFactory **factory) DECLSPEC_HIDDEN;
  
 +HRESULT STDMETHODCALLTYPE speech_recognizer_state_changed_event_args_create_from_iid(REFIID iid, void **obj) DECLSPEC_HIDDEN;
 +

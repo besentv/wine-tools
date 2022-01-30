@@ -1,17 +1,16 @@
-From 85d6117832f76c11690bd812f612c5287cfe03ca Mon Sep 17 00:00:00 2001
+From fd019eec6a51c8cb8ae61e4ad4b91688822eddca Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
-Date: Thu, 6 Jan 2022 23:29:58 +0100
-Subject: [PATCH 10/14] windows.media.speech: Add SpeechRecognitionResult stub.
+Date: Sun, 30 Jan 2022 15:25:15 +0100
+Subject: [PATCH 12/16] windows.media.speech: Add SpeechRecognitionResult stub.
 
 ---
  dlls/windows.media.speech/Makefile.in         |   1 +
  .../speechrecognitionresult.c                 | 325 ++++++++++++++++++
- .../windows_media_speech_private.h            |   2 +
- 3 files changed, 328 insertions(+)
+ 2 files changed, 326 insertions(+)
  create mode 100644 dlls/windows.media.speech/speechrecognitionresult.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
-index 735d9a2b0fc..94d6dafd501 100644
+index b988a89f726..ee3e1deb2ad 100644
 --- a/dlls/windows.media.speech/Makefile.in
 +++ b/dlls/windows.media.speech/Makefile.in
 @@ -5,6 +5,7 @@ IMPORTS = combase uuid
@@ -20,7 +19,7 @@ index 735d9a2b0fc..94d6dafd501 100644
  	speechrecognitionlistconstraint.c \
 +	speechrecognitionresult.c \
  	speechrecognizer.c \
- 	speechsynthesis.c
+ 	speecsynthesizer.c
  
 diff --git a/dlls/windows.media.speech/speechrecognitionresult.c b/dlls/windows.media.speech/speechrecognitionresult.c
 new file mode 100644
@@ -353,19 +352,6 @@ index 00000000000..3403161d27a
 +
 +    return hr;
 +}
-diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
-index 04b874af7bd..f7a3b89e072 100644
---- a/dlls/windows.media.speech/windows_media_speech_private.h
-+++ b/dlls/windows.media.speech/windows_media_speech_private.h
-@@ -87,6 +87,8 @@ HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_default(IIns
- HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create(IIterable_HSTRING *commands, ISpeechRecognitionListConstraint **listconstraint) DECLSPEC_HIDDEN;
- HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_tag(IIterable_HSTRING *commands, HSTRING tag, ISpeechRecognitionListConstraint **listconstraint) DECLSPEC_HIDDEN;
- 
-+HRESULT STDMETHODCALLTYPE speech_recognition_result_create_from_iid(REFIID iid, void **obj) DECLSPEC_HIDDEN;
-+
- HRESULT STDMETHODCALLTYPE speech_recognizer_create_default(IInspectable **inspectable) DECLSPEC_HIDDEN;
- HRESULT STDMETHODCALLTYPE speech_recognizer_create(ILanguage *language, ISpeechRecognizer **speechrecognizer) DECLSPEC_HIDDEN;
- 
 -- 
 2.34.1
 

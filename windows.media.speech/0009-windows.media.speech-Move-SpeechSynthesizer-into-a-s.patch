@@ -1,22 +1,25 @@
-From bd531a474c5b9a48147bbebb160bdc6b38b43882 Mon Sep 17 00:00:00 2001
+From 66b62f32cad07ce0f37b0a4ff1c3af4a43a3ecad Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 22:28:43 +0100
-Subject: [PATCH 06/14] windows.media.speech: Move speechsynthesis into a
+Subject: [PATCH 09/16] windows.media.speech: Move SpeechSynthesizer into a
  seperate file.
 
-Do this to seperate the activation factory from the COM object
-implementations.
+---
+v2: Put the activation factory in the same file as the speech synthesis
+classes and interfaces.
 ---
  dlls/windows.media.speech/Makefile.in         |   3 +-
- dlls/windows.media.speech/main.c              | 565 ++----------------
- dlls/windows.media.speech/speechsynthesis.c   | 505 ++++++++++++++++
- .../windows_media_speech_private.h            |  84 +++
- 4 files changed, 657 insertions(+), 500 deletions(-)
- create mode 100644 dlls/windows.media.speech/speechsynthesis.c
+ dlls/windows.media.speech/classes.idl         |   1 +
+ dlls/windows.media.speech/main.c              | 586 +---------------
+ dlls/windows.media.speech/speecsynthesizer.c  | 640 ++++++++++++++++++
+ dlls/windows.media.speech/tests/speech.c      |   4 +-
+ .../windows_media_speech_private.h            |  69 ++
+ 6 files changed, 729 insertions(+), 574 deletions(-)
+ create mode 100644 dlls/windows.media.speech/speecsynthesizer.c
  create mode 100644 dlls/windows.media.speech/windows_media_speech_private.h
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
-index fc01608d62c..ebb8249be8c 100644
+index fc01608d62c..621f3642811 100644
 --- a/dlls/windows.media.speech/Makefile.in
 +++ b/dlls/windows.media.speech/Makefile.in
 @@ -3,6 +3,7 @@ MODULE = windows.media.speech.dll
@@ -25,14 +28,24 @@ index fc01608d62c..ebb8249be8c 100644
  C_SRCS = \
 -	main.c
 +	main.c \
-+	speechsynthesis.c
++	speecsynthesizer.c
  
  IDL_SRCS = classes.idl
+diff --git a/dlls/windows.media.speech/classes.idl b/dlls/windows.media.speech/classes.idl
+index 6c141bf4768..4dd43cf6eed 100644
+--- a/dlls/windows.media.speech/classes.idl
++++ b/dlls/windows.media.speech/classes.idl
+@@ -16,4 +16,5 @@
+ 
+ #pragma makedep register
+ 
++#include "windows.media.speechrecognition.idl"
+ #include "windows.media.speechsynthesis.idl"
 diff --git a/dlls/windows.media.speech/main.c b/dlls/windows.media.speech/main.c
-index b607f9a8203..1e2947fd026 100644
+index b607f9a8203..1f61f5bb195 100644
 --- a/dlls/windows.media.speech/main.c
 +++ b/dlls/windows.media.speech/main.c
-@@ -17,401 +17,27 @@
+@@ -17,576 +17,17 @@
   * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
   */
  
@@ -423,116 +436,102 @@ index b607f9a8203..1e2947fd026 100644
 -{
 -    return CONTAINING_RECORD(iface, struct windows_media_speech, IActivationFactory_iface);
 -}
-+/*
-+ *
-+ * IActivationFactory
-+ *
-+ */
- 
+-
 -static inline struct windows_media_speech *impl_from_IInstalledVoicesStatic(IInstalledVoicesStatic *iface)
-+static inline struct activation_factory *impl_from_IActivationFactory(IActivationFactory *iface)
- {
+-{
 -    return CONTAINING_RECORD(iface, struct windows_media_speech, IInstalledVoicesStatic_iface);
-+    return CONTAINING_RECORD(iface, struct activation_factory, IActivationFactory_iface);
- }
- 
+-}
+-
 -static HRESULT STDMETHODCALLTYPE windows_media_speech_QueryInterface(
 -        IActivationFactory *iface, REFIID iid, void **out)
-+static HRESULT STDMETHODCALLTYPE activation_factory_QueryInterface(
-+    IActivationFactory *iface, REFIID iid, void **out)
- {
+-{
 -    struct windows_media_speech *impl = impl_from_IActivationFactory(iface);
-+    struct activation_factory *impl = impl_from_IActivationFactory(iface);
- 
-     TRACE("iface %p, iid %s, out %p stub!\n", iface, debugstr_guid(iid), out);
- 
-@@ -437,156 +63,96 @@ static HRESULT STDMETHODCALLTYPE windows_media_speech_QueryInterface(
-     return E_NOINTERFACE;
- }
- 
+-
+-    TRACE("iface %p, iid %s, out %p stub!\n", iface, debugstr_guid(iid), out);
+-
+-    if (IsEqualGUID(iid, &IID_IUnknown) ||
+-        IsEqualGUID(iid, &IID_IInspectable) ||
+-        IsEqualGUID(iid, &IID_IAgileObject) ||
+-        IsEqualGUID(iid, &IID_IActivationFactory))
+-    {
+-        IUnknown_AddRef(iface);
+-        *out = iface;
+-        return S_OK;
+-    }
+-
+-    if (IsEqualGUID(iid, &IID_IInstalledVoicesStatic))
+-    {
+-        IUnknown_AddRef(iface);
+-        *out = &impl->IInstalledVoicesStatic_iface;
+-        return S_OK;
+-    }
+-
+-    FIXME("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
+-    *out = NULL;
+-    return E_NOINTERFACE;
+-}
+-
 -static ULONG STDMETHODCALLTYPE windows_media_speech_AddRef(
 -        IActivationFactory *iface)
-+static ULONG STDMETHODCALLTYPE activation_factory_AddRef(
-+    IActivationFactory *iface)
- {
+-{
 -    struct windows_media_speech *impl = impl_from_IActivationFactory(iface);
-+    struct activation_factory *impl = impl_from_IActivationFactory(iface);
-     ULONG ref = InterlockedIncrement(&impl->ref);
-     TRACE("iface %p, ref %u.\n", iface, ref);
-     return ref;
- }
- 
+-    ULONG ref = InterlockedIncrement(&impl->ref);
+-    TRACE("iface %p, ref %u.\n", iface, ref);
+-    return ref;
+-}
+-
 -static ULONG STDMETHODCALLTYPE windows_media_speech_Release(
 -        IActivationFactory *iface)
-+static ULONG STDMETHODCALLTYPE activation_factory_Release(
-+    IActivationFactory *iface)
- {
+-{
 -    struct windows_media_speech *impl = impl_from_IActivationFactory(iface);
-+    struct activation_factory *impl = impl_from_IActivationFactory(iface);
-     ULONG ref = InterlockedDecrement(&impl->ref);
-     TRACE("iface %p, ref %u.\n", iface, ref);
-     return ref;
- }
- 
+-    ULONG ref = InterlockedDecrement(&impl->ref);
+-    TRACE("iface %p, ref %u.\n", iface, ref);
+-    return ref;
+-}
+-
 -static HRESULT STDMETHODCALLTYPE windows_media_speech_GetIids(
 -        IActivationFactory *iface, ULONG *iid_count, IID **iids)
-+static HRESULT STDMETHODCALLTYPE activation_factory_GetIids(
-+    IActivationFactory *iface, ULONG *iid_count, IID **iids)
- {
-     FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
-     return E_NOTIMPL;
- }
- 
+-{
+-    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
+-    return E_NOTIMPL;
+-}
+-
 -static HRESULT STDMETHODCALLTYPE windows_media_speech_GetRuntimeClassName(
 -        IActivationFactory *iface, HSTRING *class_name)
-+static HRESULT STDMETHODCALLTYPE activation_factory_GetRuntimeClassName(
-+    IActivationFactory *iface, HSTRING *class_name)
- {
-     FIXME("iface %p, class_name %p stub!\n", iface, class_name);
-     return E_NOTIMPL;
- }
- 
+-{
+-    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
+-    return E_NOTIMPL;
+-}
+-
 -static HRESULT STDMETHODCALLTYPE windows_media_speech_GetTrustLevel(
 -        IActivationFactory *iface, TrustLevel *trust_level)
-+static HRESULT STDMETHODCALLTYPE activation_factory_GetTrustLevel(
-+    IActivationFactory *iface, TrustLevel *trust_level)
- {
-     FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
-     return E_NOTIMPL;
- }
- 
+-{
+-    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
+-    return E_NOTIMPL;
+-}
+-
 -static HRESULT STDMETHODCALLTYPE windows_media_speech_ActivateInstance(
 -        IActivationFactory *iface, IInspectable **instance)
-+static HRESULT STDMETHODCALLTYPE activation_factory_ActivateInstance(
-+    IActivationFactory *iface, IInspectable **instance)
- {
+-{
 -    struct speech_synthesizer *obj;
-+    struct activation_factory *impl = impl_from_IActivationFactory(iface);
- 
+-
 -    TRACE("iface %p, instance %p.\n", iface, instance);
-+    TRACE("iface %p, instance %p\n", iface, instance);
- 
+-
 -    if (!(obj = calloc(1, sizeof(*obj))))
-+    if (!instance)
-+        return E_INVALIDARG;
-+
-+    if (impl)
-     {
+-    {
 -        *instance = NULL;
 -        return E_OUTOFMEMORY;
-+        return impl->create_instance(instance);
-     }
- 
+-    }
+-
 -    obj->ISpeechSynthesizer_iface.lpVtbl = &speech_synthesizer_vtbl;
 -    obj->IClosable_iface.lpVtbl = &closable_vtbl;
 -    obj->ref = 1;
 -    *instance = (IInspectable *)&obj->ISpeechSynthesizer_iface;
 -    return S_OK;
-+    return E_NOINTERFACE;
- }
- 
- static const struct IActivationFactoryVtbl activation_factory_vtbl =
- {
+-}
+-
+-static const struct IActivationFactoryVtbl activation_factory_vtbl =
+-{
 -    windows_media_speech_QueryInterface,
 -    windows_media_speech_AddRef,
 -    windows_media_speech_Release,
@@ -542,18 +541,8 @@ index b607f9a8203..1e2947fd026 100644
 -    windows_media_speech_GetTrustLevel,
 -    /* IActivationFactory methods */
 -    windows_media_speech_ActivateInstance,
-+        /* IUnknown methods */
-+        activation_factory_QueryInterface,
-+        activation_factory_AddRef,
-+        activation_factory_Release,
-+        /* IInspectable methods */
-+        activation_factory_GetIids,
-+        activation_factory_GetRuntimeClassName,
-+        activation_factory_GetTrustLevel,
-+        /* IActivationFactory methods */
-+        activation_factory_ActivateInstance,
- };
- 
+-};
+-
 -static HRESULT STDMETHODCALLTYPE installed_voices_static_QueryInterface(
 -        IInstalledVoicesStatic *iface, REFIID iid, void **out)
 -{
@@ -611,15 +600,9 @@ index b607f9a8203..1e2947fd026 100644
 -    FIXME("iface %p, value %p stub!\n", iface, value);
 -    return E_NOTIMPL;
 -}
-+/*
-+ *
-+ * ActivationFactory instances
-+ *
-+ */
- 
+-
 -static const struct IInstalledVoicesStaticVtbl installed_voices_static_vtbl =
-+static struct activation_factory speechsynthesis_speechsynthesizer_af =
- {
+-{
 -    installed_voices_static_QueryInterface,
 -    installed_voices_static_AddRef,
 -    installed_voices_static_Release,
@@ -630,12 +613,8 @@ index b607f9a8203..1e2947fd026 100644
 -    /* IInstalledVoicesStatic methods */
 -    installed_voices_static_get_AllVoices,
 -    installed_voices_static_get_DefaultVoice,
-+    .IActivationFactory_iface = {&activation_factory_vtbl},
-+    .IInstalledVoicesStatic_iface = {&installed_voices_static_vtbl},
-+    .create_instance = speech_synthesizer_create_default,
-+    .ref = 1
- };
- 
+-};
+-
 -static struct windows_media_speech windows_media_speech =
 -{
 -    {&activation_factory_vtbl},
@@ -650,7 +629,7 @@ index b607f9a8203..1e2947fd026 100644
  
  HRESULT WINAPI DllGetClassObject(REFCLSID clsid, REFIID riid, void **out)
  {
-@@ -598,13 +164,14 @@ HRESULT WINAPI DllGetActivationFactory(HSTRING classid, IActivationFactory **fac
+@@ -598,13 +39,14 @@ HRESULT WINAPI DllGetActivationFactory(HSTRING classid, IActivationFactory **fac
  {
      TRACE("classid %s, factory %p.\n", debugstr_hstring(classid), factory);
  
@@ -660,7 +639,7 @@ index b607f9a8203..1e2947fd026 100644
      {
 -        ERR("Unknown classid %s.\n", debugstr_hstring(classid));
 -        return CLASS_E_CLASSNOTAVAILABLE;
-+        *factory = &speechsynthesis_speechsynthesizer_af.IActivationFactory_iface;
++        speech_synthesizer_get_activation_factory(factory);
 +        IUnknown_AddRef(*factory);
 +        return S_OK;
      }
@@ -671,12 +650,12 @@ index b607f9a8203..1e2947fd026 100644
 +    ERR("Unknown classid %s.\n", debugstr_hstring(classid));
 +    return CLASS_E_CLASSNOTAVAILABLE;
  }
-diff --git a/dlls/windows.media.speech/speechsynthesis.c b/dlls/windows.media.speech/speechsynthesis.c
+diff --git a/dlls/windows.media.speech/speecsynthesizer.c b/dlls/windows.media.speech/speecsynthesizer.c
 new file mode 100644
-index 00000000000..e24b42c8914
+index 00000000000..94f02610fbb
 --- /dev/null
-+++ b/dlls/windows.media.speech/speechsynthesis.c
-@@ -0,0 +1,505 @@
++++ b/dlls/windows.media.speech/speecsynthesizer.c
+@@ -0,0 +1,640 @@
 +/* WinRT Windows.Media.Speech implementation
 + *
 + * Copyright 2021 Rémi Bernon for CodeWeavers
@@ -829,102 +808,6 @@ index 00000000000..e24b42c8914
 +{
 +    {&vector_view_voice_information_vtbl},
 +    0
-+};
-+
-+/*
-+ *
-+ * IInstalledVoicesStatic
-+ *
-+ */
-+
-+static inline struct activation_factory *impl_from_IInstalledVoicesStatic(IInstalledVoicesStatic *iface)
-+{
-+    return CONTAINING_RECORD(iface, struct activation_factory, IInstalledVoicesStatic_iface);
-+}
-+
-+static HRESULT STDMETHODCALLTYPE installed_voices_static_QueryInterface(
-+        IInstalledVoicesStatic *iface, REFIID iid, void **out)
-+{
-+    struct activation_factory *impl = impl_from_IInstalledVoicesStatic(iface);
-+
-+    TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
-+
-+    return IActivationFactory_QueryInterface(&impl->IActivationFactory_iface, iid, out);
-+}
-+
-+static ULONG STDMETHODCALLTYPE installed_voices_static_AddRef(
-+        IInstalledVoicesStatic *iface)
-+{
-+    struct activation_factory *impl = impl_from_IInstalledVoicesStatic(iface);
-+
-+    TRACE("iface %p.\n", iface);
-+
-+    return IActivationFactory_AddRef(&impl->IActivationFactory_iface);
-+}
-+
-+static ULONG STDMETHODCALLTYPE installed_voices_static_Release(
-+        IInstalledVoicesStatic *iface)
-+{
-+    struct activation_factory *impl = impl_from_IInstalledVoicesStatic(iface);
-+
-+    TRACE("iface %p.\n", iface);
-+
-+    return IActivationFactory_Release(&impl->IActivationFactory_iface);
-+}
-+
-+static HRESULT STDMETHODCALLTYPE installed_voices_static_GetIids(
-+        IInstalledVoicesStatic *iface, ULONG *iid_count, IID **iids)
-+{
-+    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
-+
-+    return E_NOTIMPL;
-+}
-+
-+static HRESULT STDMETHODCALLTYPE installed_voices_static_GetRuntimeClassName(
-+        IInstalledVoicesStatic *iface, HSTRING *class_name)
-+{
-+    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
-+
-+    return E_NOTIMPL;
-+}
-+
-+static HRESULT STDMETHODCALLTYPE installed_voices_static_GetTrustLevel(
-+        IInstalledVoicesStatic *iface, TrustLevel *trust_level)
-+{
-+    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
-+
-+    return E_NOTIMPL;
-+}
-+
-+static HRESULT STDMETHODCALLTYPE installed_voices_static_get_AllVoices(
-+    IInstalledVoicesStatic *iface, IVectorView_VoiceInformation **value)
-+{
-+    TRACE("iface %p, value %p.\n", iface, value);
-+    *value = &all_voices.IVectorView_VoiceInformation_iface;
-+    IVectorView_VoiceInformation_AddRef(*value);
-+    return S_OK;
-+}
-+
-+static HRESULT STDMETHODCALLTYPE installed_voices_static_get_DefaultVoice(
-+    IInstalledVoicesStatic *iface, IVoiceInformation **value)
-+{
-+    FIXME("iface %p, value %p stub!\n", iface, value);
-+
-+    return E_NOTIMPL;
-+}
-+
-+const struct IInstalledVoicesStaticVtbl installed_voices_static_vtbl =
-+{
-+    installed_voices_static_QueryInterface,
-+    installed_voices_static_AddRef,
-+    installed_voices_static_Release,
-+    /* IInspectable methods */
-+    installed_voices_static_GetIids,
-+    installed_voices_static_GetRuntimeClassName,
-+    installed_voices_static_GetTrustLevel,
-+    /* IInstalledVoicesStatic methods */
-+    installed_voices_static_get_AllVoices,
-+    installed_voices_static_get_DefaultVoice,
 +};
 +
 +/*
@@ -1160,7 +1043,7 @@ index 00000000000..e24b42c8914
 +    closable_Close,
 +};
 +
-+HRESULT STDMETHODCALLTYPE speech_synthesizer_create_default(IInspectable **instance)
++static HRESULT STDMETHODCALLTYPE speech_synthesizer_create_default(IInspectable **instance)
 +{
 +    struct speech_synthesizer *impl;
 +    HRESULT hr;
@@ -1177,18 +1060,270 @@ index 00000000000..e24b42c8914
 +    impl->IClosable_iface.lpVtbl = &closable_vtbl;
 +    impl->ref = 1;
 +
-+    hr = ISpeechSynthesizer_QueryInterface(&impl->ISpeechSynthesizer_iface, &IID_ISpeechSynthesizer, (void**)instance);
++    hr = ISpeechSynthesizer_QueryInterface(&impl->ISpeechSynthesizer_iface, &IID_IInspectable, (void**)instance);
 +    ISpeechSynthesizer_Release(&impl->ISpeechSynthesizer_iface);
 +
 +    return hr;
 +}
-\ No newline at end of file
++
++/*
++ *
++ * ActivationFactory
++ *
++ */
++
++struct activation_factory
++{
++    IActivationFactory IActivationFactory_iface;
++    IInstalledVoicesStatic IInstalledVoicesStatic_iface;
++    LONG ref;
++};
++
++/*
++ *
++ * IActivationFactory for Windows.Media.SpeechSynthesis.SpeechSynthesizer
++ *
++ */
++
++static inline struct activation_factory *impl_from_IActivationFactory(IActivationFactory *iface)
++{
++    return CONTAINING_RECORD(iface, struct activation_factory, IActivationFactory_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE activation_factory_QueryInterface(
++    IActivationFactory *iface, REFIID iid, void **out)
++{
++    struct activation_factory *impl = impl_from_IActivationFactory(iface);
++
++    TRACE("iface %p, iid %s, out %p stub!\n", iface, debugstr_guid(iid), out);
++
++    if (IsEqualGUID(iid, &IID_IUnknown) ||
++        IsEqualGUID(iid, &IID_IInspectable) ||
++        IsEqualGUID(iid, &IID_IAgileObject) ||
++        IsEqualGUID(iid, &IID_IActivationFactory))
++    {
++        IUnknown_AddRef(iface);
++        *out = iface;
++        return S_OK;
++    }
++
++    if (IsEqualGUID(iid, &IID_IInstalledVoicesStatic))
++    {
++        IUnknown_AddRef(iface);
++        *out = &impl->IInstalledVoicesStatic_iface;
++        return S_OK;
++    }
++
++    FIXME("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
++    *out = NULL;
++    return E_NOINTERFACE;
++}
++
++static ULONG STDMETHODCALLTYPE activation_factory_AddRef(
++    IActivationFactory *iface)
++{
++    struct activation_factory *impl = impl_from_IActivationFactory(iface);
++    ULONG ref = InterlockedIncrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++    return ref;
++}
++
++static ULONG STDMETHODCALLTYPE activation_factory_Release(
++    IActivationFactory *iface)
++{
++    struct activation_factory *impl = impl_from_IActivationFactory(iface);
++    ULONG ref = InterlockedDecrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++    return ref;
++}
++
++static HRESULT STDMETHODCALLTYPE activation_factory_GetIids(
++    IActivationFactory *iface, ULONG *iid_count, IID **iids)
++{
++    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE activation_factory_GetRuntimeClassName(
++    IActivationFactory *iface, HSTRING *class_name)
++{
++    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE activation_factory_GetTrustLevel(
++    IActivationFactory *iface, TrustLevel *trust_level)
++{
++    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE activation_factory_ActivateInstance(
++    IActivationFactory *iface, IInspectable **instance)
++{
++    TRACE("iface %p, instance %p\n", iface, instance);
++
++    if (!instance)
++        return E_INVALIDARG;
++
++    return speech_synthesizer_create_default(instance);
++}
++
++static const struct IActivationFactoryVtbl activation_factory_vtbl =
++{
++        /* IUnknown methods */
++        activation_factory_QueryInterface,
++        activation_factory_AddRef,
++        activation_factory_Release,
++        /* IInspectable methods */
++        activation_factory_GetIids,
++        activation_factory_GetRuntimeClassName,
++        activation_factory_GetTrustLevel,
++        /* IActivationFactory methods */
++        activation_factory_ActivateInstance,
++};
++
++/*
++ *
++ * IInstalledVoicesStatic
++ *
++ */
++
++static inline struct activation_factory *impl_from_IInstalledVoicesStatic(IInstalledVoicesStatic *iface)
++{
++    return CONTAINING_RECORD(iface, struct activation_factory, IInstalledVoicesStatic_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE installed_voices_static_QueryInterface(
++        IInstalledVoicesStatic *iface, REFIID iid, void **out)
++{
++    struct activation_factory *impl = impl_from_IInstalledVoicesStatic(iface);
++
++    TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
++
++    return IActivationFactory_QueryInterface(&impl->IActivationFactory_iface, iid, out);
++}
++
++static ULONG STDMETHODCALLTYPE installed_voices_static_AddRef(
++        IInstalledVoicesStatic *iface)
++{
++    struct activation_factory *impl = impl_from_IInstalledVoicesStatic(iface);
++
++    TRACE("iface %p.\n", iface);
++
++    return IActivationFactory_AddRef(&impl->IActivationFactory_iface);
++}
++
++static ULONG STDMETHODCALLTYPE installed_voices_static_Release(
++        IInstalledVoicesStatic *iface)
++{
++    struct activation_factory *impl = impl_from_IInstalledVoicesStatic(iface);
++
++    TRACE("iface %p.\n", iface);
++
++    return IActivationFactory_Release(&impl->IActivationFactory_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE installed_voices_static_GetIids(
++        IInstalledVoicesStatic *iface, ULONG *iid_count, IID **iids)
++{
++    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE installed_voices_static_GetRuntimeClassName(
++        IInstalledVoicesStatic *iface, HSTRING *class_name)
++{
++    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE installed_voices_static_GetTrustLevel(
++        IInstalledVoicesStatic *iface, TrustLevel *trust_level)
++{
++    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
++
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE installed_voices_static_get_AllVoices(
++    IInstalledVoicesStatic *iface, IVectorView_VoiceInformation **value)
++{
++    TRACE("iface %p, value %p.\n", iface, value);
++    *value = &all_voices.IVectorView_VoiceInformation_iface;
++    IVectorView_VoiceInformation_AddRef(*value);
++    return S_OK;
++}
++
++static HRESULT STDMETHODCALLTYPE installed_voices_static_get_DefaultVoice(
++    IInstalledVoicesStatic *iface, IVoiceInformation **value)
++{
++    FIXME("iface %p, value %p stub!\n", iface, value);
++
++    return E_NOTIMPL;
++}
++
++const struct IInstalledVoicesStaticVtbl installed_voices_static_vtbl =
++{
++    installed_voices_static_QueryInterface,
++    installed_voices_static_AddRef,
++    installed_voices_static_Release,
++    /* IInspectable methods */
++    installed_voices_static_GetIids,
++    installed_voices_static_GetRuntimeClassName,
++    installed_voices_static_GetTrustLevel,
++    /* IInstalledVoicesStatic methods */
++    installed_voices_static_get_AllVoices,
++    installed_voices_static_get_DefaultVoice,
++};
++
++/*
++ *
++ * ActivationFactory instance
++ *
++ */
++
++static struct activation_factory speechsynthesizer_af =
++{
++    .IActivationFactory_iface = {&activation_factory_vtbl},
++    .IInstalledVoicesStatic_iface = {&installed_voices_static_vtbl},
++    .ref = 1
++};
++
++void STDMETHODCALLTYPE speech_synthesizer_get_activation_factory(IActivationFactory **factory)
++{
++    *factory = &speechsynthesizer_af.IActivationFactory_iface;
++}
+diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speech.c
+index 83a2180c47b..2021558b396 100644
+--- a/dlls/windows.media.speech/tests/speech.c
++++ b/dlls/windows.media.speech/tests/speech.c
+@@ -33,6 +33,8 @@
+ #include "windows.media.speechrecognition.h"
+ #define WIDL_using_Windows_Media_SpeechSynthesis
+ #include "windows.media.speechsynthesis.h"
++#define WIDL_using_Windows_Media_SpeechRecognition
++#include "windows.media.speechrecognition.h"
+ 
+ #include "wine/test.h"
+ 
+@@ -43,7 +45,7 @@ static void test_ActivationFactory(void)
+     static const WCHAR *speech_synthesizer_name = L"Windows.Media.SpeechSynthesis.SpeechSynthesizer";
+     static const WCHAR *speech_recognizer_name = L"Windows.Media.SpeechRecognition.SpeechRecognizer";
+     IActivationFactory *afactory = NULL, *afactory2 = NULL, *afactory3 = NULL, *afactory4 = NULL;
+-    ISpeechRecognizerFactory *sr_factory = NULL, *sr_factory2 = NULL;
++    ISpeechRecognizerFactory *sr_factory = NULL;
+     ISpeechRecognizerStatics *sr_statics = NULL;
+     ISpeechRecognizerStatics2 *sr_statics2 = NULL;
+     IInstalledVoicesStatic *installed_voices = NULL;
 diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
 new file mode 100644
-index 00000000000..471eb4ef281
+index 00000000000..495855e4b76
 --- /dev/null
 +++ b/dlls/windows.media.speech/windows_media_speech_private.h
-@@ -0,0 +1,84 @@
+@@ -0,0 +1,69 @@
 +/* WinRT Windows.Media.Speech private header
 + *
 + * Copyright 2022 Bernhard Kölbl
@@ -1231,8 +1366,12 @@ index 00000000000..471eb4ef281
 +#define WIDL_using_Windows_Foundation
 +#define WIDL_using_Windows_Foundation_Collections
 +#include "windows.foundation.h"
++#define WIDL_using_Windows_Globalization
++#include "windows.globalization.h"
 +#define WIDL_using_Windows_Media_SpeechSynthesis
 +#include "windows.media.speechsynthesis.h"
++#define WIDL_using_Windows_Media_SpeechRecognition
++#include "windows.media.speechrecognition.h"
 +
 +#define IsEqualClassID(classid1, classid2) (!wcscmp(classid1, classid2))
 +
@@ -1247,30 +1386,11 @@ index 00000000000..471eb4ef281
 +
 +/*
 + *
-+ * ActivationFactory
-+ *
-+ */
-+
-+struct activation_factory
-+{
-+    /* Factories */
-+    IActivationFactory IActivationFactory_iface;
-+    /* Static interfaces */
-+    IInstalledVoicesStatic IInstalledVoicesStatic_iface;
-+    /* Variables */
-+    HRESULT (*create_instance)(IInspectable **instance);
-+    LONG ref;
-+};
-+
-+/*
-+ *
 + * Windows.Media.SpeechSynthesis
 + *
 + */
 +
-+extern const struct IInstalledVoicesStaticVtbl installed_voices_static_vtbl;
-+
-+HRESULT STDMETHODCALLTYPE speech_synthesizer_create_default(IInspectable **instance) DECLSPEC_HIDDEN;
++void STDMETHODCALLTYPE speech_synthesizer_get_activation_factory(IActivationFactory **factory) DECLSPEC_HIDDEN;
 +
 +#endif
 -- 
