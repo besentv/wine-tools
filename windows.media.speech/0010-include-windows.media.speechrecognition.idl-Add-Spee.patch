@@ -1,4 +1,4 @@
-From 31f03b6c24f471a17b4f74b31e93ec53aafa4566 Mon Sep 17 00:00:00 2001
+From 46612330a0b44cca5d2be804d38a6836903fa54d Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 18:34:18 +0100
 Subject: [PATCH 10/27] include/windows.media.speechrecognition.idl: Add

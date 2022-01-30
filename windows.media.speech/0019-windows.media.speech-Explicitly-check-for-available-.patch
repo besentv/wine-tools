@@ -1,4 +1,4 @@
-From eea7e53e796b9143466838bf4669a0f5633de1a7 Mon Sep 17 00:00:00 2001
+From b378bd46f10c2f7b3c0e4bf8cd7a4c6449a1b699 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 22:13:03 +0100
 Subject: [PATCH 19/27] windows.media.speech: Explicitly check for available

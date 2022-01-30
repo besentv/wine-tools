@@ -1,4 +1,4 @@
-From 5a890daf6e3a74bbdba91bacfb9ab4a62a51d13e Mon Sep 17 00:00:00 2001
+From 19be58f1c375a9890d22837b43b0d03611b8f494 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 21:48:46 +0100
 Subject: [PATCH 17/27] windows.media.speech: Create private header.

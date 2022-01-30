@@ -1,11 +1,11 @@
-From 2a9bd0e9e80daef65a4f1f5f861013f42aad43fb Mon Sep 17 00:00:00 2001
+From aab0f88c0a667a68fd08432dd38f5d18f6c421ad Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:07:10 +0100
 Subject: [PATCH 04/27] include/windows.globalization.idl: Add Language class
  and interfaces.
 
 ---
-v2: Full write out of the stubs. Supersedes: #223693
+v2: Fully work out the previous stubs.
 ---
  include/windows.globalization.idl | 132 ++++++++++++++++++++++++++++++
  1 file changed, 132 insertions(+)

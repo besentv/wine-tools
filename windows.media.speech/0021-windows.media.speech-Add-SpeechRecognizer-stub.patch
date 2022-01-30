@@ -1,15 +1,16 @@
-From ee281bff7eaa50beb287367de2fe081c807151e8 Mon Sep 17 00:00:00 2001
+From 9e55b3b170241ea97b1aa6805be4630fda22d007 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 14:53:49 +0100
 Subject: [PATCH 21/27] windows.media.speech: Add SpeechRecognizer stub.
 
 ---
  dlls/windows.media.speech/Makefile.in         |   1 +
+ dlls/windows.media.speech/classes.idl         |   1 +
  dlls/windows.media.speech/main.c              |   7 +
  dlls/windows.media.speech/speechrecognizer.c  | 734 ++++++++++++++++++
  dlls/windows.media.speech/tests/speech.c      |  58 ++
- .../windows_media_speech_private.h            |   8 +
- 5 files changed, 808 insertions(+)
+ .../windows_media_speech_private.h            |  10 +
+ 6 files changed, 811 insertions(+)
  create mode 100644 dlls/windows.media.speech/speechrecognizer.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
@@ -24,11 +25,21 @@ index 4f15b674d8e..8a9b5b2cf7d 100644
  	speechsynthesizer.c
  
  IDL_SRCS = classes.idl
+diff --git a/dlls/windows.media.speech/classes.idl b/dlls/windows.media.speech/classes.idl
+index 6c141bf4768..4dd43cf6eed 100644
+--- a/dlls/windows.media.speech/classes.idl
++++ b/dlls/windows.media.speech/classes.idl
+@@ -16,4 +16,5 @@
+ 
+ #pragma makedep register
+ 
++#include "windows.media.speechrecognition.idl"
+ #include "windows.media.speechsynthesis.idl"
 diff --git a/dlls/windows.media.speech/main.c b/dlls/windows.media.speech/main.c
-index 1f61f5bb195..9dc8ca8c224 100644
+index f275840e965..072c6ba314b 100644
 --- a/dlls/windows.media.speech/main.c
 +++ b/dlls/windows.media.speech/main.c
-@@ -46,6 +46,13 @@ HRESULT WINAPI DllGetActivationFactory(HSTRING classid, IActivationFactory **fac
+@@ -40,6 +40,13 @@ HRESULT WINAPI DllGetActivationFactory(HSTRING classid, IActivationFactory **fac
          IUnknown_AddRef(*factory);
          return S_OK;
      }
@@ -855,16 +866,25 @@ index 2021558b396..d1297808b7a 100644
 +    test_SpeechRecognizer();
  }
 diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
-index 441d95b3e5d..763e3948f0b 100644
+index 441d95b3e5d..b25002b2cbc 100644
 --- a/dlls/windows.media.speech/windows_media_speech_private.h
 +++ b/dlls/windows.media.speech/windows_media_speech_private.h
-@@ -56,6 +56,14 @@ static inline const char *debugstr_hstring(HSTRING hstr)
+@@ -44,6 +44,8 @@
+ #include "windows.globalization.h"
+ #define WIDL_using_Windows_Media_SpeechSynthesis
+ #include "windows.media.speechsynthesis.h"
++#define WIDL_using_Windows_Media_SpeechRecognition
++#include "windows.media.speechrecognition.h"
+ 
+ #define IsEqualClassID(classid1, classid2) (!wcscmp(classid1, classid2))
+ 
+@@ -56,6 +58,14 @@ static inline const char *debugstr_hstring(HSTRING hstr)
      return wine_dbgstr_wn(str, len);
  }
  
 +/*
 + *
-+ * Windows.Media.SpeechRecognition.SpeechSynthesis
++ * Windows.Media.SpeechRecognition
 + *
 + */
 +

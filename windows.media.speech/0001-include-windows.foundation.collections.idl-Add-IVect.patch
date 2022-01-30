@@ -1,11 +1,11 @@
-From da21f03297213828739d62f0021247dad9c100b7 Mon Sep 17 00:00:00 2001
+From d17360ec3035875a136ba08071c2fc83821fd032 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 17:56:38 +0100
 Subject: [PATCH 01/27] include/windows.foundation.collections.idl: Add
  IVector<T> interface.
 
 ---
-v2: Added missing parameters and attributes. Supersedes #223675.
+v2: Added missing parameters and attributes.
 ---
  include/windows.foundation.collections.idl | 20 ++++++++++++++++++++
  1 file changed, 20 insertions(+)

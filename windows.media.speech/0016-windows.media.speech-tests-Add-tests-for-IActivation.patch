@@ -1,4 +1,4 @@
-From ee5b23a241b6b6dff975572f7fc2086ca47addad Mon Sep 17 00:00:00 2001
+From 8c86ccaa51fbe888bb7e1c799d28ea9c242ec0c0 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 27 Jan 2022 23:52:32 +0100
 Subject: [PATCH 16/27] windows.media.speech/tests: Add tests for
@@ -9,7 +9,7 @@ Subject: [PATCH 16/27] windows.media.speech/tests: Add tests for
  1 file changed, 98 insertions(+)
 
 diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speech.c
-index 38fd5c90dd0..83a2180c47b 100644
+index 38fd5c90dd0..821741ccb6d 100644
 --- a/dlls/windows.media.speech/tests/speech.c
 +++ b/dlls/windows.media.speech/tests/speech.c
 @@ -29,6 +29,8 @@
@@ -30,7 +30,7 @@ index 38fd5c90dd0..83a2180c47b 100644
 +    static const WCHAR *speech_synthesizer_name = L"Windows.Media.SpeechSynthesis.SpeechSynthesizer";
 +    static const WCHAR *speech_recognizer_name = L"Windows.Media.SpeechRecognition.SpeechRecognizer";
 +    IActivationFactory *afactory = NULL, *afactory2 = NULL, *afactory3 = NULL, *afactory4 = NULL;
-+    ISpeechRecognizerFactory *sr_factory = NULL, *sr_factory2 = NULL;
++    ISpeechRecognizerFactory *sr_factory = NULL;
 +    ISpeechRecognizerStatics *sr_statics = NULL;
 +    ISpeechRecognizerStatics2 *sr_statics2 = NULL;
 +    IInstalledVoicesStatic *installed_voices = NULL;
