@@ -1,7 +1,7 @@
-From 66b62f32cad07ce0f37b0a4ff1c3af4a43a3ecad Mon Sep 17 00:00:00 2001
+From 4a4e746157728b2aa3e1e23ab6462d0d9552474c Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 22:28:43 +0100
-Subject: [PATCH 09/16] windows.media.speech: Move SpeechSynthesizer into a
+Subject: [PATCH 12/19] windows.media.speech: Move SpeechSynthesizer into a
  seperate file.
 
 ---
