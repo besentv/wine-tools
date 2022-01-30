@@ -1,7 +1,7 @@
 From 2977014bacf1d4fe99604efb6389de77eab7b000 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 21:06:37 +0100
-Subject: [PATCH 15/24] include/windows.media.speechrecognition.idl: Add
+Subject: [PATCH 15/27] include/windows.media.speechrecognition.idl: Add
  SpeechRecognizer.
 
 And it's dependencies.

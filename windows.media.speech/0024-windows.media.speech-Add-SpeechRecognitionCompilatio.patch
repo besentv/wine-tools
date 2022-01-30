@@ -1,7 +1,7 @@
-From d4468b37101782fc12955a7db429c6bdebddf8df Mon Sep 17 00:00:00 2001
+From 926124a161c9f3d7380c7e5fab057c45e2d7b9d2 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 15:27:04 +0100
-Subject: [PATCH 21/24] windows.media.speech: Add
+Subject: [PATCH 24/27] windows.media.speech: Add
  SpeechRecognitionCompilationResult stub.
 
 ---
@@ -11,7 +11,7 @@ Subject: [PATCH 21/24] windows.media.speech: Add
  create mode 100644 dlls/windows.media.speech/speechrecognitioncompilationresult.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
-index ee3e1deb2ad..8e22da0cd1e 100644
+index 9d5a25ea8e5..1c5ddf7f4a0 100644
 --- a/dlls/windows.media.speech/Makefile.in
 +++ b/dlls/windows.media.speech/Makefile.in
 @@ -4,6 +4,7 @@ IMPORTS = combase uuid

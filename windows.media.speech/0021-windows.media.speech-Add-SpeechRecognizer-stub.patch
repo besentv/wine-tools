@@ -1,7 +1,7 @@
-From b4cb375a91a8ae486272b6674554b203a0a10217 Mon Sep 17 00:00:00 2001
+From ee281bff7eaa50beb287367de2fe081c807151e8 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 14:53:49 +0100
-Subject: [PATCH 18/24] windows.media.speech: Add SpeechRecognizer stub.
+Subject: [PATCH 21/27] windows.media.speech: Add SpeechRecognizer stub.
 
 ---
  dlls/windows.media.speech/Makefile.in         |   1 +
@@ -13,7 +13,7 @@ Subject: [PATCH 18/24] windows.media.speech: Add SpeechRecognizer stub.
  create mode 100644 dlls/windows.media.speech/speechrecognizer.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
-index 621f3642811..7f988a92996 100644
+index 4f15b674d8e..8a9b5b2cf7d 100644
 --- a/dlls/windows.media.speech/Makefile.in
 +++ b/dlls/windows.media.speech/Makefile.in
 @@ -4,6 +4,7 @@ IMPORTS = combase uuid
@@ -21,7 +21,7 @@ index 621f3642811..7f988a92996 100644
  C_SRCS = \
  	main.c \
 +	speechrecognizer.c \
- 	speecsynthesizer.c
+ 	speechsynthesizer.c
  
  IDL_SRCS = classes.idl
 diff --git a/dlls/windows.media.speech/main.c b/dlls/windows.media.speech/main.c
@@ -855,10 +855,10 @@ index 2021558b396..d1297808b7a 100644
 +    test_SpeechRecognizer();
  }
 diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
-index 495855e4b76..dbf58cee719 100644
+index 441d95b3e5d..763e3948f0b 100644
 --- a/dlls/windows.media.speech/windows_media_speech_private.h
 +++ b/dlls/windows.media.speech/windows_media_speech_private.h
-@@ -58,6 +58,14 @@ static inline const char *debugstr_hstring(HSTRING hstr)
+@@ -56,6 +56,14 @@ static inline const char *debugstr_hstring(HSTRING hstr)
      return wine_dbgstr_wn(str, len);
  }
  

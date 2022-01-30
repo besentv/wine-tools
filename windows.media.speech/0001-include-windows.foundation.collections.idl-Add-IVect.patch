@@ -1,7 +1,7 @@
 From da21f03297213828739d62f0021247dad9c100b7 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 17:56:38 +0100
-Subject: [PATCH 01/24] include/windows.foundation.collections.idl: Add
+Subject: [PATCH 01/27] include/windows.foundation.collections.idl: Add
  IVector<T> interface.
 
 ---

@@ -1,7 +1,7 @@
 From d626177a4917d35d1c81a0f99d481c641742dc7b Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:05:56 +0100
-Subject: [PATCH 02/24] include/windows.foundation.idl: Add IAsyncAction
+Subject: [PATCH 02/27] include/windows.foundation.idl: Add IAsyncAction
  interface.
 
 ---
