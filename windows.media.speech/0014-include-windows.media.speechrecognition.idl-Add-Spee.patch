@@ -1,0 +1,96 @@
+From cee72390e35856baf54dad3f25eb6acf0bf46713 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Sun, 30 Jan 2022 20:50:56 +0100
+Subject: [PATCH 14/24] include/windows.media.speechrecognition.idl: Add
+ SpeechRecognizerStateChangedEventArgs.
+
+And a needed enum.
+---
+ include/windows.media.speechrecognition.idl | 36 ++++++++++++++++++++-
+ 1 file changed, 35 insertions(+), 1 deletion(-)
+
+diff --git a/include/windows.media.speechrecognition.idl b/include/windows.media.speechrecognition.idl
+index 75a060d38d1..26ad8c016df 100644
+--- a/include/windows.media.speechrecognition.idl
++++ b/include/windows.media.speechrecognition.idl
+@@ -37,7 +37,8 @@ namespace Windows {
+             typedef enum SpeechRecognitionConfidence SpeechRecognitionConfidence;
+             typedef enum SpeechRecognitionConstraintProbability SpeechRecognitionConstraintProbability;
+             typedef enum SpeechRecognitionConstraintType SpeechRecognitionConstraintType;
+-            typedef enum SpeechRecognitionResultStatus SpeechRecognitionResultStatus; 
++            typedef enum SpeechRecognitionResultStatus SpeechRecognitionResultStatus;
++            typedef enum SpeechRecognizerState SpeechRecognizerState;
+             interface ISpeechContinuousRecognitionCompletedEventArgs;
+             interface ISpeechContinuousRecognitionResultGeneratedEventArgs;
+             interface ISpeechContinuousRecognitionSession;
+@@ -49,6 +50,7 @@ namespace Windows {
+             interface ISpeechRecognitionResult;
+             interface ISpeechRecognitionResult2;
+             interface ISpeechRecognitionSemanticInterpretation;
++            interface ISpeechRecognizerStateChangedEventArgs;
+             interface ISpeechRecognizerTimeouts;
+             interface ISpeechRecognizerUIOptions;
+             runtimeclass SpeechContinuousRecognitionCompletedEventArgs;
+@@ -60,6 +62,7 @@ namespace Windows {
+             runtimeclass SpeechRecognitionQualityDegradingEventArgs;
+             runtimeclass SpeechRecognitionResult;
+             runtimeclass SpeechRecognitionSemanticInterpretation;
++            runtimeclass SpeechRecognizerStateChangedEventArgs;
+             runtimeclass SpeechRecognizerTimeouts;
+             runtimeclass SpeechRecognizerUIOptions;
+         }
+@@ -145,6 +148,18 @@ namespace Windows {
+                 MicrophoneUnavailable = 10,
+             };
+ 
++            [contract(Windows.Foundation.UniversalApiContract, 1.0)]
++            enum SpeechRecognizerState
++            {
++                Idle = 0,
++                Capturing = 1,
++                Processing = 2,
++                SoundStarted = 3,
++                SoundEnded = 4,
++                SpeechDetected = 5,
++                Paused = 6,
++            };
++
+             [
+                 contract(Windows.Foundation.UniversalApiContract, 1.0),
+                 exclusiveto(Windows.Media.SpeechRecognition.SpeechContinuousRecognitionCompletedEventArgs),
+@@ -283,6 +298,16 @@ namespace Windows {
+                 [propget] HRESULT Properties([out, retval] Windows.Foundation.Collections.IMapView<HSTRING, Windows.Foundation.Collections.IVectorView<HSTRING>*> **value);
+             }
+ 
++            [
++                contract(Windows.Foundation.UniversalApiContract, 1.0),
++                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognizerStateChangedEventArgs),
++                uuid(563d4f09-ba03-4bad-ad81-ddc6c4dab0c3)
++            ]
++            interface ISpeechRecognizerStateChangedEventArgs : IInspectable
++            {
++                [propget] HRESULT State([out, retval] Windows.Media.SpeechRecognition.SpeechRecognizerState *value);
++            }
++
+             [
+                 contract(Windows.Foundation.UniversalApiContract, 1.0),
+                 exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognizerTimeouts),
+@@ -402,6 +427,15 @@ namespace Windows {
+                 [default] interface Windows.Media.SpeechRecognition.ISpeechRecognitionSemanticInterpretation;
+             }
+ 
++            [
++                contract(Windows.Foundation.UniversalApiContract, 1.0),
++                marshaling_behavior(agile)
++            ]
++            runtimeclass SpeechRecognizerStateChangedEventArgs
++            {
++                [default] interface Windows.Media.SpeechRecognition.ISpeechRecognizerStateChangedEventArgs;
++            }
++
+             [
+                 contract(Windows.Foundation.UniversalApiContract, 1.0),
+                 marshaling_behavior(agile)
+-- 
+2.34.1
+

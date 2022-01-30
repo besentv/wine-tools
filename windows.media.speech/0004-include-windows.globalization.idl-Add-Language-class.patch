@@ -1,7 +1,7 @@
 From 2a9bd0e9e80daef65a4f1f5f861013f42aad43fb Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:07:10 +0100
-Subject: [PATCH 04/19] include/windows.globalization.idl: Add Language class
+Subject: [PATCH 04/24] include/windows.globalization.idl: Add Language class
  and interfaces.
 
 ---

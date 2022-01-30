@@ -1,7 +1,7 @@
 From 89825d69059943c1ba3cccf43c04186fba8509aa Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:36:08 +0100
-Subject: [PATCH 05/19] include: Add windows.media.speechrecognition.idl.
+Subject: [PATCH 05/24] include: Add windows.media.speechrecognition.idl.
 
 And add ISpeechRecognitionConstraint together with
 it's dependencies.

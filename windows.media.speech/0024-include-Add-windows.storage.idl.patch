@@ -1,7 +1,7 @@
-From 52953ac2647b5c2e8ada66967a713656b377b1e0 Mon Sep 17 00:00:00 2001
+From ca21d1bac868679cd2c3f67ecc8227e85b5181d2 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:34:51 +0100
-Subject: [PATCH 19/19] include: Add windows.storage.idl.
+Subject: [PATCH 24/24] include: Add windows.storage.idl.
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
