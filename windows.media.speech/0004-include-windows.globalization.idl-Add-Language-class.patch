@@ -1,9 +1,13 @@
-From 55d7785224828d74636e6d9073afa759950a5285 Mon Sep 17 00:00:00 2001
+From 8f55f6e72b64294b2259735298a0a5376e9d47c8 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:07:10 +0100
-Subject: [PATCH v2 04/27] include/windows.globalization.idl: Add Language
+Subject: [PATCH v2 04/28] include/windows.globalization.idl: Add Language
  class and interfaces.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
+Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
 ---
 v2: Fully work out the previous stubs.
 ---

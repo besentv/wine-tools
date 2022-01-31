@@ -1,16 +1,19 @@
-From 8b299c98c937ded1bc9809e394829afc0ca2f9ee Mon Sep 17 00:00:00 2001
+From 729a7991cb226e118bcb5fd50ff23aa47be4c500 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 14:53:49 +0100
-Subject: [PATCH v2 21/27] windows.media.speech: Add SpeechRecognizer stub.
+Subject: [PATCH v2 21/28] windows.media.speech: Add SpeechRecognizer stub.
 
+---
+v2: Add missing SpeechRecognizerStatics and move the activation
+factory from main.c .
 ---
  dlls/windows.media.speech/Makefile.in         |   1 +
  dlls/windows.media.speech/classes.idl         |   1 +
  dlls/windows.media.speech/main.c              |   7 +
- dlls/windows.media.speech/speechrecognizer.c  | 945 ++++++++++++++++++
+ dlls/windows.media.speech/speechrecognizer.c  | 949 ++++++++++++++++++
  dlls/windows.media.speech/tests/speech.c      |  77 +-
  .../windows_media_speech_private.h            |  10 +
- 6 files changed, 1040 insertions(+), 1 deletion(-)
+ 6 files changed, 1044 insertions(+), 1 deletion(-)
  create mode 100644 dlls/windows.media.speech/speechrecognizer.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
@@ -55,10 +58,10 @@ index f275840e965..072c6ba314b 100644
      return CLASS_E_CLASSNOTAVAILABLE;
 diff --git a/dlls/windows.media.speech/speechrecognizer.c b/dlls/windows.media.speech/speechrecognizer.c
 new file mode 100644
-index 00000000000..a6a833e3dc2
+index 00000000000..2a150005703
 --- /dev/null
 +++ b/dlls/windows.media.speech/speechrecognizer.c
-@@ -0,0 +1,945 @@
+@@ -0,0 +1,949 @@
 +/* WinRT Windows.Media.SpeechRecognition implementation
 + *
 + * Copyright 2022 Bernhard Kölbl
@@ -159,7 +162,7 @@ index 00000000000..a6a833e3dc2
 +    TRACE("iface %p, ref %u.\n", iface, ref);
 +
 +    if(!ref)
-+        heap_free(impl);
++        free(impl);
 +
 +    return ref;
 +}
@@ -241,7 +244,7 @@ index 00000000000..a6a833e3dc2
 +static HRESULT STDMETHODCALLTYPE speech_recognizer_remove_RecognitionQualityDegrading(
 +    ISpeechRecognizer *iface, EventRegistrationToken token)
 +{
-+    FIXME("iface %p, token %p, stub!\n", iface, token);
++    FIXME("iface %p, token.value %#I64x, stub!\n", iface, token.value);
 +    return E_NOTIMPL;
 +}
 +
@@ -255,7 +258,7 @@ index 00000000000..a6a833e3dc2
 +static HRESULT STDMETHODCALLTYPE speech_recognizer_remove_StateChanged(
 +    ISpeechRecognizer *iface, EventRegistrationToken token)
 +{
-+    FIXME("iface %p, token %p, stub!\n", iface, token);
++    FIXME("iface %p, token.value %#I64x, stub!\n", iface, token.value);
 +    return E_NOTIMPL;
 +}
 +
@@ -483,7 +486,7 @@ index 00000000000..a6a833e3dc2
 +static HRESULT STDMETHODCALLTYPE speech_recognizer2_remove_HypothesisGenerated(
 +    ISpeechRecognizer2 *iface, EventRegistrationToken token)
 +{
-+    FIXME("iface %p, token %p, stub!\n", iface, token);
++    FIXME("iface %p, token.value %#I64x, stub!\n", iface, token.value);
 +    return E_NOTIMPL;
 +}
 +
@@ -612,8 +615,10 @@ index 00000000000..a6a833e3dc2
 +    IActivationFactory *iface)
 +{
 +    struct activation_factory *impl = impl_from_IActivationFactory(iface);
++
 +    ULONG ref = InterlockedIncrement(&impl->ref);
 +    TRACE("iface %p, ref %u.\n", iface, ref);
++
 +    return ref;
 +}
 +
@@ -621,8 +626,10 @@ index 00000000000..a6a833e3dc2
 +    IActivationFactory *iface)
 +{
 +    struct activation_factory *impl = impl_from_IActivationFactory(iface);
++
 +    ULONG ref = InterlockedDecrement(&impl->ref);
 +    TRACE("iface %p, ref %u.\n", iface, ref);
++
 +    return ref;
 +}
 +

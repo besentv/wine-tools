@@ -1,7 +1,7 @@
-From 2415b798bdb18c8ee71efd9c463d878687910b1d Mon Sep 17 00:00:00 2001
+From 7d2e25144aab8b5e172664a733a404d0245ad5bc Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 27 Jan 2022 23:52:32 +0100
-Subject: [PATCH v2 16/27] windows.media.speech/tests: Add tests for
+Subject: [PATCH v2 16/28] windows.media.speech/tests: Add tests for
  IActivationFactory.
 
 ---

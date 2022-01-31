@@ -1,7 +1,7 @@
-From 696a307a03500d134a41aa0c4df75d9bdc3b56f0 Mon Sep 17 00:00:00 2001
+From d3147726523911589ae008da3d233dfca4db2add Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 20:42:50 +0100
-Subject: [PATCH v2 13/27] include/windows.media.speechrecognition.idl: Add
+Subject: [PATCH v2 13/28] include/windows.media.speechrecognition.idl: Add
  SpeechRecognitionQualityDegradingEventArgs.
 
 And a needed enum.

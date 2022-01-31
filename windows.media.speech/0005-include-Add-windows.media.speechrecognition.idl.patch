@@ -1,11 +1,15 @@
-From f4886581e72c30c0f755d1f76e48d782b3e59010 Mon Sep 17 00:00:00 2001
+From 42c7ae23ce29b5195c994b16084eecaba45f20cd Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:36:08 +0100
-Subject: [PATCH v2 05/27] include: Add windows.media.speechrecognition.idl.
+Subject: [PATCH v2 05/28] include: Add windows.media.speechrecognition.idl.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
 And add ISpeechRecognitionConstraint together with
 it's dependencies.
 
+Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
 ---
 v2: Only add ISpeechRecognitionConstraint + dependencies.
 ---

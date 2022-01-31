@@ -1,9 +1,13 @@
-From 5c9a03d73d04022337746edc6dcd177ee682c6d7 Mon Sep 17 00:00:00 2001
+From 7eb6bc6f00dc1154f13cc221557e141a4b8532b9 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:05:56 +0100
-Subject: [PATCH v2 02/27] include/windows.foundation.idl: Add IAsyncAction
+Subject: [PATCH v2 02/28] include/windows.foundation.idl: Add IAsyncAction
  interface.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
+Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
 ---
 v2: Add missing required interface.
 ---

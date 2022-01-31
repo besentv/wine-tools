@@ -1,15 +1,16 @@
-From 31b54372ba461b25d0b699ca36d8f4a138046c39 Mon Sep 17 00:00:00 2001
+From e65335632a5974827dc9e2e85478a48c2c6a4339 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 15:11:45 +0100
-Subject: [PATCH v2 22/27] windows.media.speech: Add
+Subject: [PATCH v2 23/28] windows.media.speech: Add
  SpeechRecognitionListConstraint stub.
 
 ---
  dlls/windows.media.speech/Makefile.in         |   1 +
- .../speechrecognitionlistconstraint.c         | 564 ++++++++++++++++++
- dlls/windows.media.speech/tests/speech.c      |  51 ++
+ dlls/windows.media.speech/main.c              |   7 +
+ .../speechrecognitionlistconstraint.c         | 578 ++++++++++++++++++
+ dlls/windows.media.speech/tests/speech.c      | 222 +++++++
  .../windows_media_speech_private.h            |   1 +
- 4 files changed, 617 insertions(+)
+ 5 files changed, 809 insertions(+)
  create mode 100644 dlls/windows.media.speech/speechrecognitionlistconstraint.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
@@ -24,12 +25,30 @@ index 8a9b5b2cf7d..b9c78f705a8 100644
  	speechrecognizer.c \
  	speechsynthesizer.c
  
+diff --git a/dlls/windows.media.speech/main.c b/dlls/windows.media.speech/main.c
+index 072c6ba314b..2eea8f3ff7f 100644
+--- a/dlls/windows.media.speech/main.c
++++ b/dlls/windows.media.speech/main.c
+@@ -47,6 +47,13 @@ HRESULT WINAPI DllGetActivationFactory(HSTRING classid, IActivationFactory **fac
+         IUnknown_AddRef(*factory);
+         return S_OK;
+     }
++    else if (IsEqualClassID(WindowsGetStringRawBuffer(classid, NULL),
++        L"Windows.Media.SpeechRecognition.SpeechRecognitionListConstraint"))
++    {
++        speech_recognition_list_constraint_get_activation_factory(factory);
++        IUnknown_AddRef(*factory);
++        return S_OK;
++    }
+ 
+     ERR("Unknown classid %s.\n", debugstr_hstring(classid));
+     return CLASS_E_CLASSNOTAVAILABLE;
 diff --git a/dlls/windows.media.speech/speechrecognitionlistconstraint.c b/dlls/windows.media.speech/speechrecognitionlistconstraint.c
 new file mode 100644
-index 00000000000..4cc7eb4e650
+index 00000000000..17eaef42125
 --- /dev/null
 +++ b/dlls/windows.media.speech/speechrecognitionlistconstraint.c
-@@ -0,0 +1,564 @@
+@@ -0,0 +1,578 @@
 +/* WinRT Windows.Media.SpeechRecognition implementation
 + *
 + * Copyright 2022 Bernhard Kölbl
@@ -360,9 +379,23 @@ index 00000000000..4cc7eb4e650
 +    return speech_recognition_list_constraint_create_with_tag(NULL, NULL, (ISpeechRecognitionListConstraint**)inspectable);
 +}
 +
++
 +/*
 + *
-+ * IActivationFactory for Windows.Media.SpeechRecognition.SpeechRecognitionListConstraint
++ * ActivationFactory for Windows.Media.SpeechRecognition.SpeechRecognitionListConstraint
++ *
++ */
++
++struct activation_factory
++{
++    IActivationFactory IActivationFactory_iface;
++    ISpeechRecognitionListConstraintFactory ISpeechRecognitionListConstraintFactory_iface;
++    LONG ref;
++};
++
++/*
++ *
++ * IActivationFactory
 + *
 + */
 +
@@ -595,10 +628,179 @@ index 00000000000..4cc7eb4e650
 +    *factory = &speech_recognition_list_constraint_af.IActivationFactory_iface;
 +}
 diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speech.c
-index 7d9de4eb890..59766e69266 100644
+index 7d9de4eb890..4d2933623dd 100644
 --- a/dlls/windows.media.speech/tests/speech.c
 +++ b/dlls/windows.media.speech/tests/speech.c
-@@ -374,10 +374,61 @@ static void test_SpeechRecognizer(void)
+@@ -40,6 +40,168 @@
+ 
+ HRESULT WINAPI (*pDllGetActivationFactory)(HSTRING, IActivationFactory **);
+ 
++struct hstring_vector
++{
++    IVectorView_HSTRING IVectorView_HSTRING_iface;
++    LONG ref;
++
++    ULONG count;
++    HSTRING values[1];
++};
++
++static inline struct hstring_vector *impl_from_IVectorView_HSTRING(IVectorView_HSTRING *iface)
++{
++    return CONTAINING_RECORD(iface, struct hstring_vector, IVectorView_HSTRING_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE hstring_vector_QueryInterface(IVectorView_HSTRING *iface,
++        REFIID iid, void **out)
++{
++    struct hstring_vector *impl = impl_from_IVectorView_HSTRING(iface);
++    TRACE("iface %p, iid %s, out %p stub!\n", iface, debugstr_guid(iid), out);
++
++    if (IsEqualGUID(iid, &IID_IUnknown) ||
++        IsEqualGUID(iid, &IID_IInspectable) ||
++        IsEqualGUID(iid, &IID_IAgileObject) ||
++        IsEqualGUID(iid, &IID_IVectorView_HSTRING))
++    {
++        IUnknown_AddRef(iface);
++        *out = &impl->IVectorView_HSTRING_iface;
++        return S_OK;
++    }
++
++    FIXME("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
++    *out = NULL;
++    return E_NOINTERFACE;
++}
++
++static ULONG STDMETHODCALLTYPE hstring_vector_AddRef(IVectorView_HSTRING *iface)
++{
++    struct hstring_vector *impl = impl_from_IVectorView_HSTRING(iface);
++    ULONG ref = InterlockedIncrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++    return ref;
++}
++
++static ULONG STDMETHODCALLTYPE hstring_vector_Release(IVectorView_HSTRING *iface)
++{
++    struct hstring_vector *impl = impl_from_IVectorView_HSTRING(iface);
++    ULONG ref = InterlockedDecrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++    if (ref == 0)
++    {
++        while (impl->count--) WindowsDeleteString(impl->values[impl->count]);
++        free(impl);
++    }
++    return ref;
++}
++
++static HRESULT STDMETHODCALLTYPE hstring_vector_GetIids(IVectorView_HSTRING *iface,
++        ULONG *iid_count, IID **iids)
++{
++    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE hstring_vector_GetRuntimeClassName(IVectorView_HSTRING *iface,
++        HSTRING *class_name)
++{
++    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE hstring_vector_GetTrustLevel(IVectorView_HSTRING *iface,
++        TrustLevel *trust_level)
++{
++    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE hstring_vector_GetAt(IVectorView_HSTRING *iface,
++        UINT32 index, HSTRING *value)
++{
++    struct hstring_vector *impl = impl_from_IVectorView_HSTRING(iface);
++
++    TRACE("iface %p, index %#x, value %p.\n", iface, index, value);
++
++    *value = NULL;
++    if (index >= impl->count) return E_BOUNDS;
++    return WindowsDuplicateString(impl->values[index], value);
++}
++
++static HRESULT STDMETHODCALLTYPE hstring_vector_get_Size(IVectorView_HSTRING *iface,
++        UINT32 *value)
++{
++    struct hstring_vector *impl = impl_from_IVectorView_HSTRING(iface);
++
++    TRACE("iface %p, value %p.\n", iface, value);
++
++    *value = impl->count;
++    return S_OK;
++}
++
++static HRESULT STDMETHODCALLTYPE hstring_vector_IndexOf(IVectorView_HSTRING *iface,
++        HSTRING element, UINT32 *index, BOOLEAN *found)
++{
++    struct hstring_vector *impl = impl_from_IVectorView_HSTRING(iface);
++    INT32 i, order;
++
++    TRACE("iface %p, element %p, index %p, found %p.\n", iface, element, index, found);
++
++    for (i = 0; i < impl->count; ++i)
++        if (SUCCEEDED(WindowsCompareStringOrdinal(impl->values[i], element, &order)) && order == 0)
++            break;
++
++    if (i < impl->count)
++    {
++        *found = TRUE;
++        *index = i;
++    }
++    else
++    {
++        *found = FALSE;
++        *index = 0;
++    }
++
++    return S_OK;
++}
++
++static HRESULT STDMETHODCALLTYPE hstring_vector_GetMany(IVectorView_HSTRING *iface,
++        UINT32 start_index, UINT32 items_size, HSTRING *items, UINT *count)
++{
++    struct hstring_vector *impl = impl_from_IVectorView_HSTRING(iface);
++    HRESULT hr = S_OK;
++    ULONG i;
++
++    TRACE("iface %p, start_index %#x, items %p, count %p.\n", iface, start_index, items, count);
++
++    memset(items, 0, items_size * sizeof(*items));
++
++    for (i = start_index; i < impl->count && i < start_index + items_size; ++i)
++        if (FAILED(hr = WindowsDuplicateString(impl->values[i], items + i - start_index)))
++            break;
++
++    if (FAILED(hr)) while (i-- > start_index) WindowsDeleteString(items[i - start_index]);
++    *count = i - start_index;
++    return hr;
++}
++
++static const struct IVectorView_HSTRINGVtbl hstring_vector_vtbl =
++{
++    hstring_vector_QueryInterface,
++    hstring_vector_AddRef,
++    hstring_vector_Release,
++    /* IInspectable methods */
++    hstring_vector_GetIids,
++    hstring_vector_GetRuntimeClassName,
++    hstring_vector_GetTrustLevel,
++    /* IVectorView<HSTRING> methods */
++    hstring_vector_GetAt,
++    hstring_vector_get_Size,
++    hstring_vector_IndexOf,
++    hstring_vector_GetMany,
++};
++
+ static void test_ActivationFactory(void)
+ {
+     static const WCHAR *speech_synthesizer_name = L"Windows.Media.SpeechSynthesis.SpeechSynthesizer";
+@@ -374,10 +536,70 @@ static void test_SpeechRecognizer(void)
      RoUninitialize();
  }
  
@@ -615,22 +817,31 @@ index 7d9de4eb890..59766e69266 100644
 +    LONG ref;
 +
 +    hr = RoInitialize(RO_INIT_MULTITHREADED);
-+    ok(hr == S_OK, "RoInitialize failed, hr %#x\n", hr);
++    ok(hr == S_OK, "RoInitialize failed, hr %#x.\n", hr);
 +
 +    hr = WindowsCreateString(speech_recognition_list_constraint_name, wcslen(speech_recognition_list_constraint_name), &str);
-+    ok(hr == S_OK, "WindowsCreateString failed, hr %#x\n", hr);
++    ok(hr == S_OK, "WindowsCreateString failed, hr %#x.\n", hr);
 +
 +    hr = RoGetActivationFactory(str, &IID_IActivationFactory, (void **)&factory);
-+    ok(hr == S_OK, "RoGetActivationFactory failed, hr %#x\n", hr);
++    ok(hr == S_OK, "RoGetActivationFactory failed, hr %#x.\n", hr);
++
++    hr = IActivationFactory_Activate(factory, &inspectable);
++    ok(hr == S_OK, "IActivationFactory_QueryInterface IID_ISpeechRecognizer failed, hr %#x.\n", hr);
 +
 +    hr = IActivationFactory_QueryInterface(factory, &IID_ISpeechRecognitionListConstraintFactory, (void **)&listconstraint_factory);
-+    ok(hr == S_OK, "IActivationFactory_QueryInterface IID_ISpeechRecognizer failed, hr %#x\n", hr);
++    ok(hr == S_OK, "IActivationFactory_QueryInterface IID_ISpeechRecognizer failed, hr %#x.\n", hr);
++
++    hr = ISpeechRecognitionListConstraintFactory_Create(listconstraint_factory, NULL, &listconstraint);
++    ok(hr == S_OK, "ISpeechRecognitionListConstraintFactory_Create failed, hr %#x.\n", hr);
++
++    hr = ISpeechRecognitionListConstraintFactory_CreateWithTag(listconstraint_factory, NULL, NULL, &listconstraint);
++    ok(hr == S_OK, "ISpeechRecognitionListConstraintFactory_Create failed, hr %#x.\n", hr);
 +
 +    ISpeechRecognitionListConstraintFactory_Release(listconstraint_factory);
 +    IActivationFactory_Release(factory);
 +
-+    hr = RoActivateInstance(str, &inspectable);
-+    ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++    //hr = RoActivateInstance(str, &inspectable);
++    //ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
 +
 +    hr = IInspectable_QueryInterface(inspectable, &IID_ISpeechRecognitionListConstraint, (void **)&listconstraint);
 +    ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);

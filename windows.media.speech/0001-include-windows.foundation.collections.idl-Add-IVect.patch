@@ -1,9 +1,13 @@
-From d4b895bc5e80a5eb58416d6f903fb372f8cea84b Mon Sep 17 00:00:00 2001
+From 39fe350e9f198a2c6c9558dcdf87db053497a0fa Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 17:56:38 +0100
-Subject: [PATCH v2 01/27] include/windows.foundation.collections.idl: Add
+Subject: [PATCH v2 01/28] include/windows.foundation.collections.idl: Add
  IVector<T> interface.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
+Signed-off-by: Bernhard Kölbl <besentv@gmail.com>
 ---
 v2: Added missing parameters and attributes.
 This and more incoming patches are part of a bigger branch:

@@ -1,7 +1,7 @@
-From 91e2d7639f0d60fb158cf0f927fe2542dc40932e Mon Sep 17 00:00:00 2001
+From 27f5fec902c933754ff2c14525262e3973b233ae Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 17:56:48 +0100
-Subject: [PATCH v2 07/27] include/windows.media.speechrecognition.idl: Add
+Subject: [PATCH v2 07/28] include/windows.media.speechrecognition.idl: Add
  SpeechContinuousRecognitionSession.
 
 And it's dependencies.
