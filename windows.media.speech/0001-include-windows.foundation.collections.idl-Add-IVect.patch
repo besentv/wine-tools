@@ -1,11 +1,13 @@
-From d17360ec3035875a136ba08071c2fc83821fd032 Mon Sep 17 00:00:00 2001
+From d4b895bc5e80a5eb58416d6f903fb372f8cea84b Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 17:56:38 +0100
-Subject: [PATCH 01/27] include/windows.foundation.collections.idl: Add
+Subject: [PATCH v2 01/27] include/windows.foundation.collections.idl: Add
  IVector<T> interface.
 
 ---
 v2: Added missing parameters and attributes.
+This and more incoming patches are part of a bigger branch:
+https://github.com/besentv/wine-patches/tree/main/windows.media.speech
 ---
  include/windows.foundation.collections.idl | 20 ++++++++++++++++++++
  1 file changed, 20 insertions(+)

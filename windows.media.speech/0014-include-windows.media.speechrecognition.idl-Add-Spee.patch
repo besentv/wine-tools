@@ -1,7 +1,7 @@
-From fe465e757e7f45c108a95cc4c4b146821a557cf3 Mon Sep 17 00:00:00 2001
+From 86a2a6dab67c2e1f3cac78784a5c0ecdfb992ae7 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 20:50:56 +0100
-Subject: [PATCH 14/27] include/windows.media.speechrecognition.idl: Add
+Subject: [PATCH v2 14/27] include/windows.media.speechrecognition.idl: Add
  SpeechRecognizerStateChangedEventArgs.
 
 And a needed enum.

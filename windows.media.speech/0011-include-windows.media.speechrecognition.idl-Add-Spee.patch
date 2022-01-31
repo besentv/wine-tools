@@ -1,7 +1,7 @@
-From 3e1ad809f4beedce60202136eb25308e3a18f4c2 Mon Sep 17 00:00:00 2001
+From fac44e868c3fa1a4a3c931c4aa9be2c9fd689f88 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 19:47:53 +0100
-Subject: [PATCH 11/27] include/windows.media.speechrecognition.idl: Add
+Subject: [PATCH v2 11/27] include/windows.media.speechrecognition.idl: Add
  SpeechRecognizerUIOptions.
 
 ---

@@ -1,7 +1,7 @@
-From bc9389a1cbc6a5c0152af66692c22f7d40916c54 Mon Sep 17 00:00:00 2001
+From 31b54372ba461b25d0b699ca36d8f4a138046c39 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 15:11:45 +0100
-Subject: [PATCH 22/27] windows.media.speech: Add
+Subject: [PATCH v2 22/27] windows.media.speech: Add
  SpeechRecognitionListConstraint stub.
 
 ---
@@ -595,10 +595,10 @@ index 00000000000..4cc7eb4e650
 +    *factory = &speech_recognition_list_constraint_af.IActivationFactory_iface;
 +}
 diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speech.c
-index d1297808b7a..34c94eb5bca 100644
+index 7d9de4eb890..59766e69266 100644
 --- a/dlls/windows.media.speech/tests/speech.c
 +++ b/dlls/windows.media.speech/tests/speech.c
-@@ -357,10 +357,61 @@ static void test_SpeechRecognizer(void)
+@@ -374,10 +374,61 @@ static void test_SpeechRecognizer(void)
      RoUninitialize();
  }
  

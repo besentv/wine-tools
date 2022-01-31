@@ -1,8 +1,8 @@
-From 8399c7c59fe5c6d585ce1eda8960ad8f6dc71f92 Mon Sep 17 00:00:00 2001
+From 554d1106e1595b41fc1724bf096e287add113d23 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 22:28:43 +0100
-Subject: [PATCH 20/27] windows.media.speech: Properly name activation factory
- of SpeechSynthesizer.
+Subject: [PATCH v2 20/27] windows.media.speech: Properly name activation
+ factory of SpeechSynthesizer.
 
 ---
  dlls/windows.media.speech/Makefile.in         |  4 +-
@@ -189,7 +189,7 @@ index 767efe860f8..29282c5d500 100644
 +    *factory = &speechsynthesizer_af.IActivationFactory_iface;
  }
 diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speech.c
-index 821741ccb6d..2021558b396 100644
+index 05bcd762813..3e349cf107a 100644
 --- a/dlls/windows.media.speech/tests/speech.c
 +++ b/dlls/windows.media.speech/tests/speech.c
 @@ -33,6 +33,8 @@

@@ -1,7 +1,7 @@
-From 4c8712010d7df77649e35b8ef562088a2131aefb Mon Sep 17 00:00:00 2001
+From 450c511a13e87ebde6d8f40081526240e738fabb Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 18:21:18 +0100
-Subject: [PATCH 08/27] include/windows.media.speechrecognition.idl: Add
+Subject: [PATCH v2 08/27] include/windows.media.speechrecognition.idl: Add
  SpeechRecognitionHypothesis.
 
 ---

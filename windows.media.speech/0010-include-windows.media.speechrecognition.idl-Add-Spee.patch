@@ -1,7 +1,7 @@
-From 46612330a0b44cca5d2be804d38a6836903fa54d Mon Sep 17 00:00:00 2001
+From 80bfc9fe6822468870354a6f3167ff147dbd46bd Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 18:34:18 +0100
-Subject: [PATCH 10/27] include/windows.media.speechrecognition.idl: Add
+Subject: [PATCH v2 10/27] include/windows.media.speechrecognition.idl: Add
  SpeechRecognizerTimeouts.
 
 ---

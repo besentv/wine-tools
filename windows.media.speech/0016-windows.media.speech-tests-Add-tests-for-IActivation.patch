@@ -1,7 +1,7 @@
-From 8c86ccaa51fbe888bb7e1c799d28ea9c242ec0c0 Mon Sep 17 00:00:00 2001
+From 2415b798bdb18c8ee71efd9c463d878687910b1d Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 27 Jan 2022 23:52:32 +0100
-Subject: [PATCH 16/27] windows.media.speech/tests: Add tests for
+Subject: [PATCH v2 16/27] windows.media.speech/tests: Add tests for
  IActivationFactory.
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 16/27] windows.media.speech/tests: Add tests for
  1 file changed, 98 insertions(+)
 
 diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speech.c
-index 38fd5c90dd0..821741ccb6d 100644
+index 38fd5c90dd0..05bcd762813 100644
 --- a/dlls/windows.media.speech/tests/speech.c
 +++ b/dlls/windows.media.speech/tests/speech.c
 @@ -29,6 +29,8 @@
@@ -39,80 +39,80 @@ index 38fd5c90dd0..821741ccb6d 100644
 +    ULONG ref;
 +
 +    hr = RoInitialize(RO_INIT_MULTITHREADED);
-+    ok(hr == S_OK, "RoInitialize failed, hr %#x\n", hr);
++    ok(hr == S_OK, "RoInitialize failed, hr %#x.\n", hr);
 +
 +    hr = WindowsCreateString(speech_synthesizer_name, wcslen(speech_synthesizer_name), &str);
-+    ok(hr == S_OK, "WindowsCreateString failed, hr %#x\n", hr);
++    ok(hr == S_OK, "WindowsCreateString failed, hr %#x.\n", hr);
 +
 +    hr = WindowsCreateString(speech_recognizer_name, wcslen(speech_recognizer_name), &str2);
-+    ok(hr == S_OK, "WindowsCreateString failed, hr %#x\n", hr);
++    ok(hr == S_OK, "WindowsCreateString failed, hr %#x.\n", hr);
 +
 +    hr = RoGetActivationFactory(str, &IID_IActivationFactory, (void **)&afactory);
-+    ok(hr == S_OK, "RoGetActivationFactory failed, hr %#x\n", hr);
++    ok(hr == S_OK, "RoGetActivationFactory failed, hr %#x.\n", hr);
 +
 +    hr = IActivationFactory_QueryInterface(afactory, &IID_ISpeechRecognizerFactory, (void**)&sr_factory);
-+    ok(hr == E_NOINTERFACE, "IActivationFactory_QueryInterface failed, hr %#x\n", hr);
++    ok(hr == E_NOINTERFACE, "IActivationFactory_QueryInterface failed, hr %#x.\n", hr);
 +
 +    hr = IActivationFactory_QueryInterface(afactory, &IID_ISpeechRecognizerStatics, (void**)&sr_statics);
-+    ok(hr == E_NOINTERFACE, "IActivationFactory_QueryInterface failed, hr %#x\n", hr);
++    ok(hr == E_NOINTERFACE, "IActivationFactory_QueryInterface failed, hr %#x.\n", hr);
 +
 +    hr = IActivationFactory_QueryInterface(afactory, &IID_IInstalledVoicesStatic, (void**)&installed_voices);
-+    ok(hr == S_OK, "IActivationFactory_QueryInterface failed, hr %#x\n", hr);
++    ok(hr == S_OK, "IActivationFactory_QueryInterface failed, hr %#x.\n", hr);
 +
 +    ref = IInstalledVoicesStatic_Release(installed_voices);
-+    ok(ref == 2, "Got unexpected refcount: %u\n", ref);
++    ok(ref == 2, "Got unexpected refcount: %u.\n", ref);
 +
 +    hr = RoGetActivationFactory(str, &IID_IActivationFactory, (void **)&afactory2);
-+    ok(hr == S_OK, "RoGetActivationFactory failed, hr %#x\n", hr);
++    ok(hr == S_OK, "RoGetActivationFactory failed, hr %#x.\n", hr);
 +
 +    hr = RoGetActivationFactory(str, &IID_IActivationFactory, (void **)&afactory3);
-+    ok(hr == S_OK, "RoGetActivationFactory failed, hr %#x\n", hr);
++    ok(hr == S_OK, "RoGetActivationFactory failed, hr %#x.\n", hr);
 +
 +    ok(afactory == afactory2 && afactory == afactory3 && afactory2 == afactory3, "Factories didn't point at the same memory!");
 +
 +    hr = RoGetActivationFactory(str2, &IID_IActivationFactory, (void **)&afactory4);
-+    todo_wine ok(hr == S_OK || broken(hr == REGDB_E_CLASSNOTREG), "RoGetActivationFactory failed, hr %#x\n", hr);
++    todo_wine ok(hr == S_OK || broken(hr == REGDB_E_CLASSNOTREG), "RoGetActivationFactory failed, hr %#x.\n", hr);
 +
 +    if(hr == S_OK) /* Win10+ only */
 +    {
 +        ok(afactory != afactory4, "Factories did point at the same memory!");
 +
 +        hr = IActivationFactory_QueryInterface(afactory4, &IID_ISpeechRecognizerFactory, (void**)&sr_factory);
-+        ok(hr == S_OK, "IActivationFactory_QueryInterface failed, hr %#x\n", hr);
++        ok(hr == S_OK, "IActivationFactory_QueryInterface failed, hr %#x.\n", hr);
 +
 +        ref = ISpeechRecognizerFactory_Release(sr_factory);
-+        ok(ref == 2, "Got unexpected refcount: %u\n", ref);
++        ok(ref == 2, "Got unexpected refcount: %u.\n", ref);
 +
 +        hr = IActivationFactory_QueryInterface(afactory4, &IID_ISpeechRecognizerStatics, (void**)&sr_statics);
-+        ok(hr == S_OK, "IActivationFactory_QueryInterface failed, hr %#x\n", hr);
++        ok(hr == S_OK, "IActivationFactory_QueryInterface failed, hr %#x.\n", hr);
 +
 +        ref = ISpeechRecognizerStatics_Release(sr_statics);
-+        ok(ref == 2, "Got unexpected refcount: %u\n", ref);
++        ok(ref == 2, "Got unexpected refcount: %u.\n", ref);
 +
 +        hr = IActivationFactory_QueryInterface(afactory4, &IID_ISpeechRecognizerStatics2, (void**)&sr_statics2);
-+        ok(hr == S_OK || broken(hr == E_NOINTERFACE), "IActivationFactory_QueryInterface failed, hr %#x\n", hr);
++        ok(hr == S_OK || broken(hr == E_NOINTERFACE), "IActivationFactory_QueryInterface failed, hr %#x.\n", hr);
 +
 +        if(hr == S_OK) /* ISpeechRecognizerStatics2 not available in Win10 1507 */ 
 +        {
 +            ref = ISpeechRecognizerStatics2_Release(sr_statics2);
-+            ok(ref == 2, "Got unexpected refcount: %u\n", ref);
++            ok(ref == 2, "Got unexpected refcount: %u.\n", ref);
 +        }
 +
 +        hr = IActivationFactory_QueryInterface(afactory4, &IID_IInstalledVoicesStatic, (void**)&installed_voices);
-+        ok(hr == E_NOINTERFACE, "IActivationFactory_QueryInterface failed, hr %#x\n", hr);
++        ok(hr == E_NOINTERFACE, "IActivationFactory_QueryInterface failed, hr %#x.\n", hr);
 +
 +        ref = IActivationFactory_Release(afactory4);
-+        ok(ref == 1, "Got unexpected refcount: %u\n", ref);
++        ok(ref == 1, "Got unexpected refcount: %u.\n", ref);
 +    }
 +
 +    ref = IActivationFactory_Release(afactory3);
-+    ok(ref == 3, "Got unexpected refcount: %u\n", ref);
++    ok(ref == 3, "Got unexpected refcount: %u.\n", ref);
 +
 +    ref = IActivationFactory_Release(afactory2);
-+    ok(ref == 2, "Got unexpected refcount: %u\n", ref);
++    ok(ref == 2, "Got unexpected refcount: %u.\n", ref);
 +
 +    ref = IActivationFactory_Release(afactory);
-+    ok(ref == 1, "Got unexpected refcount: %u\n", ref);
++    ok(ref == 1, "Got unexpected refcount: %u.\n", ref);
 +
 +    WindowsDeleteString(str);
 +    WindowsDeleteString(str2);
