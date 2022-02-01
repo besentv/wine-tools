@@ -1,4 +1,4 @@
-From 729a7991cb226e118bcb5fd50ff23aa47be4c500 Mon Sep 17 00:00:00 2001
+From 302d90fb34ec1a898e0a22aa792b1a190c4c0e99 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 14:53:49 +0100
 Subject: [PATCH v2 21/28] windows.media.speech: Add SpeechRecognizer stub.
@@ -11,9 +11,9 @@ factory from main.c .
  dlls/windows.media.speech/classes.idl         |   1 +
  dlls/windows.media.speech/main.c              |   7 +
  dlls/windows.media.speech/speechrecognizer.c  | 949 ++++++++++++++++++
- dlls/windows.media.speech/tests/speech.c      |  77 +-
+ dlls/windows.media.speech/tests/speech.c      | 121 ++-
  .../windows_media_speech_private.h            |  10 +
- 6 files changed, 1044 insertions(+), 1 deletion(-)
+ 6 files changed, 1088 insertions(+), 1 deletion(-)
  create mode 100644 dlls/windows.media.speech/speechrecognizer.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
@@ -1012,10 +1012,35 @@ index 00000000000..2a150005703
 +    *factory = &speechrecognizer_af.IActivationFactory_iface;
 +}
 diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speech.c
-index 3e349cf107a..7d9de4eb890 100644
+index 3e349cf107a..745c9277feb 100644
 --- a/dlls/windows.media.speech/tests/speech.c
 +++ b/dlls/windows.media.speech/tests/speech.c
-@@ -86,7 +86,7 @@ static void test_ActivationFactory(void)
+@@ -29,6 +29,8 @@
+ #define WIDL_using_Windows_Foundation
+ #define WIDL_using_Windows_Foundation_Collections
+ #include "windows.foundation.h"
++#define WIDL_using_Windows_Globalization
++#include "windows.globalization.h"
+ #define WIDL_using_Windows_Media_SpeechRecognition
+ #include "windows.media.speechrecognition.h"
+ #define WIDL_using_Windows_Media_SpeechSynthesis
+@@ -40,6 +42,15 @@
+ 
+ HRESULT WINAPI (*pDllGetActivationFactory)(HSTRING, IActivationFactory **);
+ 
++static inline const char *debugstr_hstring(HSTRING hstr)
++{
++    const WCHAR *str;
++    UINT32 len;
++    if (hstr && !((ULONG_PTR)hstr >> 16)) return "(invalid)";
++    str = WindowsGetStringRawBuffer(hstr, &len);
++    return wine_dbgstr_wn(str, len);
++}
++
+ static void test_ActivationFactory(void)
+ {
+     static const WCHAR *speech_synthesizer_name = L"Windows.Media.SpeechSynthesis.SpeechSynthesizer";
+@@ -86,7 +97,7 @@ static void test_ActivationFactory(void)
      ok(afactory == afactory2 && afactory == afactory3 && afactory2 == afactory3, "Factories didn't point at the same memory!");
  
      hr = RoGetActivationFactory(str2, &IID_IActivationFactory, (void **)&afactory4);
@@ -1024,7 +1049,7 @@ index 3e349cf107a..7d9de4eb890 100644
  
      if(hr == S_OK) /* Win10+ only */
      {
-@@ -300,9 +300,84 @@ static void test_VoiceInformation(void)
+@@ -300,9 +311,117 @@ static void test_VoiceInformation(void)
      RoUninitialize();
  }
  
@@ -1039,18 +1064,27 @@ index 3e349cf107a..7d9de4eb890 100644
 +    IActivationFactory *factory = NULL;
 +    IInspectable *inspectable = NULL;
 +    IClosable *closable = NULL;
-+    HSTRING str;
++    ILanguage *language = NULL;
++    HSTRING hstr, hstr_lang;
 +    HRESULT hr;
 +    LONG ref;
++
++    trace("Running test_SpeechRecognizer\n");
 +
 +    hr = RoInitialize(RO_INIT_MULTITHREADED);
 +    ok(hr == S_OK, "RoInitialize failed, hr %#x.\n", hr);
 +
-+    hr = WindowsCreateString(speech_recognition_name, wcslen(speech_recognition_name), &str);
++    hr = WindowsCreateString(speech_recognition_name, wcslen(speech_recognition_name), &hstr);
 +    ok(hr == S_OK, "WindowsCreateString failed, hr %#x.n", hr);
 +
-+    hr = RoGetActivationFactory(str, &IID_IActivationFactory, (void **)&factory);
-+    ok(hr == S_OK, "RoGetActivationFactory failed, hr %#x.\n", hr);
++    hr = RoGetActivationFactory(hstr, &IID_IActivationFactory, (void **)&factory);
++    ok(hr == S_OK || broken(hr == REGDB_E_CLASSNOTREG), "RoGetActivationFactory failed, hr %#x.\n", hr);
++
++    if(hr == REGDB_E_CLASSNOTREG) /* Win 8 and 8.1 */
++    {
++        win_skip("SpeechRecognizer activation factory not available!\n");
++        goto done;
++    }
 +
 +    hr = IActivationFactory_QueryInterface(factory, &IID_ISpeechRecognizerFactory, (void **)&sr_factory);
 +    ok(hr == S_OK, "IActivationFactory_QueryInterface IID_ISpeechRecognizer failed, hr %#x.\n", hr);
@@ -1058,14 +1092,30 @@ index 3e349cf107a..7d9de4eb890 100644
 +    hr = IActivationFactory_QueryInterface(factory, &IID_ISpeechRecognizerStatics, (void **)&sr_statics);
 +    ok(hr == S_OK, "IActivationFactory_QueryInterface IID_ISpeechRecognizerStatics failed, hr %#x.\n", hr);
 +
-+    hr = IActivationFactory_QueryInterface(factory, &IID_ISpeechRecognizerStatics2, (void **)&sr_statics2);
-+    ok(hr == S_OK, "IActivationFactory_QueryInterface IID_ISpeechRecognizerStatics2 failed, hr %#x.\n", hr);
++    hr = ISpeechRecognizerStatics_get_SystemSpeechLanguage(sr_statics, &language);
++    todo_wine ok(hr == S_OK, "ISpeechRecognizerStatics_SystemSpeechLanguage failed, hr %#x.\n", hr);
 +
-+    ref = ISpeechRecognizerStatics2_Release(sr_statics2);
-+    ok(ref == 4, "Got unexpected ref %u.\n", ref);
++    if(hr == S_OK)
++    {
++        hr = ILanguage_get_DisplayName(language, &hstr_lang);
++        ok(hr == S_OK, "ILanguage_DisplayName failed, hr %#x.\n", hr);
++
++        trace("SpeechRecognizer default language %s.\n", debugstr_hstring(hstr_lang));
++
++        ILanguage_Release(language);
++    }
 +
 +    ref = ISpeechRecognizerStatics_Release(sr_statics);
 +    ok(ref == 3, "Got unexpected ref %u.\n", ref);
++
++    hr = IActivationFactory_QueryInterface(factory, &IID_ISpeechRecognizerStatics2, (void **)&sr_statics2);
++    ok(hr == S_OK || broken(hr == E_NOINTERFACE), "IActivationFactory_QueryInterface IID_ISpeechRecognizerStatics2 failed, hr %#x.\n", hr);
++
++    if(hr == S_OK) /* SpeechRecognizerStatics2 not implemented on Win10 1507 */
++    {
++        ref = ISpeechRecognizerStatics2_Release(sr_statics2);
++        ok(ref == 3, "Got unexpected ref %u.\n", ref);
++    }
 +
 +    ref = ISpeechRecognizerFactory_Release(sr_factory);
 +    ok(ref == 2, "Got unexpected ref %u.\n", ref);
@@ -1073,31 +1123,39 @@ index 3e349cf107a..7d9de4eb890 100644
 +    ref = IActivationFactory_Release(factory);
 +    ok(ref == 1, "Got unexpected ref %u.\n", ref);
 +
-+    hr = RoActivateInstance(str, &inspectable);
-+    ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++    hr = RoActivateInstance(hstr, &inspectable);
++    ok(hr == S_OK || broken(hr == 0x800455a0), "Got unexpected hr %#x.\n", hr);
 +
-+    hr = IInspectable_QueryInterface(inspectable, &IID_ISpeechRecognizer, (void **)&recognizer);
-+    ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++    if(hr == S_OK)
++    {
++        hr = IInspectable_QueryInterface(inspectable, &IID_ISpeechRecognizer, (void **)&recognizer);
++        ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
 +
-+    hr = IInspectable_QueryInterface(inspectable, &IID_ISpeechRecognizer2, (void **)&recognizer2);
-+    ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++        hr = IInspectable_QueryInterface(inspectable, &IID_ISpeechRecognizer2, (void **)&recognizer2);
++        ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
 +
-+    hr = IInspectable_QueryInterface(inspectable, &IID_IClosable, (void **)&closable);
-+    ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++        hr = IInspectable_QueryInterface(inspectable, &IID_IClosable, (void **)&closable);
++        ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
 +
-+    ref = IClosable_Release(closable);
-+    ok(ref == 3, "Got unexpected ref %u.\n", ref);
++        ref = IClosable_Release(closable);
++        ok(ref == 3, "Got unexpected ref %u.\n", ref);
 +
-+    ref = ISpeechRecognizer2_Release(recognizer2);
-+    ok(ref == 2, "Got unexpected ref %u.\n", ref);
++        ref = ISpeechRecognizer2_Release(recognizer2);
++        ok(ref == 2, "Got unexpected ref %u.\n", ref);
 +
-+    ref = ISpeechRecognizer_Release(recognizer);
-+    ok(ref == 1, "Got unexpected ref %u.\n", ref);
++        ref = ISpeechRecognizer_Release(recognizer);
++        ok(ref == 1, "Got unexpected ref %u.\n", ref);
 +
-+    ref = IInspectable_Release(inspectable);
-+    ok(!ref, "Got unexpected ref %u.\n", ref);
++        ref = IInspectable_Release(inspectable);
++        ok(!ref, "Got unexpected ref %u.\n", ref);
++    }
++    else if(hr == 0x800455a0) /* Not sure what this hr is... Probably if a language pack is not installed. */
++    {
++        win_skip("Could not init SpeechRecognizer with default language!\n");
++    }
 +
-+    WindowsDeleteString(str);
++done:
++    WindowsDeleteString(hstr);
 +
 +    RoUninitialize();
 +}

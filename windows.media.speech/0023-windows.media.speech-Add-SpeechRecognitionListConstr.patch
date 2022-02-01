@@ -1,4 +1,4 @@
-From e65335632a5974827dc9e2e85478a48c2c6a4339 Mon Sep 17 00:00:00 2001
+From e34ded959559f93966c7efdf54cb41c24117bec3 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 15:11:45 +0100
 Subject: [PATCH v2 23/28] windows.media.speech: Add
@@ -7,10 +7,10 @@ Subject: [PATCH v2 23/28] windows.media.speech: Add
 ---
  dlls/windows.media.speech/Makefile.in         |   1 +
  dlls/windows.media.speech/main.c              |   7 +
- .../speechrecognitionlistconstraint.c         | 578 ++++++++++++++++++
- dlls/windows.media.speech/tests/speech.c      | 222 +++++++
+ .../speechrecognitionlistconstraint.c         | 574 ++++++++++++++++++
+ dlls/windows.media.speech/tests/speech.c      | 402 ++++++++++++
  .../windows_media_speech_private.h            |   1 +
- 5 files changed, 809 insertions(+)
+ 5 files changed, 985 insertions(+)
  create mode 100644 dlls/windows.media.speech/speechrecognitionlistconstraint.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
@@ -45,10 +45,10 @@ index 072c6ba314b..2eea8f3ff7f 100644
      return CLASS_E_CLASSNOTAVAILABLE;
 diff --git a/dlls/windows.media.speech/speechrecognitionlistconstraint.c b/dlls/windows.media.speech/speechrecognitionlistconstraint.c
 new file mode 100644
-index 00000000000..17eaef42125
+index 00000000000..8025b3a38b9
 --- /dev/null
 +++ b/dlls/windows.media.speech/speechrecognitionlistconstraint.c
-@@ -0,0 +1,578 @@
+@@ -0,0 +1,574 @@
 +/* WinRT Windows.Media.SpeechRecognition implementation
 + *
 + * Copyright 2022 Bernhard Kölbl
@@ -348,7 +348,10 @@ index 00000000000..17eaef42125
 +    struct speech_recognition_list_constraint *impl;
 +    HRESULT hr;
 +
-+    TRACE("commands %p, tag %p, listconstraint %p.\n", commands, tag, listconstraint);
++    FIXME("commands %p, tag %p, listconstraint %p. Stub!\n", commands, tag, listconstraint);
++
++    if(!commands)
++        return E_POINTER;
 +
 +    if (!(impl = calloc(1, sizeof(*impl))))
 +    {
@@ -372,13 +375,6 @@ index 00000000000..17eaef42125
 +    TRACE("commands %p, listconstraint %p.\n", commands, listconstraint);
 +    return speech_recognition_list_constraint_create_with_tag(commands, NULL, listconstraint);
 +}
-+
-+static HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_default(IInspectable **inspectable)
-+{
-+    TRACE("inspectable %p.\n", inspectable);
-+    return speech_recognition_list_constraint_create_with_tag(NULL, NULL, (ISpeechRecognitionListConstraint**)inspectable);
-+}
-+
 +
 +/*
 + *
@@ -480,7 +476,7 @@ index 00000000000..17eaef42125
 +    if (!instance)
 +        return E_INVALIDARG;
 +
-+    return speech_recognition_list_constraint_create_default(instance);
++    return E_NOTIMPL;
 +}
 +
 +static const struct IActivationFactoryVtbl activation_factory_vtbl =
@@ -628,147 +624,148 @@ index 00000000000..17eaef42125
 +    *factory = &speech_recognition_list_constraint_af.IActivationFactory_iface;
 +}
 diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speech.c
-index 7d9de4eb890..4d2933623dd 100644
+index 745c9277feb..ffe4dffc493 100644
 --- a/dlls/windows.media.speech/tests/speech.c
 +++ b/dlls/windows.media.speech/tests/speech.c
-@@ -40,6 +40,168 @@
+@@ -51,6 +51,312 @@ static inline const char *debugstr_hstring(HSTRING hstr)
+     return wine_dbgstr_wn(str, len);
+ }
  
- HRESULT WINAPI (*pDllGetActivationFactory)(HSTRING, IActivationFactory **);
- 
-+struct hstring_vector
++struct iterator_hstring
 +{
-+    IVectorView_HSTRING IVectorView_HSTRING_iface;
++    IIterator_HSTRING IIterator_HSTRING_iface;
 +    LONG ref;
 +
++    ULONG current_item;
 +    ULONG count;
-+    HSTRING values[1];
++    HSTRING *values;
 +};
 +
-+static inline struct hstring_vector *impl_from_IVectorView_HSTRING(IVectorView_HSTRING *iface)
++static inline struct iterator_hstring *impl_from_IIterator_HSTRING(IIterator_HSTRING *iface)
 +{
-+    return CONTAINING_RECORD(iface, struct hstring_vector, IVectorView_HSTRING_iface);
++    return CONTAINING_RECORD(iface, struct iterator_hstring, IIterator_HSTRING_iface);
 +}
 +
-+static HRESULT STDMETHODCALLTYPE hstring_vector_QueryInterface(IVectorView_HSTRING *iface,
++static HRESULT STDMETHODCALLTYPE iterator_hstring_QueryInterface(IIterator_HSTRING *iface,
 +        REFIID iid, void **out)
 +{
-+    struct hstring_vector *impl = impl_from_IVectorView_HSTRING(iface);
-+    TRACE("iface %p, iid %s, out %p stub!\n", iface, debugstr_guid(iid), out);
++    trace("iface %p, iid %s, out %p stub!\n", iface, debugstr_guid(iid), out);
 +
 +    if (IsEqualGUID(iid, &IID_IUnknown) ||
 +        IsEqualGUID(iid, &IID_IInspectable) ||
 +        IsEqualGUID(iid, &IID_IAgileObject) ||
-+        IsEqualGUID(iid, &IID_IVectorView_HSTRING))
++        IsEqualGUID(iid, &IID_IIterator_HSTRING))
 +    {
 +        IUnknown_AddRef(iface);
-+        *out = &impl->IVectorView_HSTRING_iface;
++        *out = iface;
 +        return S_OK;
 +    }
 +
-+    FIXME("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
++    trace("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
 +    *out = NULL;
 +    return E_NOINTERFACE;
 +}
 +
-+static ULONG STDMETHODCALLTYPE hstring_vector_AddRef(IVectorView_HSTRING *iface)
++static ULONG STDMETHODCALLTYPE iterator_hstring_AddRef(IIterator_HSTRING *iface)
 +{
-+    struct hstring_vector *impl = impl_from_IVectorView_HSTRING(iface);
++    struct iterator_hstring *impl = impl_from_IIterator_HSTRING(iface);
++
 +    ULONG ref = InterlockedIncrement(&impl->ref);
-+    TRACE("iface %p, ref %u.\n", iface, ref);
++    trace("iface %p, ref %u.\n", iface, ref);
++
 +    return ref;
 +}
 +
-+static ULONG STDMETHODCALLTYPE hstring_vector_Release(IVectorView_HSTRING *iface)
++static ULONG STDMETHODCALLTYPE iterator_hstring_Release(IIterator_HSTRING *iface)
 +{
-+    struct hstring_vector *impl = impl_from_IVectorView_HSTRING(iface);
++    struct iterator_hstring *impl = impl_from_IIterator_HSTRING(iface);
++
 +    ULONG ref = InterlockedDecrement(&impl->ref);
-+    TRACE("iface %p, ref %u.\n", iface, ref);
-+    if (ref == 0)
-+    {
-+        while (impl->count--) WindowsDeleteString(impl->values[impl->count]);
++    trace("iface %p, ref %u.\n", iface, ref);
++
++    if(!ref)
 +        free(impl);
-+    }
++
 +    return ref;
 +}
 +
-+static HRESULT STDMETHODCALLTYPE hstring_vector_GetIids(IVectorView_HSTRING *iface,
++static HRESULT STDMETHODCALLTYPE iterator_hstring_GetIids(IIterator_HSTRING *iface,
 +        ULONG *iid_count, IID **iids)
 +{
-+    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++    trace("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
 +    return E_NOTIMPL;
 +}
 +
-+static HRESULT STDMETHODCALLTYPE hstring_vector_GetRuntimeClassName(IVectorView_HSTRING *iface,
++static HRESULT STDMETHODCALLTYPE iterator_hstring_GetRuntimeClassName(IIterator_HSTRING *iface,
 +        HSTRING *class_name)
 +{
-+    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
++    trace("iface %p, class_name %p stub!\n", iface, class_name);
 +    return E_NOTIMPL;
 +}
 +
-+static HRESULT STDMETHODCALLTYPE hstring_vector_GetTrustLevel(IVectorView_HSTRING *iface,
++static HRESULT STDMETHODCALLTYPE iterator_hstring_GetTrustLevel(IIterator_HSTRING *iface,
 +        TrustLevel *trust_level)
 +{
-+    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
++    trace("iface %p, trust_level %p stub!\n", iface, trust_level);
 +    return E_NOTIMPL;
 +}
 +
-+static HRESULT STDMETHODCALLTYPE hstring_vector_GetAt(IVectorView_HSTRING *iface,
-+        UINT32 index, HSTRING *value)
++static HRESULT STDMETHODCALLTYPE iterator_hstring_get_Current(IIterator_HSTRING *iface,
++        HSTRING *value)
 +{
-+    struct hstring_vector *impl = impl_from_IVectorView_HSTRING(iface);
++    struct iterator_hstring *impl = impl_from_IIterator_HSTRING(iface);
 +
-+    TRACE("iface %p, index %#x, value %p.\n", iface, index, value);
++    trace("iface %p, value %p.\n", iface, value);
 +
-+    *value = NULL;
-+    if (index >= impl->count) return E_BOUNDS;
-+    return WindowsDuplicateString(impl->values[index], value);
-+}
++    if(impl->current_item >= impl->count)
++        return E_BOUNDS;
 +
-+static HRESULT STDMETHODCALLTYPE hstring_vector_get_Size(IVectorView_HSTRING *iface,
-+        UINT32 *value)
-+{
-+    struct hstring_vector *impl = impl_from_IVectorView_HSTRING(iface);
-+
-+    TRACE("iface %p, value %p.\n", iface, value);
-+
-+    *value = impl->count;
-+    return S_OK;
-+}
-+
-+static HRESULT STDMETHODCALLTYPE hstring_vector_IndexOf(IVectorView_HSTRING *iface,
-+        HSTRING element, UINT32 *index, BOOLEAN *found)
-+{
-+    struct hstring_vector *impl = impl_from_IVectorView_HSTRING(iface);
-+    INT32 i, order;
-+
-+    TRACE("iface %p, element %p, index %p, found %p.\n", iface, element, index, found);
-+
-+    for (i = 0; i < impl->count; ++i)
-+        if (SUCCEEDED(WindowsCompareStringOrdinal(impl->values[i], element, &order)) && order == 0)
-+            break;
-+
-+    if (i < impl->count)
-+    {
-+        *found = TRUE;
-+        *index = i;
-+    }
-+    else
-+    {
-+        *found = FALSE;
-+        *index = 0;
-+    }
++    *value = impl->values[impl->current_item];
 +
 +    return S_OK;
 +}
 +
-+static HRESULT STDMETHODCALLTYPE hstring_vector_GetMany(IVectorView_HSTRING *iface,
++static HRESULT STDMETHODCALLTYPE iterator_hstring_get_HasCurrent(IIterator_HSTRING *iface,
++        BOOL *value)
++{
++    struct iterator_hstring *impl = impl_from_IIterator_HSTRING(iface);
++
++    trace("iface %p, value %p.\n", iface, value);
++
++    *value = impl->current_item >= impl->count ? FALSE : TRUE;
++    trace("ret: %d\n", *value);
++
++    return S_OK;
++}
++
++static HRESULT STDMETHODCALLTYPE iterator_hstring_MoveNext(IIterator_HSTRING *iface,
++        BOOL *value)
++{
++    struct iterator_hstring *impl = impl_from_IIterator_HSTRING(iface);
++
++    trace("iface %p, element %p, index %p, found %p.\n", iface, value);
++
++    if(impl->current_item >= impl->count)
++    {
++        *value = FALSE;
++        return E_BOUNDS;
++    }
++
++    impl->current_item++;
++    *value = impl->current_item >= impl->count ? FALSE : TRUE;
++    trace("impl->current_item %u, ret: %d.\n", impl->current_item, *value);
++
++    return S_OK;
++}
++
++static HRESULT STDMETHODCALLTYPE iterator_hstring_GetMany(IIterator_HSTRING *iface,
 +        UINT32 start_index, UINT32 items_size, HSTRING *items, UINT *count)
 +{
-+    struct hstring_vector *impl = impl_from_IVectorView_HSTRING(iface);
++    /*struct iterator_hstring *impl = impl_from_IIterator_HSTRING(iface);
 +    HRESULT hr = S_OK;
 +    ULONG i;
 +
-+    TRACE("iface %p, start_index %#x, items %p, count %p.\n", iface, start_index, items, count);
++    trace("iface %p, start_index %#x, items %p, count %p.\n", iface, start_index, items, count);
 +
 +    memset(items, 0, items_size * sizeof(*items));
 +
@@ -777,43 +774,193 @@ index 7d9de4eb890..4d2933623dd 100644
 +            break;
 +
 +    if (FAILED(hr)) while (i-- > start_index) WindowsDeleteString(items[i - start_index]);
-+    *count = i - start_index;
-+    return hr;
++    *count = i - start_index;*/
++
++    return E_NOTIMPL;
 +}
 +
-+static const struct IVectorView_HSTRINGVtbl hstring_vector_vtbl =
++static const struct IIterator_HSTRINGVtbl iterator_hstring_vtbl =
 +{
-+    hstring_vector_QueryInterface,
-+    hstring_vector_AddRef,
-+    hstring_vector_Release,
++    iterator_hstring_QueryInterface,
++    iterator_hstring_AddRef,
++    iterator_hstring_Release,
 +    /* IInspectable methods */
-+    hstring_vector_GetIids,
-+    hstring_vector_GetRuntimeClassName,
-+    hstring_vector_GetTrustLevel,
-+    /* IVectorView<HSTRING> methods */
-+    hstring_vector_GetAt,
-+    hstring_vector_get_Size,
-+    hstring_vector_IndexOf,
-+    hstring_vector_GetMany,
++    iterator_hstring_GetIids,
++    iterator_hstring_GetRuntimeClassName,
++    iterator_hstring_GetTrustLevel,
++    /* IIterator<HSTRING> methods */
++    iterator_hstring_get_Current,
++    iterator_hstring_get_HasCurrent,
++    iterator_hstring_MoveNext,
++    iterator_hstring_GetMany,
 +};
++
++static HRESULT iterator_hstring_create(HSTRING *values, ULONG item_count, IIterator_HSTRING **instance)
++{
++    struct iterator_hstring *impl;
++
++    if (!(impl = calloc(1, sizeof(*impl))))
++    {
++        *instance = NULL;
++        return E_OUTOFMEMORY;
++    }
++
++    impl->IIterator_HSTRING_iface.lpVtbl = &iterator_hstring_vtbl;
++    impl->count = item_count;
++    impl->current_item = 0;
++    impl->ref = 1;
++
++    impl->values = values;
++
++    *instance = &impl->IIterator_HSTRING_iface;
++
++    return S_OK;
++}
++
++struct iterable_hstring
++{
++    IIterable_HSTRING IIterable_HSTRING_iface;
++    LONG ref;
++
++    IIterator_HSTRING* iterator;
++};
++
++static inline struct iterable_hstring *impl_from_Iterable_HSTRING(IIterable_HSTRING *iface)
++{
++    return CONTAINING_RECORD(iface, struct iterable_hstring, IIterable_HSTRING_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE iterable_hstring_QueryInterface(IIterable_HSTRING *iface,
++        REFIID iid, void **out)
++{
++    trace("iface %p, iid %s, out %p stub!\n", iface, debugstr_guid(iid), out);
++
++    if (IsEqualGUID(iid, &IID_IUnknown) ||
++        IsEqualGUID(iid, &IID_IInspectable) ||
++        IsEqualGUID(iid, &IID_IAgileObject) ||
++        IsEqualGUID(iid, &IID_IIterable_HSTRING))
++    {
++        IUnknown_AddRef(iface);
++        *out = iface;
++        return S_OK;
++    }
++
++    trace("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
++    *out = NULL;
++    return E_NOINTERFACE;
++}
++
++static ULONG STDMETHODCALLTYPE iterable_hstring_AddRef(IIterable_HSTRING *iface)
++{
++    struct iterable_hstring *impl = impl_from_Iterable_HSTRING(iface);
++    ULONG ref = InterlockedIncrement(&impl->ref);
++    trace("iface %p, ref %u.\n", iface, ref);
++    return ref;
++}
++
++static ULONG STDMETHODCALLTYPE iterable_hstring_Release(IIterable_HSTRING *iface)
++{
++    struct iterable_hstring *impl = impl_from_Iterable_HSTRING(iface);
++
++    ULONG ref = InterlockedDecrement(&impl->ref);
++    trace("iface %p, ref %u.\n", iface, ref);
++
++    if(!ref)
++        free(impl);
++
++    return ref;
++}
++
++static HRESULT STDMETHODCALLTYPE iterable_hstring_GetIids(IIterable_HSTRING *iface,
++        ULONG *iid_count, IID **iids)
++{
++    trace("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE iterable_hstring_GetRuntimeClassName(IIterable_HSTRING *iface,
++        HSTRING *class_name)
++{
++    trace("iface %p, class_name %p stub!\n", iface, class_name);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE iterable_hstring_GetTrustLevel(IIterable_HSTRING *iface,
++        TrustLevel *trust_level)
++{
++    trace("iface %p, trust_level %p stub!\n", iface, trust_level);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE iterable_hstring_First(IIterable_HSTRING *iface,
++        IIterator_HSTRING **value)
++{
++    struct iterable_hstring *impl = impl_from_Iterable_HSTRING(iface);
++
++    trace("iface %p, value %p.\n", iface, value);
++    *value = impl->iterator;
++
++    return S_OK;
++}
++
++static const struct IIterable_HSTRINGVtbl iterable_hstring_vtbl =
++{
++    iterable_hstring_QueryInterface,
++    iterable_hstring_AddRef,
++    iterable_hstring_Release,
++    /* IInspectable methods */
++    iterable_hstring_GetIids,
++    iterable_hstring_GetRuntimeClassName,
++    iterable_hstring_GetTrustLevel,
++    /* IIterable<HSTRING> methods */
++    iterable_hstring_First
++};
++
++static HRESULT iterable_hstring_create(IIterator_HSTRING* iterator, IIterable_HSTRING **instance)
++{
++    struct iterable_hstring *impl;
++
++    if (!(impl = calloc(1, sizeof(*impl))))
++    {
++        *instance = NULL;
++        return E_OUTOFMEMORY;
++    }
++
++    impl->IIterable_HSTRING_iface.lpVtbl = &iterable_hstring_vtbl;
++    impl->ref = 1;
++
++    impl->iterator = iterator;
++
++    *instance = &impl->IIterable_HSTRING_iface;
++
++    return S_OK;
++}
++
 +
  static void test_ActivationFactory(void)
  {
      static const WCHAR *speech_synthesizer_name = L"Windows.Media.SpeechSynthesis.SpeechSynthesizer";
-@@ -374,10 +536,70 @@ static void test_SpeechRecognizer(void)
+@@ -418,10 +724,106 @@ done:
      RoUninitialize();
  }
  
 +static void test_SpeechRecognitionListConstraint(void)
 +{
 +    static const WCHAR *speech_recognition_list_constraint_name = L"Windows.Media.SpeechRecognition.SpeechRecognitionListConstraint";
++    static const WCHAR *speech_constraints[] = { L"This is a test.", L"Number 5!", L"What time is it?" };
++    static const WCHAR *speech_constraint_tag = L"test_message";
 +    ISpeechRecognitionListConstraintFactory *listconstraint_factory = NULL;
 +    ISpeechRecognitionListConstraint *listconstraint = NULL;
 +    ISpeechRecognitionConstraint *constraint = NULL;
 +    IActivationFactory *factory = NULL;
 +    IInspectable *inspectable = NULL;
++    IIterator_HSTRING* hstring_iterator;
++    IIterable_HSTRING* hstring_iterable;
++    HSTRING commands[3];
 +    HSTRING str;
++    HSTRING tag;
 +    HRESULT hr;
++    UINT32 i;
 +    LONG ref;
 +
 +    hr = RoInitialize(RO_INIT_MULTITHREADED);
@@ -822,43 +969,72 @@ index 7d9de4eb890..4d2933623dd 100644
 +    hr = WindowsCreateString(speech_recognition_list_constraint_name, wcslen(speech_recognition_list_constraint_name), &str);
 +    ok(hr == S_OK, "WindowsCreateString failed, hr %#x.\n", hr);
 +
-+    hr = RoGetActivationFactory(str, &IID_IActivationFactory, (void **)&factory);
-+    ok(hr == S_OK, "RoGetActivationFactory failed, hr %#x.\n", hr);
++    hr = WindowsCreateString(speech_constraint_tag, wcslen(speech_constraint_tag), &tag);
++    ok(hr == S_OK, "WindowsCreateString failed, hr %#x.\n", hr);
 +
-+    hr = IActivationFactory_Activate(factory, &inspectable);
-+    ok(hr == S_OK, "IActivationFactory_QueryInterface IID_ISpeechRecognizer failed, hr %#x.\n", hr);
++    for(i=0;i<3;i++)
++    {
++        hr = WindowsCreateString(speech_constraints[i], wcslen(speech_constraints[i]), &commands[i]);
++        ok(hr == S_OK, "WindowsCreateString failed, hr %#x.\n", hr);
++    }
++
++    hr = RoGetActivationFactory(str, &IID_IActivationFactory, (void **)&factory);
++    ok(hr == S_OK || broken(hr == REGDB_E_CLASSNOTREG), "RoGetActivationFactory failed, hr %#x.\n", hr);
++
++    if(hr == REGDB_E_CLASSNOTREG) /* Win 8 and 8.1 */
++    {
++        win_skip("SpeechRecognitionListConstraint activation factory not available!\n");
++        goto done;
++    }
++
++    hr = IActivationFactory_ActivateInstance(factory, &inspectable);
++    ok(hr == E_NOTIMPL, "IActivationFactory_ActivateInstance failed, hr %#x.\n", hr);
 +
 +    hr = IActivationFactory_QueryInterface(factory, &IID_ISpeechRecognitionListConstraintFactory, (void **)&listconstraint_factory);
-+    ok(hr == S_OK, "IActivationFactory_QueryInterface IID_ISpeechRecognizer failed, hr %#x.\n", hr);
++    ok(hr == S_OK, "IActivationFactory_QueryInterface IID_ISpeechRecognitionListConstraintFactory failed, hr %#x.\n", hr);
 +
 +    hr = ISpeechRecognitionListConstraintFactory_Create(listconstraint_factory, NULL, &listconstraint);
-+    ok(hr == S_OK, "ISpeechRecognitionListConstraintFactory_Create failed, hr %#x.\n", hr);
++    ok(hr == E_POINTER, "ISpeechRecognitionListConstraintFactory_Create failed, hr %#x.\n", hr);
 +
 +    hr = ISpeechRecognitionListConstraintFactory_CreateWithTag(listconstraint_factory, NULL, NULL, &listconstraint);
++    ok(hr == E_POINTER, "ISpeechRecognitionListConstraintFactory_Create failed, hr %#x.\n", hr);
++
++    /* The create function destroys the iterator and iterable. */
++    iterator_hstring_create(commands, 3, &hstring_iterator);
++    iterable_hstring_create(hstring_iterator, &hstring_iterable);
++
++    hr = ISpeechRecognitionListConstraintFactory_CreateWithTag(listconstraint_factory, hstring_iterable, NULL, &listconstraint);
 +    ok(hr == S_OK, "ISpeechRecognitionListConstraintFactory_Create failed, hr %#x.\n", hr);
 +
-+    ISpeechRecognitionListConstraintFactory_Release(listconstraint_factory);
-+    IActivationFactory_Release(factory);
++    ref = ISpeechRecognitionListConstraint_Release(listconstraint);
++    ok(ref == 0, "Got unexpected ref %u.\n", ref);
 +
-+    //hr = RoActivateInstance(str, &inspectable);
-+    //ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++    /* The create function destroys the iterator and iterable. */
++    iterator_hstring_create(commands, 3, &hstring_iterator);
++    iterable_hstring_create(hstring_iterator, &hstring_iterable);
 +
-+    hr = IInspectable_QueryInterface(inspectable, &IID_ISpeechRecognitionListConstraint, (void **)&listconstraint);
-+    ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++    hr = ISpeechRecognitionListConstraintFactory_CreateWithTag(listconstraint_factory, hstring_iterable, tag, &listconstraint);
++    ok(hr == S_OK, "ISpeechRecognitionListConstraintFactory_Create failed, hr %#x.\n", hr);
 +
-+    hr = IInspectable_QueryInterface(inspectable, &IID_ISpeechRecognitionConstraint, (void **)&constraint);
++    hr = ISpeechRecognitionListConstraint_QueryInterface(listconstraint, &IID_ISpeechRecognitionConstraint, (void **)&constraint);
 +    ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
 +
 +    ref = ISpeechRecognitionConstraint_Release(constraint);
-+    ok(ref == 2, "Got unexpected ref %u.\n", ref);
-+
-+    ref = ISpeechRecognitionListConstraint_Release(listconstraint);
 +    ok(ref == 1, "Got unexpected ref %u.\n", ref);
 +
-+    ref = IInspectable_Release(inspectable);
-+    ok(!ref, "Got unexpected ref %u.\n", ref);
++    ref = ISpeechRecognitionListConstraint_Release(listconstraint);
++    ok(ref == 0, "Got unexpected ref %u.\n", ref);
 +
++    ref = ISpeechRecognitionListConstraintFactory_Release(listconstraint_factory);
++    ok(ref == 2, "Got unexpected ref %u.\n", ref);
++
++    ref = IActivationFactory_Release(factory);
++    ok(ref == 1, "Got unexpected ref %u.\n", ref);
++
++done:
 +    WindowsDeleteString(str);
++    WindowsDeleteString(tag);
++    for(i=0;i<3;i++) WindowsDeleteString(commands[i]);
 +
 +    RoUninitialize();
 +}
