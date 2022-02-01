@@ -1,4 +1,4 @@
-From e34ded959559f93966c7efdf54cb41c24117bec3 Mon Sep 17 00:00:00 2001
+From 9a21f960560420ce950a2bc44ee5015855e24544 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 15:11:45 +0100
 Subject: [PATCH v2 23/28] windows.media.speech: Add
@@ -8,9 +8,9 @@ Subject: [PATCH v2 23/28] windows.media.speech: Add
  dlls/windows.media.speech/Makefile.in         |   1 +
  dlls/windows.media.speech/main.c              |   7 +
  .../speechrecognitionlistconstraint.c         | 574 ++++++++++++++++++
- dlls/windows.media.speech/tests/speech.c      | 402 ++++++++++++
+ dlls/windows.media.speech/tests/speech.c      | 364 +++++++++++
  .../windows_media_speech_private.h            |   1 +
- 5 files changed, 985 insertions(+)
+ 5 files changed, 947 insertions(+)
  create mode 100644 dlls/windows.media.speech/speechrecognitionlistconstraint.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
@@ -624,10 +624,10 @@ index 00000000000..8025b3a38b9
 +    *factory = &speech_recognition_list_constraint_af.IActivationFactory_iface;
 +}
 diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speech.c
-index 745c9277feb..ffe4dffc493 100644
+index 1ad84fe26a2..7abb81009fb 100644
 --- a/dlls/windows.media.speech/tests/speech.c
 +++ b/dlls/windows.media.speech/tests/speech.c
-@@ -51,6 +51,312 @@ static inline const char *debugstr_hstring(HSTRING hstr)
+@@ -51,6 +51,266 @@ static inline const char *debugstr_hstring(HSTRING hstr)
      return wine_dbgstr_wn(str, len);
  }
  
@@ -683,9 +683,6 @@ index 745c9277feb..ffe4dffc493 100644
 +    ULONG ref = InterlockedDecrement(&impl->ref);
 +    trace("iface %p, ref %u.\n", iface, ref);
 +
-+    if(!ref)
-+        free(impl);
-+
 +    return ref;
 +}
 +
@@ -714,15 +711,16 @@ index 745c9277feb..ffe4dffc493 100644
 +        HSTRING *value)
 +{
 +    struct iterator_hstring *impl = impl_from_IIterator_HSTRING(iface);
++    HRESULT hr;
 +
-+    trace("iface %p, value %p.\n", iface, value);
++    trace("iface %p, value %p, curr_item %u, count %u, first item: %s.\n", iface, value, impl->current_item, impl->count, debugstr_hstring(impl->values[0]));
 +
 +    if(impl->current_item >= impl->count)
 +        return E_BOUNDS;
 +
-+    *value = impl->values[impl->current_item];
++    hr = WindowsDuplicateString(impl->values[impl->current_item], value);
 +
-+    return S_OK;
++    return hr;
 +}
 +
 +static HRESULT STDMETHODCALLTYPE iterator_hstring_get_HasCurrent(IIterator_HSTRING *iface,
@@ -743,7 +741,7 @@ index 745c9277feb..ffe4dffc493 100644
 +{
 +    struct iterator_hstring *impl = impl_from_IIterator_HSTRING(iface);
 +
-+    trace("iface %p, element %p, index %p, found %p.\n", iface, value);
++    trace("iface %p, value %p.\n", iface, value);
 +
 +    if(impl->current_item >= impl->count)
 +    {
@@ -761,13 +759,14 @@ index 745c9277feb..ffe4dffc493 100644
 +static HRESULT STDMETHODCALLTYPE iterator_hstring_GetMany(IIterator_HSTRING *iface,
 +        UINT32 start_index, UINT32 items_size, HSTRING *items, UINT *count)
 +{
++    
 +    /*struct iterator_hstring *impl = impl_from_IIterator_HSTRING(iface);
 +    HRESULT hr = S_OK;
-+    ULONG i;
++    ULONG i;*/
 +
 +    trace("iface %p, start_index %#x, items %p, count %p.\n", iface, start_index, items, count);
 +
-+    memset(items, 0, items_size * sizeof(*items));
++    /*memset(items, 0, items_size * sizeof(*items));
 +
 +    for (i = start_index; i < impl->count && i < start_index + items_size; ++i)
 +        if (FAILED(hr = WindowsDuplicateString(impl->values[i], items + i - start_index)))
@@ -794,28 +793,6 @@ index 745c9277feb..ffe4dffc493 100644
 +    iterator_hstring_MoveNext,
 +    iterator_hstring_GetMany,
 +};
-+
-+static HRESULT iterator_hstring_create(HSTRING *values, ULONG item_count, IIterator_HSTRING **instance)
-+{
-+    struct iterator_hstring *impl;
-+
-+    if (!(impl = calloc(1, sizeof(*impl))))
-+    {
-+        *instance = NULL;
-+        return E_OUTOFMEMORY;
-+    }
-+
-+    impl->IIterator_HSTRING_iface.lpVtbl = &iterator_hstring_vtbl;
-+    impl->count = item_count;
-+    impl->current_item = 0;
-+    impl->ref = 1;
-+
-+    impl->values = values;
-+
-+    *instance = &impl->IIterator_HSTRING_iface;
-+
-+    return S_OK;
-+}
 +
 +struct iterable_hstring
 +{
@@ -865,9 +842,6 @@ index 745c9277feb..ffe4dffc493 100644
 +    ULONG ref = InterlockedDecrement(&impl->ref);
 +    trace("iface %p, ref %u.\n", iface, ref);
 +
-+    if(!ref)
-+        free(impl);
-+
 +    return ref;
 +}
 +
@@ -899,6 +873,7 @@ index 745c9277feb..ffe4dffc493 100644
 +
 +    trace("iface %p, value %p.\n", iface, value);
 +    *value = impl->iterator;
++    IIterator_HSTRING_AddRef(*value);
 +
 +    return S_OK;
 +}
@@ -916,31 +891,10 @@ index 745c9277feb..ffe4dffc493 100644
 +    iterable_hstring_First
 +};
 +
-+static HRESULT iterable_hstring_create(IIterator_HSTRING* iterator, IIterable_HSTRING **instance)
-+{
-+    struct iterable_hstring *impl;
-+
-+    if (!(impl = calloc(1, sizeof(*impl))))
-+    {
-+        *instance = NULL;
-+        return E_OUTOFMEMORY;
-+    }
-+
-+    impl->IIterable_HSTRING_iface.lpVtbl = &iterable_hstring_vtbl;
-+    impl->ref = 1;
-+
-+    impl->iterator = iterator;
-+
-+    *instance = &impl->IIterable_HSTRING_iface;
-+
-+    return S_OK;
-+}
-+
-+
  static void test_ActivationFactory(void)
  {
      static const WCHAR *speech_synthesizer_name = L"Windows.Media.SpeechSynthesis.SpeechSynthesizer";
-@@ -418,10 +724,106 @@ done:
+@@ -418,10 +678,114 @@ activate_sr:
      RoUninitialize();
  }
  
@@ -954,8 +908,8 @@ index 745c9277feb..ffe4dffc493 100644
 +    ISpeechRecognitionConstraint *constraint = NULL;
 +    IActivationFactory *factory = NULL;
 +    IInspectable *inspectable = NULL;
-+    IIterator_HSTRING* hstring_iterator;
-+    IIterable_HSTRING* hstring_iterable;
++    struct iterator_hstring iterator_hstring;
++    struct iterable_hstring iterable_hstring;
 +    HSTRING commands[3];
 +    HSTRING str;
 +    HSTRING tag;
@@ -999,21 +953,29 @@ index 745c9277feb..ffe4dffc493 100644
 +    hr = ISpeechRecognitionListConstraintFactory_CreateWithTag(listconstraint_factory, NULL, NULL, &listconstraint);
 +    ok(hr == E_POINTER, "ISpeechRecognitionListConstraintFactory_Create failed, hr %#x.\n", hr);
 +
-+    /* The create function destroys the iterator and iterable. */
-+    iterator_hstring_create(commands, 3, &hstring_iterator);
-+    iterable_hstring_create(hstring_iterator, &hstring_iterable);
++    iterator_hstring.IIterator_HSTRING_iface.lpVtbl = &iterator_hstring_vtbl;
++    iterator_hstring.ref = 1;
++    iterator_hstring.current_item = 0;
++    iterator_hstring.count = 3;
++    iterator_hstring.values = commands;
 +
-+    hr = ISpeechRecognitionListConstraintFactory_CreateWithTag(listconstraint_factory, hstring_iterable, NULL, &listconstraint);
++    iterable_hstring.IIterable_HSTRING_iface.lpVtbl = &iterable_hstring_vtbl;
++    iterable_hstring.ref = 1;
++    iterable_hstring.iterator = &iterator_hstring.IIterator_HSTRING_iface;
++
++    hr = ISpeechRecognitionListConstraintFactory_CreateWithTag(listconstraint_factory, &iterable_hstring.IIterable_HSTRING_iface, NULL, &listconstraint);
 +    ok(hr == S_OK, "ISpeechRecognitionListConstraintFactory_Create failed, hr %#x.\n", hr);
 +
 +    ref = ISpeechRecognitionListConstraint_Release(listconstraint);
 +    ok(ref == 0, "Got unexpected ref %u.\n", ref);
 +
-+    /* The create function destroys the iterator and iterable. */
-+    iterator_hstring_create(commands, 3, &hstring_iterator);
-+    iterable_hstring_create(hstring_iterator, &hstring_iterable);
++    iterator_hstring.current_item = 0;
++    iterator_hstring.count = 3;
++    iterator_hstring.values = commands;
 +
-+    hr = ISpeechRecognitionListConstraintFactory_CreateWithTag(listconstraint_factory, hstring_iterable, tag, &listconstraint);
++    iterable_hstring.iterator = &iterator_hstring.IIterator_HSTRING_iface;
++
++    hr = ISpeechRecognitionListConstraintFactory_CreateWithTag(listconstraint_factory, &iterable_hstring.IIterable_HSTRING_iface, tag, &listconstraint);
 +    ok(hr == S_OK, "ISpeechRecognitionListConstraintFactory_Create failed, hr %#x.\n", hr);
 +
 +    hr = ISpeechRecognitionListConstraint_QueryInterface(listconstraint, &IID_ISpeechRecognitionConstraint, (void **)&constraint);

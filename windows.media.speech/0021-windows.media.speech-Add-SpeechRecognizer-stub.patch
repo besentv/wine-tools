@@ -1,4 +1,4 @@
-From 302d90fb34ec1a898e0a22aa792b1a190c4c0e99 Mon Sep 17 00:00:00 2001
+From 78c803b250c831cd1dbc6a4b609cad43da308856 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 14:53:49 +0100
 Subject: [PATCH v2 21/28] windows.media.speech: Add SpeechRecognizer stub.
@@ -1012,7 +1012,7 @@ index 00000000000..2a150005703
 +    *factory = &speechrecognizer_af.IActivationFactory_iface;
 +}
 diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speech.c
-index 3e349cf107a..745c9277feb 100644
+index 3e349cf107a..1ad84fe26a2 100644
 --- a/dlls/windows.media.speech/tests/speech.c
 +++ b/dlls/windows.media.speech/tests/speech.c
 @@ -29,6 +29,8 @@
@@ -1083,7 +1083,7 @@ index 3e349cf107a..745c9277feb 100644
 +    if(hr == REGDB_E_CLASSNOTREG) /* Win 8 and 8.1 */
 +    {
 +        win_skip("SpeechRecognizer activation factory not available!\n");
-+        goto done;
++        goto activate_sr;
 +    }
 +
 +    hr = IActivationFactory_QueryInterface(factory, &IID_ISpeechRecognizerFactory, (void **)&sr_factory);
@@ -1097,8 +1097,8 @@ index 3e349cf107a..745c9277feb 100644
 +
 +    if(hr == S_OK)
 +    {
-+        hr = ILanguage_get_DisplayName(language, &hstr_lang);
-+        ok(hr == S_OK, "ILanguage_DisplayName failed, hr %#x.\n", hr);
++        hr = ILanguage_get_LanguageTag(language, &hstr_lang);
++        ok(hr == S_OK, "ILanguage_get_LanguageTag failed, hr %#x.\n", hr);
 +
 +        trace("SpeechRecognizer default language %s.\n", debugstr_hstring(hstr_lang));
 +
@@ -1123,6 +1123,7 @@ index 3e349cf107a..745c9277feb 100644
 +    ref = IActivationFactory_Release(factory);
 +    ok(ref == 1, "Got unexpected ref %u.\n", ref);
 +
++activate_sr:
 +    hr = RoActivateInstance(hstr, &inspectable);
 +    ok(hr == S_OK || broken(hr == 0x800455a0), "Got unexpected hr %#x.\n", hr);
 +
@@ -1154,7 +1155,6 @@ index 3e349cf107a..745c9277feb 100644
 +        win_skip("Could not init SpeechRecognizer with default language!\n");
 +    }
 +
-+done:
 +    WindowsDeleteString(hstr);
 +
 +    RoUninitialize();
