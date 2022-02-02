@@ -1,4 +1,4 @@
-From a9bbbd67c9084b05f352ec1cd22a707d6b884014 Mon Sep 17 00:00:00 2001
+From 5cc2ab157c5ae2ed97dd5d30e2721f4b6a3ed338 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:34:51 +0100
 Subject: [PATCH v2 28/28] include: Add windows.storage.idl.
