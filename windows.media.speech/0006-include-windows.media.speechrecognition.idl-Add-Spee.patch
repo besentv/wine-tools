@@ -1,16 +1,16 @@
-From 3543bd724cec744ee259c96e30df44f486da42c8 Mon Sep 17 00:00:00 2001
+From 3ebd4086e5f46984142cd489b0b6fa82a24916c9 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 17:44:15 +0100
-Subject: [PATCH v2 06/28] include/windows.media.speechrecognition.idl: Add
+Subject: [PATCH v2 06/29] include/windows.media.speechrecognition.idl: Add
  SpeechRecognitionResult.
 
 And it's dependencies.
 ---
- include/windows.media.speechrecognition.idl | 92 +++++++++++++++++++++
- 1 file changed, 92 insertions(+)
+ include/windows.media.speechrecognition.idl | 96 ++++++++++++++++++++-
+ 1 file changed, 94 insertions(+), 2 deletions(-)
 
 diff --git a/include/windows.media.speechrecognition.idl b/include/windows.media.speechrecognition.idl
-index 65c9d5ef8da..1dd73a2637d 100644
+index 0092c244ffb..1dd73a2637d 100644
 --- a/include/windows.media.speechrecognition.idl
 +++ b/include/windows.media.speechrecognition.idl
 @@ -32,9 +32,16 @@ import "windows.globalization.idl";
@@ -56,7 +56,7 @@ index 65c9d5ef8da..1dd73a2637d 100644
              [contract(Windows.Foundation.UniversalApiContract, 1.0)]
              enum SpeechRecognitionConstraintProbability
              {
-@@ -69,6 +88,22 @@ namespace Windows {
+@@ -69,20 +88,93 @@ namespace Windows {
                  VoiceCommandDefinition = 3,
              };
  
@@ -79,7 +79,16 @@ index 65c9d5ef8da..1dd73a2637d 100644
              [
                  contract(Windows.Foundation.UniversalApiContract, 1.0),
                  uuid(79ac1628-4d68-43c4-8911-40dc4101b55b)
-@@ -83,6 +118,63 @@ namespace Windows {
+             ]
+             interface ISpeechRecognitionConstraint : IInspectable
+             {
+-                [propget] HRESULT IsEnabled([out, retval] BOOLEAN *value);
+-                [propput] HRESULT IsEnabled([in] BOOLEAN value);
++                [propget] HRESULT IsEnabled([out, retval] boolean *value);
++                [propput] HRESULT IsEnabled([in] boolean value);
+                 [propget] HRESULT Tag([out, retval] HSTRING *value);
+                 [propput] HRESULT Tag([in] HSTRING value);
+                 [propget] HRESULT Type([out, retval] Windows.Media.SpeechRecognition.SpeechRecognitionConstraintType *value);
                  [propget] HRESULT Probability([out, retval] Windows.Media.SpeechRecognition.SpeechRecognitionConstraintProbability *value);
                  [propput] HRESULT Probability([in] Windows.Media.SpeechRecognition.SpeechRecognitionConstraintProbability value);
              }

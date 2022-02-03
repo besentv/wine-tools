@@ -1,7 +1,7 @@
-From 70152020b93170a9540a24f1bd751e82cda1d6a7 Mon Sep 17 00:00:00 2001
+From 1699b9e9bf0cd81f8f61473079c6233e960d9146 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 15:27:04 +0100
-Subject: [PATCH v2 25/28] windows.media.speech: Add
+Subject: [PATCH v2 28/29] windows.media.speech: Add
  SpeechRecognitionCompilationResult stub.
 
 ---
@@ -11,13 +11,13 @@ Subject: [PATCH v2 25/28] windows.media.speech: Add
  create mode 100644 dlls/windows.media.speech/speechrecognitioncompilationresult.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
-index 9d5a25ea8e5..1c5ddf7f4a0 100644
+index 956365bccec..35327bd3939 100644
 --- a/dlls/windows.media.speech/Makefile.in
 +++ b/dlls/windows.media.speech/Makefile.in
-@@ -4,6 +4,7 @@ IMPORTS = combase uuid
- 
+@@ -5,6 +5,7 @@ IMPORTS = combase uuid
  C_SRCS = \
  	main.c \
+ 	speechcontinuousrecognition.c \
 +	speechrecognitioncompilationresult.c \
  	speechrecognitionlistconstraint.c \
  	speechrecognitionresult.c \

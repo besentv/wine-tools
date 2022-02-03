@@ -1,7 +1,7 @@
-From a994b48b266593e8002568402ea4a205b28663c4 Mon Sep 17 00:00:00 2001
+From f74ae54cc57429086ce38e91aa51f736d3eeae9a Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 22:10:13 +0100
-Subject: [PATCH v2 18/28] windows.media.speech: Move SpeechSynthesizer into a
+Subject: [PATCH v2 18/29] windows.media.speech: Move SpeechSynthesizer into a
  sperate file.
 
 ---

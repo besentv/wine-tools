@@ -1,7 +1,7 @@
-From 42c7ae23ce29b5195c994b16084eecaba45f20cd Mon Sep 17 00:00:00 2001
+From 36bce92c85f82ffb84935ff877aa709397638398 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:36:08 +0100
-Subject: [PATCH v2 05/28] include: Add windows.media.speechrecognition.idl.
+Subject: [PATCH v2 05/29] include: Add windows.media.speechrecognition.idl.
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -32,7 +32,7 @@ index 7fcf5f0ba7b..613c0bd0b37 100644
  	windows.system.idl \
 diff --git a/include/windows.media.speechrecognition.idl b/include/windows.media.speechrecognition.idl
 new file mode 100644
-index 00000000000..65c9d5ef8da
+index 00000000000..0092c244ffb
 --- /dev/null
 +++ b/include/windows.media.speechrecognition.idl
 @@ -0,0 +1,88 @@
@@ -113,8 +113,8 @@ index 00000000000..65c9d5ef8da
 +            ]
 +            interface ISpeechRecognitionConstraint : IInspectable
 +            {
-+                [propget] HRESULT IsEnabled([out, retval] boolean *value);
-+                [propput] HRESULT IsEnabled([in] boolean value);
++                [propget] HRESULT IsEnabled([out, retval] BOOLEAN *value);
++                [propput] HRESULT IsEnabled([in] BOOLEAN value);
 +                [propget] HRESULT Tag([out, retval] HSTRING *value);
 +                [propput] HRESULT Tag([in] HSTRING value);
 +                [propget] HRESULT Type([out, retval] Windows.Media.SpeechRecognition.SpeechRecognitionConstraintType *value);

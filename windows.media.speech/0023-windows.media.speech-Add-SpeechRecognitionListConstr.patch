@@ -1,7 +1,7 @@
-From 257d17b6efa9d4ae66bae2dab59c0cbc4bb8eaea Mon Sep 17 00:00:00 2001
+From e5736956e7c91b52206f81b58ea6297c9ba06713 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 15:11:45 +0100
-Subject: [PATCH v2 23/28] windows.media.speech: Add
+Subject: [PATCH v2 23/29] windows.media.speech: Add
  SpeechRecognitionListConstraint stub.
 
 ---
@@ -45,7 +45,7 @@ index 072c6ba314b..2eea8f3ff7f 100644
      return CLASS_E_CLASSNOTAVAILABLE;
 diff --git a/dlls/windows.media.speech/speechrecognitionlistconstraint.c b/dlls/windows.media.speech/speechrecognitionlistconstraint.c
 new file mode 100644
-index 00000000000..d5e5d701fdc
+index 00000000000..5eb0f9feb1b
 --- /dev/null
 +++ b/dlls/windows.media.speech/speechrecognitionlistconstraint.c
 @@ -0,0 +1,574 @@
@@ -267,7 +267,7 @@ index 00000000000..d5e5d701fdc
 +}
 +
 +static HRESULT STDMETHODCALLTYPE speech_recognition_constraint_get_IsEnabled(
-+    ISpeechRecognitionConstraint *iface, boolean *value)
++    ISpeechRecognitionConstraint *iface, BOOLEAN *value)
 +{
 +    FIXME("iface %p, value %p stub!\n", iface, value);
 +
@@ -275,7 +275,7 @@ index 00000000000..d5e5d701fdc
 +}
 +
 +static HRESULT STDMETHODCALLTYPE speech_recognition_constraint_put_IsEnabled(
-+    ISpeechRecognitionConstraint *iface, boolean value)
++    ISpeechRecognitionConstraint *iface, BOOLEAN value)
 +{
 +    FIXME("iface %p, value %u stub!\n", iface, value);
 +

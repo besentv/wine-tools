@@ -1,7 +1,7 @@
-From 7f3a98586a76ed7c8be8fa2ab4553ad4f9322c8f Mon Sep 17 00:00:00 2001
+From 27c5e19666d8a94dcbc515d5daff91f24e9f5ebc Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 22:28:43 +0100
-Subject: [PATCH v2 20/28] windows.media.speech: Properly name activation
+Subject: [PATCH v2 20/29] windows.media.speech: Properly name activation
  factory of SpeechSynthesizer.
 
 ---

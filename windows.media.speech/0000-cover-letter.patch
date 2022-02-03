@@ -1,0 +1,86 @@
+From 3c2a7bcbe2ea20cfad78a7b7bc6e4247219de8b2 Mon Sep 17 00:00:00 2001
+From: Bernhard Kölbl <besentv@gmail.com>
+Date: Thu, 3 Feb 2022 17:01:30 +0100
+Subject: [PATCH v2 00/29] *** SUBJECT HERE ***
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+*** BLURB HERE ***
+
+Bernhard Kölbl (29):
+  include/windows.foundation.collections.idl: Add IVector<T> interface.
+  include/windows.foundation.idl: Add IAsyncAction interface.
+  include/windows.foundation.idl: Add more declares.
+  include/windows.globalization.idl: Add Language class and interfaces.
+  include: Add windows.media.speechrecognition.idl.
+  include/windows.media.speechrecognition.idl: Add
+    SpeechRecognitionResult.
+  include/windows.media.speechrecognition.idl: Add
+    SpeechContinuousRecognitionSession.
+  include/windows.media.speechrecognition.idl: Add
+    SpeechRecognitionHypothesis.
+  include/windows.media.speechrecognition.idl: Add
+    SpeechRecognitionHypothesisGeneratedEventArgs.
+  include/windows.media.speechrecognition.idl: Add
+    SpeechRecognizerTimeouts.
+  include/windows.media.speechrecognition.idl: Add
+    SpeechRecognizerUIOptions.
+  include/windows.media.speechrecognition.idl: Add
+    SpeechRecognitionCompilationResult.
+  include/windows.media.speechrecognition.idl: Add
+    SpeechRecognitionQualityDegradingEventArgs.
+  include/windows.media.speechrecognition.idl: Add
+    SpeechRecognizerStateChangedEventArgs.
+  include/windows.media.speechrecognition.idl: Add SpeechRecognizer.
+  windows.media.speech/tests: Add tests for IActivationFactory.
+  windows.media.speech: Create private header.
+  windows.media.speech: Move SpeechSynthesizer into a sperate file.
+  windows.media.speech: Explicitly check for available activation
+    factory.
+  windows.media.speech: Properly name activation factory of
+    SpeechSynthesizer.
+  windows.media.speech: Add SpeechRecognizer stub.
+  include/windows.media.speechrecognition.idl: Add
+    SpeechRecognitionListConstraint.
+  windows.media.speech: Add SpeechRecognitionListConstraint stub.
+  windows.media.speech: Implement ISpeechRecognitionConstraint
+    isEnabled.
+  windows.media.speech: Add SpeechContinuousRecognitionSession stub.
+  windows.media.speech: Add
+    SpeechContinuousRecognitionCompletedEventArgs stub.
+  windows.media.speech: Add SpeechRecognitionResult stub.
+  windows.media.speech: Add SpeechRecognitionCompilationResult stub.
+  windows.media.speech: Add SpeechRecognizerStateChangedEventArgs stub.
+
+ dlls/windows.media.speech/Makefile.in         |   9 +-
+ dlls/windows.media.speech/classes.idl         |   1 +
+ dlls/windows.media.speech/main.c              | 590 +----------
+ .../speechcontinuousrecognition.c             | 396 ++++++++
+ .../speechrecognitioncompilationresult.c      | 151 +++
+ .../speechrecognitionlistconstraint.c         | 584 +++++++++++
+ .../speechrecognitionresult.c                 | 325 ++++++
+ dlls/windows.media.speech/speechrecognizer.c  | 949 ++++++++++++++++++
+ .../speechrecognizerstatechangedrventargs.c   | 156 +++
+ dlls/windows.media.speech/speechsynthesizer.c | 569 +++++++++++
+ dlls/windows.media.speech/tests/speech.c      | 576 +++++++++++
+ .../windows_media_speech_private.h            |  81 ++
+ include/Makefile.in                           |   1 +
+ include/windows.foundation.collections.idl    |  20 +
+ include/windows.foundation.idl                |  31 +-
+ include/windows.globalization.idl             | 132 +++
+ include/windows.media.speechrecognition.idl   | 614 +++++++++++
+ 17 files changed, 4613 insertions(+), 572 deletions(-)
+ create mode 100644 dlls/windows.media.speech/speechcontinuousrecognition.c
+ create mode 100644 dlls/windows.media.speech/speechrecognitioncompilationresult.c
+ create mode 100644 dlls/windows.media.speech/speechrecognitionlistconstraint.c
+ create mode 100644 dlls/windows.media.speech/speechrecognitionresult.c
+ create mode 100644 dlls/windows.media.speech/speechrecognizer.c
+ create mode 100644 dlls/windows.media.speech/speechrecognizerstatechangedrventargs.c
+ create mode 100644 dlls/windows.media.speech/speechsynthesizer.c
+ create mode 100644 dlls/windows.media.speech/windows_media_speech_private.h
+ create mode 100644 include/windows.media.speechrecognition.idl
+
+-- 
+2.34.1
+
