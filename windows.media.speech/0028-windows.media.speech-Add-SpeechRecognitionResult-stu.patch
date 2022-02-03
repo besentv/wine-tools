@@ -1,7 +1,7 @@
-From 5890c8a4f12a5006be9c4977ba4893b9d5753d62 Mon Sep 17 00:00:00 2001
+From a4a2fcaf5e4ab6c9a49047cd8ce80723d51d9f32 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 15:25:15 +0100
-Subject: [PATCH v2 27/29] windows.media.speech: Add SpeechRecognitionResult
+Subject: [PATCH v2 28/30] windows.media.speech: Add SpeechRecognitionResult
  stub.
 
 ---

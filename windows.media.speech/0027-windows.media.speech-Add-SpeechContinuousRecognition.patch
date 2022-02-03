@@ -1,0 +1,159 @@
+From 1579b9983fe3ee410e1af4dbe62dc6e406ab10ae Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Thu, 3 Feb 2022 17:42:13 +0100
+Subject: [PATCH v2 27/30] windows.media.speech: Add
+ SpeechContinuousRecognitionResultGeneratedEventArgs stub.
+
+---
+ .../speechcontinuousrecognition.c             | 135 ++++++++++++++++++
+ 1 file changed, 135 insertions(+)
+
+diff --git a/dlls/windows.media.speech/speechcontinuousrecognition.c b/dlls/windows.media.speech/speechcontinuousrecognition.c
+index 27b7e25dde5..445b2685965 100644
+--- a/dlls/windows.media.speech/speechcontinuousrecognition.c
++++ b/dlls/windows.media.speech/speechcontinuousrecognition.c
+@@ -159,6 +159,141 @@ HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_cre
+     return hr;
+ }
+ 
++/*
++ *
++ * SpeechContinuousRecognitionResultGeneratedEventArgs
++ *
++ */
++
++struct speech_continuous_recognition_result_generated_event_args
++{
++    ISpeechContinuousRecognitionResultGeneratedEventArgs ISpeechContinuousRecognitionResultGeneratedEventArgs_iface;
++    LONG ref;
++};
++
++/*
++ *
++ * ISpeechContinuousRecognitionResultGeneratedEventArgs
++ *
++ */
++
++static inline struct speech_continuous_recognition_result_generated_event_args *impl_from_ISpeechContinuousRecognitionResultGeneratedEventArgs(
++    ISpeechContinuousRecognitionResultGeneratedEventArgs *iface)
++{
++    return CONTAINING_RECORD(iface, struct speech_continuous_recognition_result_generated_event_args,
++        ISpeechContinuousRecognitionResultGeneratedEventArgs_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_result_generated_event_args_QueryInterface(
++    ISpeechContinuousRecognitionResultGeneratedEventArgs *iface, REFIID iid, void **out)
++{
++    TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
++
++    if (IsEqualGUID(iid, &IID_IUnknown) ||
++        IsEqualGUID(iid, &IID_IInspectable) ||
++        IsEqualGUID(iid, &IID_ISpeechContinuousRecognitionResultGeneratedEventArgs))
++    {
++        IUnknown_AddRef(iface);
++        *out = iface;
++        return S_OK;
++    }
++
++
++    WARN("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
++    *out = NULL;
++    return E_NOINTERFACE;
++}
++
++static ULONG STDMETHODCALLTYPE speech_continuous_recognition_result_generated_event_args_AddRef(
++    ISpeechContinuousRecognitionResultGeneratedEventArgs *iface)
++{
++    struct speech_continuous_recognition_result_generated_event_args *impl = impl_from_ISpeechContinuousRecognitionResultGeneratedEventArgs(iface);
++
++    ULONG ref = InterlockedIncrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    return ref;
++}
++
++static ULONG STDMETHODCALLTYPE speech_continuous_recognition_result_generated_event_args_Release(
++    ISpeechContinuousRecognitionResultGeneratedEventArgs *iface)
++{
++    struct speech_continuous_recognition_result_generated_event_args *impl = impl_from_ISpeechContinuousRecognitionResultGeneratedEventArgs(iface);
++
++    ULONG ref = InterlockedDecrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    if(!ref)
++        free(impl);
++
++    return ref;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_result_generated_event_args_GetIids(
++    ISpeechContinuousRecognitionResultGeneratedEventArgs *iface, ULONG *iid_count, IID **iids)
++{
++    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_result_generated_event_args_GetRuntimeClassName(
++        ISpeechContinuousRecognitionResultGeneratedEventArgs *iface, HSTRING *class_name)
++{
++    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_result_generated_event_args_GetTrustLevel(
++    ISpeechContinuousRecognitionResultGeneratedEventArgs *iface, TrustLevel *trust_level)
++{
++    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_result_generated_event_args_get_Result(
++        ISpeechContinuousRecognitionResultGeneratedEventArgs *iface, ISpeechRecognitionResult **value)
++{
++    FIXME("iface %p, value %p stub!\n", iface, value);
++    return E_NOTIMPL;
++}
++
++static const struct ISpeechContinuousRecognitionResultGeneratedEventArgsVtbl
++    speech_continuous_recognition_result_generated_event_args_vtbl =
++{
++    /* IUnknown methods */
++    speech_continuous_recognition_result_generated_event_args_QueryInterface,
++    speech_continuous_recognition_result_generated_event_args_AddRef,
++    speech_continuous_recognition_result_generated_event_args_Release,
++    /* IInspectable methods */
++    speech_continuous_recognition_result_generated_event_args_GetIids,
++    speech_continuous_recognition_result_generated_event_args_GetRuntimeClassName,
++    speech_continuous_recognition_result_generated_event_args_GetTrustLevel,
++    /* ISpeechContinuousRecognitionResultGeneratedEventArgs methods */
++    speech_continuous_recognition_result_generated_event_args_get_Result
++};
++
++HRESULT STDMETHODCALLTYPE speech_continuous_recognition_result_generated_event_args_create_from_iid(REFIID iid, void **obj)
++{
++    struct speech_continuous_recognition_result_generated_event_args *impl;
++    HRESULT hr;
++
++    TRACE("iid %p, obj %p.\n", iid, obj);
++
++    if (!(impl = calloc(1, sizeof(*impl))))
++    {
++        *obj = NULL;
++        return E_OUTOFMEMORY;
++    }
++
++    impl->ISpeechContinuousRecognitionResultGeneratedEventArgs_iface.lpVtbl = &speech_continuous_recognition_result_generated_event_args_vtbl;
++    impl->ref = 1;
++
++    hr = ISpeechContinuousRecognitionResultGeneratedEventArgs_QueryInterface(&impl->ISpeechContinuousRecognitionResultGeneratedEventArgs_iface, iid, obj);
++    ISpeechContinuousRecognitionResultGeneratedEventArgs_Release(&impl->ISpeechContinuousRecognitionResultGeneratedEventArgs_iface);
++
++    return hr;
++}
++
+ /*
+  *
+  * SpeechContinuousRecognitionSession
+-- 
+2.34.1
+

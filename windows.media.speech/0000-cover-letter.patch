@@ -1,14 +1,14 @@
-From 3c2a7bcbe2ea20cfad78a7b7bc6e4247219de8b2 Mon Sep 17 00:00:00 2001
+From 1e33a346a09d606f00826d219f4c8311d715d1e1 Mon Sep 17 00:00:00 2001
 From: Bernhard Kölbl <besentv@gmail.com>
-Date: Thu, 3 Feb 2022 17:01:30 +0100
-Subject: [PATCH v2 00/29] *** SUBJECT HERE ***
+Date: Thu, 3 Feb 2022 17:45:27 +0100
+Subject: [PATCH v2 00/30] *** SUBJECT HERE ***
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 *** BLURB HERE ***
 
-Bernhard Kölbl (29):
+Bernhard Kölbl (30):
   include/windows.foundation.collections.idl: Add IVector<T> interface.
   include/windows.foundation.idl: Add IAsyncAction interface.
   include/windows.foundation.idl: Add more declares.
@@ -49,6 +49,8 @@ Bernhard Kölbl (29):
   windows.media.speech: Add SpeechContinuousRecognitionSession stub.
   windows.media.speech: Add
     SpeechContinuousRecognitionCompletedEventArgs stub.
+  windows.media.speech: Add
+    SpeechContinuousRecognitionResultGeneratedEventArgs stub.
   windows.media.speech: Add SpeechRecognitionResult stub.
   windows.media.speech: Add SpeechRecognitionCompilationResult stub.
   windows.media.speech: Add SpeechRecognizerStateChangedEventArgs stub.
@@ -56,7 +58,7 @@ Bernhard Kölbl (29):
  dlls/windows.media.speech/Makefile.in         |   9 +-
  dlls/windows.media.speech/classes.idl         |   1 +
  dlls/windows.media.speech/main.c              | 590 +----------
- .../speechcontinuousrecognition.c             | 396 ++++++++
+ .../speechcontinuousrecognition.c             | 531 ++++++++++
  .../speechrecognitioncompilationresult.c      | 151 +++
  .../speechrecognitionlistconstraint.c         | 584 +++++++++++
  .../speechrecognitionresult.c                 | 325 ++++++
@@ -70,7 +72,7 @@ Bernhard Kölbl (29):
  include/windows.foundation.idl                |  31 +-
  include/windows.globalization.idl             | 132 +++
  include/windows.media.speechrecognition.idl   | 614 +++++++++++
- 17 files changed, 4613 insertions(+), 572 deletions(-)
+ 17 files changed, 4748 insertions(+), 572 deletions(-)
  create mode 100644 dlls/windows.media.speech/speechcontinuousrecognition.c
  create mode 100644 dlls/windows.media.speech/speechrecognitioncompilationresult.c
  create mode 100644 dlls/windows.media.speech/speechrecognitionlistconstraint.c

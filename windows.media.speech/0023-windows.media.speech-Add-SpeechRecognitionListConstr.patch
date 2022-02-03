@@ -1,7 +1,7 @@
 From e5736956e7c91b52206f81b58ea6297c9ba06713 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 15:11:45 +0100
-Subject: [PATCH v2 23/29] windows.media.speech: Add
+Subject: [PATCH v2 23/30] windows.media.speech: Add
  SpeechRecognitionListConstraint stub.
 
 ---

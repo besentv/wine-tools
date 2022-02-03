@@ -1,7 +1,7 @@
 From a21475d5048537b9534641758bb9475c07811a14 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 15:42:59 +0100
-Subject: [PATCH v2 25/29] windows.media.speech: Add
+Subject: [PATCH v2 25/30] windows.media.speech: Add
  SpeechContinuousRecognitionSession stub.
 
 ---
