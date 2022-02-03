@@ -1,18 +1,18 @@
-From 44810fed18bbf81a84e4b2819c62a9cc397aa719 Mon Sep 17 00:00:00 2001
+From a7ab82ae64b4c1dcd80526f6bb6d457cad0247e6 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 3 Feb 2022 16:58:37 +0100
-Subject: [PATCH v2 26/30] windows.media.speech: Add
+Subject: [PATCH v2 26/31] windows.media.speech: Add
  SpeechContinuousRecognitionCompletedEventArgs stub.
 
 ---
- .../speechcontinuousrecognition.c             | 138 ++++++++++++++++++
- 1 file changed, 138 insertions(+)
+ .../speechcontinuousrecognition.c             | 133 ++++++++++++++++++
+ 1 file changed, 133 insertions(+)
 
 diff --git a/dlls/windows.media.speech/speechcontinuousrecognition.c b/dlls/windows.media.speech/speechcontinuousrecognition.c
-index 475428b9b33..27b7e25dde5 100644
+index d26a1b5205e..4749cce91b5 100644
 --- a/dlls/windows.media.speech/speechcontinuousrecognition.c
 +++ b/dlls/windows.media.speech/speechcontinuousrecognition.c
-@@ -21,6 +21,144 @@
+@@ -21,6 +21,139 @@
  
  WINE_DEFAULT_DEBUG_CHANNEL(speech);
  
@@ -54,7 +54,6 @@ index 475428b9b33..27b7e25dde5 100644
 +        return S_OK;
 +    }
 +
-+
 +    WARN("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
 +    *out = NULL;
 +    return E_NOINTERFACE;
@@ -89,7 +88,6 @@ index 475428b9b33..27b7e25dde5 100644
 +    ISpeechContinuousRecognitionCompletedEventArgs *iface, ULONG *iid_count, IID **iids)
 +{
 +    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
-+
 +    return E_NOTIMPL;
 +}
 +
@@ -97,7 +95,6 @@ index 475428b9b33..27b7e25dde5 100644
 +        ISpeechContinuousRecognitionCompletedEventArgs *iface, HSTRING *class_name)
 +{
 +    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
-+
 +    return E_NOTIMPL;
 +}
 +
@@ -105,7 +102,6 @@ index 475428b9b33..27b7e25dde5 100644
 +    ISpeechContinuousRecognitionCompletedEventArgs *iface, TrustLevel *trust_level)
 +{
 +    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
-+
 +    return E_NOTIMPL;
 +}
 +
@@ -113,7 +109,6 @@ index 475428b9b33..27b7e25dde5 100644
 +        ISpeechContinuousRecognitionCompletedEventArgs *iface, SpeechRecognitionResultStatus *value)
 +{
 +    FIXME("iface %p, value %p stub!\n", iface, value);
-+
 +    return E_NOTIMPL;
 +}
 +
