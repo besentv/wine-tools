@@ -1,7 +1,7 @@
 From f78a3ae98f429ee2bbbba2f67cc7b84166d1c405 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Fri, 21 Jan 2022 22:39:35 +0100
-Subject: [PATCH v2 03/35] include/windows.foundation.idl: Add more declares.
+Subject: [PATCH v2 03/41] include/windows.foundation.idl: Add more declares.
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

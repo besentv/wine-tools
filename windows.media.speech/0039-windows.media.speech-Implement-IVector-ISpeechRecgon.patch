@@ -1,0 +1,38 @@
+From 46203e1023096c068ba64182d18c5f0f3f2933e5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Fri, 4 Feb 2022 23:57:01 +0100
+Subject: [PATCH v2 39/41] windows.media.speech: Implement
+ IVector<ISpeechRecgonitionListConstraint> Append.
+
+---
+ dlls/windows.media.speech/speechrecognizer.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/windows.media.speech/speechrecognizer.c b/dlls/windows.media.speech/speechrecognizer.c
+index 063eab36393..d2b9fb11590 100644
+--- a/dlls/windows.media.speech/speechrecognizer.c
++++ b/dlls/windows.media.speech/speechrecognizer.c
+@@ -162,8 +162,18 @@ static HRESULT STDMETHODCALLTYPE vector_speech_recgonition_constraint_RemoveAt(
+ static HRESULT STDMETHODCALLTYPE vector_speech_recgonition_constraint_Append(
+     IVector_ISpeechRecognitionConstraint *iface, ISpeechRecognitionConstraint *value)
+ {
+-    FIXME("iface %p, value %p, stub!\n", iface, value);
+-    return E_NOTIMPL;
++    struct vector_speech_recgonition_constraint *impl = impl_from_IVector_ISpeechRecognitionConstraint(iface);
++
++    TRACE("iface %p, value %p, stub!\n", iface, value);
++
++    if(!value)
++        return E_POINTER;
++
++    impl->count++;
++    impl->values = realloc(impl->values, impl->count * sizeof(ISpeechRecognitionConstraint*));
++    impl->values[impl->count-1] = value;
++
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE vector_speech_recgonition_constraint_RemoveAtEnd(
+-- 
+2.34.1
+

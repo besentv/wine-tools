@@ -1,0 +1,268 @@
+From fe285a59e6c07c5125785e679bcbda4e3d5a2b46 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Fri, 4 Feb 2022 21:32:08 +0100
+Subject: [PATCH v2 36/41] windows.media.speech: Add IVector<HSTRING> stub.
+
+---
+ .../speechrecognitionlistconstraint.c         | 223 ++++++++++++++++++
+ 1 file changed, 223 insertions(+)
+
+diff --git a/dlls/windows.media.speech/speechrecognitionlistconstraint.c b/dlls/windows.media.speech/speechrecognitionlistconstraint.c
+index 962f908bd41..62d71d71ddc 100644
+--- a/dlls/windows.media.speech/speechrecognitionlistconstraint.c
++++ b/dlls/windows.media.speech/speechrecognitionlistconstraint.c
+@@ -21,6 +21,224 @@
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(speech);
+ 
++/*
++ *
++ * IVector<HSTRING>
++ *
++ */
++
++struct vector_hstring
++{
++    IVector_HSTRING IVector_HSTRING_iface;
++    LONG ref;
++
++    ULONG count;
++    HSTRING *values;
++};
++
++static inline struct vector_hstring *impl_from_IVector_HSTRING(IVector_HSTRING *iface)
++{
++    return CONTAINING_RECORD(iface, struct vector_hstring, IVector_HSTRING_iface);
++}
++
++static HRESULT STDMETHODCALLTYPE vector_hstring_QueryInterface(
++    IVector_HSTRING *iface, REFIID iid, void **out)
++{
++    TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
++
++    if (IsEqualGUID(iid, &IID_IUnknown) ||
++        IsEqualGUID(iid, &IID_IInspectable) ||
++        IsEqualGUID(iid, &IID_IVector_ISpeechRecognitionConstraint))
++    {
++        IUnknown_AddRef(iface);
++        *out = iface;
++        return S_OK;
++    }
++
++    WARN("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
++    *out = NULL;
++    return E_NOINTERFACE;
++}
++
++static ULONG STDMETHODCALLTYPE vector_hstring_AddRef(
++    IVector_HSTRING *iface)
++{
++    struct vector_hstring *impl = impl_from_IVector_HSTRING(iface);
++
++    ULONG ref = InterlockedIncrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    return ref;
++}
++
++static ULONG STDMETHODCALLTYPE vector_hstring_Release(
++    IVector_HSTRING *iface)
++{
++    struct vector_hstring *impl = impl_from_IVector_HSTRING(iface);
++
++    ULONG ref = InterlockedDecrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    if(!ref)
++    {
++        free(impl->values);
++        free(impl);
++    }
++
++    return ref;
++}
++
++static HRESULT STDMETHODCALLTYPE vector_hstring_GetIids(
++    IVector_HSTRING *iface, ULONG *iid_count, IID **iids)
++{
++    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE vector_hstring_GetRuntimeClassName(
++    IVector_HSTRING *iface, HSTRING *class_name)
++{
++    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE vector_hstring_GetTrustLevel(
++    IVector_HSTRING *iface, TrustLevel *trust_level)
++{
++    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE vector_hstring_GetAt(
++    IVector_HSTRING *iface, UINT32 index, HSTRING *value)
++{
++    FIXME("iface %p, index %u, value %p stub!\n", iface, index, value);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE vector_hstring_get_Size(
++    IVector_HSTRING *iface, UINT32 *value)
++{
++    FIXME("iface %p, value %p stub!\n", iface, value);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE vector_hstring_GetView(
++    IVector_HSTRING *iface, IVectorView_HSTRING **value)
++{
++    FIXME("iface %p, value %p stub!\n", iface, value);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE vector_hstring_IndexOf(
++    IVector_HSTRING *iface, HSTRING element, UINT32 *index, BOOLEAN *value)
++{
++    FIXME("iface %p, element %p, index %p, value %p stub!\n", iface, element, index, value);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE vector_hstring_SetAt(
++    IVector_HSTRING *iface, UINT32 index, HSTRING value)
++{
++    FIXME("iface %p, index %u, value %p stub!\n", iface, index, value);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE vector_hstring_InsertAt(
++    IVector_HSTRING *iface, UINT32 index, HSTRING value)
++{
++    FIXME("iface %p, index %u, value %p stub!\n", iface, index, value);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE vector_hstring_RemoveAt(
++    IVector_HSTRING *iface, UINT32 index)
++{
++    FIXME("iface %p, index %u, stub!\n", iface, index);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE vector_hstring_Append(
++    IVector_HSTRING *iface, HSTRING value)
++{
++    FIXME("iface %p, value %p, stub!\n", iface, value);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE vector_hstring_RemoveAtEnd(
++    IVector_HSTRING *iface)
++{
++    FIXME("iface %p, stub!\n", iface);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE vector_hstring_Clear(
++    IVector_HSTRING *iface)
++{
++    FIXME("iface %p, stub!\n", iface);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE vector_hstring_GetMany(
++    IVector_HSTRING *iface, UINT32 start_index, UINT32 items_size, HSTRING *items, UINT32 *value)
++{
++    FIXME("iface %p, start_index %u, items_size %u, items %p, value %p stub!\n", iface, start_index, items_size, items, value);
++    return E_NOTIMPL;
++}
++
++static HRESULT STDMETHODCALLTYPE vector_hstring_ReplaceAll(
++    IVector_HSTRING *iface, UINT32 count, HSTRING *items)
++{
++    FIXME("iface %p, count %u, items %p stub!\n", iface, count, items);
++    return E_NOTIMPL;
++}
++
++static const struct IVector_HSTRINGVtbl vector_hstring_vtbl =
++{
++    /* IUnknown methods */
++    vector_hstring_QueryInterface,
++    vector_hstring_AddRef,
++    vector_hstring_Release,
++    /* IInspectable methods */
++    vector_hstring_GetIids,
++    vector_hstring_GetRuntimeClassName,
++    vector_hstring_GetTrustLevel,
++    /* IVector<HSTRING> */
++    vector_hstring_GetAt,
++    vector_hstring_get_Size,
++    vector_hstring_GetView,
++    vector_hstring_IndexOf,
++    vector_hstring_SetAt,
++    vector_hstring_InsertAt,
++    vector_hstring_RemoveAt,
++    vector_hstring_Append,
++    vector_hstring_RemoveAtEnd,
++    vector_hstring_Clear,
++    vector_hstring_GetMany,
++    vector_hstring_ReplaceAll
++};
++
++static HRESULT vector_hstring_create(HSTRING *values, SIZE_T count, IVector_HSTRING **out)
++{
++    struct vector_hstring *impl;
++
++    if (!(impl = calloc(1, sizeof(*impl))))
++    {
++        *out = NULL;
++        return E_OUTOFMEMORY;
++    }
++
++    impl->IVector_HSTRING_iface.lpVtbl = &vector_hstring_vtbl;
++    impl->ref = 1;
++
++    impl->count = count;
++    impl->values = calloc(1, count * sizeof(HSTRING));
++    memcpy(impl->values, values, count * sizeof(HSTRING));
++
++    *out = &impl->IVector_HSTRING_iface;
++    return S_OK;
++}
++
+ /*
+  *
+  * SpeechRecognitionListConstraint
+@@ -34,6 +252,7 @@ struct speech_recognition_list_constraint
+     LONG ref;
+ 
+     BOOLEAN enabled;
++    IVector_HSTRING *commands;
+ };
+ 
+ /*
+@@ -95,7 +314,10 @@ static ULONG STDMETHODCALLTYPE speech_recognition_list_constraint_Release(ISpeec
+     TRACE("iface %p, ref %u.\n", iface, ref);
+ 
+     if(!ref)
++    {
++        IVector_HSTRING_Release(impl->commands);
+         free(impl);
++    }
+ 
+     return ref;
+ }
+@@ -321,6 +543,7 @@ static HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_
+     impl->ref = 1;
+ 
+     impl->enabled = TRUE;
++    hr = vector_hstring_create(NULL, 0, &impl->commands);
+     
+     hr = ISpeechRecognitionListConstraint_QueryInterface(&impl->ISpeechRecognitionListConstraint_iface, &IID_ISpeechRecognitionListConstraint, (void**)listconstraint);
+     ISpeechRecognitionListConstraint_Release(&impl->ISpeechRecognitionListConstraint_iface);
+-- 
+2.34.1
+

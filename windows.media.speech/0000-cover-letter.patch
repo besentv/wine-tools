@@ -1,14 +1,14 @@
-From a984e2ebbea03610e0471da33972667822c651f7 Mon Sep 17 00:00:00 2001
+From 8feb672cfe577fb3b55d0db822350910ee4d6d59 Mon Sep 17 00:00:00 2001
 From: Bernhard Kölbl <besentv@gmail.com>
-Date: Fri, 4 Feb 2022 18:47:51 +0100
-Subject: [PATCH v2 00/35] *** SUBJECT HERE ***
+Date: Sat, 5 Feb 2022 00:28:01 +0100
+Subject: [PATCH v2 00/41] *** SUBJECT HERE ***
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 *** BLURB HERE ***
 
-Bernhard Kölbl (35):
+Bernhard Kölbl (41):
   include/windows.foundation.collections.idl: Add IVector<T> interface.
   include/windows.foundation.idl: Add IAsyncAction interface.
   include/windows.foundation.idl: Add more declares.
@@ -62,15 +62,24 @@ Bernhard Kölbl (35):
   windows.media.speech: Add SpeechRecognizerStateChangedEventArgs stub.
   windows.media.speech: Add IVector<ISpeechRecognitionConstraint> stub.
   windows.media.speech: Implement ISpeechRecognizer get_Constraints.
+  windows.media.speech: Add IVector<HSTRING> stub.
+  windows.media.speech: Implement IVector<HSTRING> Append.
+  windows.media.speech: Store voice commands in a vector.
+  windows.media.speech: Implement
+    IVector<ISpeechRecgonitionListConstraint> Append.
+  windows.media.speech: Implement
+    IVector<ISpeechRecgonitionListConstraint> Clear.
+  windows.media.speech: Change SpeechRecognizer CompileConstraintsAsync
+    return value.
 
  dlls/windows.media.speech/Makefile.in         |    9 +-
  dlls/windows.media.speech/classes.idl         |    1 +
  dlls/windows.media.speech/main.c              |  590 +-------
  .../speechcontinuousrecognition.c             |  614 +++++++++
  .../speechrecognitioncompilationresult.c      |  151 +++
- .../speechrecognitionlistconstraint.c         |  584 ++++++++
+ .../speechrecognitionlistconstraint.c         |  833 ++++++++++++
  .../speechrecognitionresult.c                 |  325 +++++
- dlls/windows.media.speech/speechrecognizer.c  | 1185 +++++++++++++++++
+ dlls/windows.media.speech/speechrecognizer.c  | 1207 +++++++++++++++++
  .../speechrecognizerstatechangedrventargs.c   |  156 +++
  dlls/windows.media.speech/speechsynthesizer.c |  569 ++++++++
  dlls/windows.media.speech/tests/speech.c      |  611 +++++++++
@@ -80,7 +89,7 @@ Bernhard Kölbl (35):
  include/windows.foundation.idl                |   31 +-
  include/windows.globalization.idl             |  132 ++
  include/windows.media.speechrecognition.idl   |  614 +++++++++
- 17 files changed, 5103 insertions(+), 572 deletions(-)
+ 17 files changed, 5374 insertions(+), 572 deletions(-)
  create mode 100644 dlls/windows.media.speech/speechcontinuousrecognition.c
  create mode 100644 dlls/windows.media.speech/speechrecognitioncompilationresult.c
  create mode 100644 dlls/windows.media.speech/speechrecognitionlistconstraint.c

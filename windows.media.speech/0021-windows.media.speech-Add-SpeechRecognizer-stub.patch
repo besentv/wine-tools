@@ -1,7 +1,7 @@
 From 994dff7200d6cb090f8c35cff01571ef88585565 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 14:53:49 +0100
-Subject: [PATCH v2 21/35] windows.media.speech: Add SpeechRecognizer stub.
+Subject: [PATCH v2 21/41] windows.media.speech: Add SpeechRecognizer stub.
 
 ---
 v2: Add missing SpeechRecognizerStatics and move the activation

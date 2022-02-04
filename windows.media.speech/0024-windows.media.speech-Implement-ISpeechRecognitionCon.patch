@@ -1,7 +1,7 @@
 From d78bdf7b8508500071831303866aa715f9f6c039 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 3 Feb 2022 15:04:16 +0100
-Subject: [PATCH v2 24/35] windows.media.speech: Implement
+Subject: [PATCH v2 24/41] windows.media.speech: Implement
  ISpeechRecognitionConstraint isEnabled.
 
 ---
