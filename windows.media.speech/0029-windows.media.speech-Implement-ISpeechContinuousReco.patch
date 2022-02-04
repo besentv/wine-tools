@@ -1,0 +1,118 @@
+From d3b8bc148fd292e9dfc75e09fca0162a5be53e2a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Fri, 4 Feb 2022 15:22:27 +0100
+Subject: [PATCH v2 29/33] windows.media.speech: Implement
+ ISpeechContinuousRecognitionSession add/remove_Completed.
+
+---
+ .../speechcontinuousrecognition.c             | 57 ++++++++++++++++++-
+ .../windows_media_speech_private.h            |  1 +
+ 2 files changed, 55 insertions(+), 3 deletions(-)
+
+diff --git a/dlls/windows.media.speech/speechcontinuousrecognition.c b/dlls/windows.media.speech/speechcontinuousrecognition.c
+index 533cfef3eb3..ecf6fed710a 100644
+--- a/dlls/windows.media.speech/speechcontinuousrecognition.c
++++ b/dlls/windows.media.speech/speechcontinuousrecognition.c
+@@ -295,10 +295,19 @@ HRESULT STDMETHODCALLTYPE speech_continuous_recognition_result_generated_event_a
+  *
+  */
+ 
++struct completed_event
++{
++    ITypedEventHandler_SpeechContinuousRecognitionSession_SpeechContinuousRecognitionCompletedEventArgs *handler;
++    EventRegistrationToken token;
++    struct list entry;
++};
++
+ struct speech_continuous_recognition_session
+ {
+     ISpeechContinuousRecognitionSession ISpeechContinuousRecognitionSession_iface;
+     LONG ref;
++
++    struct list completed_event_list;
+ };
+ 
+ /*
+@@ -438,15 +447,55 @@ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_add_Compl
+     ITypedEventHandler_SpeechContinuousRecognitionSession_SpeechContinuousRecognitionCompletedEventArgs *handler,
+     EventRegistrationToken *token)
+ {
+-    FIXME("iface %p, handler %p, token %p, stub!\n", iface, handler, token);
+-    return E_NOTIMPL;
++    struct speech_continuous_recognition_session *impl = impl_from_ISpeechContinuousRecognitionSession(iface);
++    struct completed_event *event, *new_event;
++
++    TRACE("iface %p, handler %p, token %p, stub!\n", iface, handler, token);
++
++    if (!(new_event = calloc(1, sizeof(*new_event))))
++    {
++        return E_OUTOFMEMORY;
++    }
++
++    new_event->handler = handler;
++    new_event->token.value = 0;
++
++    LIST_FOR_EACH_ENTRY(event, &impl->completed_event_list, struct completed_event, entry)
++    {
++        if(event->token.value > new_event->token.value)
++        {
++            new_event->token.value = event->token.value + 1;
++        }
++    }
++
++    list_add_head(&impl->completed_event_list, &new_event->entry);
++
++    *token = new_event->token;
++
++    TRACE("ret handler %p, token.value %#I64x\n",  new_event->handler, new_event->token.value);
++
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_remove_Completed(
+     ISpeechContinuousRecognitionSession *iface, EventRegistrationToken token)
+ {
++    struct speech_continuous_recognition_session *impl = impl_from_ISpeechContinuousRecognitionSession(iface);
++    struct completed_event *event;
++
+     FIXME("iface %p, token %p, stub!\n", iface, token);
+-    return E_NOTIMPL;
++
++    LIST_FOR_EACH_ENTRY(event, &impl->completed_event_list, struct completed_event, entry)
++    {
++        if(event->token.value == token.value)
++        {
++            list_remove(&event->entry);
++            free(event);
++            return S_OK;
++        }
++    }
++
++    return E_FAIL;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_add_ResultGenerated(
+@@ -507,6 +556,8 @@ HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_create_from_iid(
+     impl->ISpeechContinuousRecognitionSession_iface.lpVtbl = &speech_continuous_recognition_session_vtbl;
+     impl->ref = 1;
+ 
++    list_init(&impl->completed_event_list);
++
+     hr = ISpeechContinuousRecognitionSession_QueryInterface(&impl->ISpeechContinuousRecognitionSession_iface, iid, obj);
+     ISpeechContinuousRecognitionSession_Release(&impl->ISpeechContinuousRecognitionSession_iface);
+ 
+diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
+index 5ef18c6a6fe..6062a7a514f 100644
+--- a/dlls/windows.media.speech/windows_media_speech_private.h
++++ b/dlls/windows.media.speech/windows_media_speech_private.h
+@@ -22,6 +22,7 @@
+ 
+ #include "wine/debug.h"
+ #include "wine/heap.h"
++#include "wine/list.h"
+ 
+ #include <stdarg.h>
+ 
+-- 
+2.34.1
+

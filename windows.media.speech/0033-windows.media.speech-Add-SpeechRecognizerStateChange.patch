@@ -1,7 +1,7 @@
-From 18fc2bd89bf71d22056742ce955e8f8860fef894 Mon Sep 17 00:00:00 2001
+From c0754c5f21f9153eec6654a41d909a1fb8457352 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Tue, 18 Jan 2022 15:19:01 +0100
-Subject: [PATCH v2 31/31] windows.media.speech: Add
+Subject: [PATCH v2 33/33] windows.media.speech: Add
  SpeechRecognizerStateChangedEventArgs stub.
 
 ---
@@ -187,10 +187,10 @@ index 00000000000..66e8b562566
 +}
 \ No newline at end of file
 diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
-index 5ef18c6a6fe..76b0e3bcf1a 100644
+index 6062a7a514f..d85b79f7c06 100644
 --- a/dlls/windows.media.speech/windows_media_speech_private.h
 +++ b/dlls/windows.media.speech/windows_media_speech_private.h
-@@ -68,6 +68,7 @@ void STDMETHODCALLTYPE speech_recognition_list_constraint_get_activation_factory
+@@ -69,6 +69,7 @@ void STDMETHODCALLTYPE speech_recognition_list_constraint_get_activation_factory
  void STDMETHODCALLTYPE speech_recognizer_get_activation_factory(IActivationFactory **factory) DECLSPEC_HIDDEN;
  
  HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_create_from_iid(REFIID iid, void **obj) DECLSPEC_HIDDEN;
