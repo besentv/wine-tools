@@ -1,7 +1,7 @@
 From 1506b70e4f523a55aed5991eb629d37fc76c9334 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 3 Feb 2022 18:26:03 +0100
-Subject: [PATCH v2 28/33] windows.media.speech: Implement ISpeechRecognizer2
+Subject: [PATCH v2 28/35] windows.media.speech: Implement ISpeechRecognizer2
  get_ContinuousRecognitionSession.
 
 ---

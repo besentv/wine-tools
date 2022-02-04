@@ -1,15 +1,15 @@
-From 93217d1848382800000369e62fc5a46fc9c9064f Mon Sep 17 00:00:00 2001
+From b28460e1a5e6de718e310db14c29dd9914b81f89 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Fri, 4 Feb 2022 15:36:22 +0100
-Subject: [PATCH v2 30/33] windows.media.speech: Implement
+Subject: [PATCH v2 30/35] windows.media.speech: Implement
  ISpeechContinuousRecognitionSession add/remove_ResultGenerated.
 
 ---
- .../speechcontinuousrecognition.c             | 54 +++++++++++++++++--
- 1 file changed, 51 insertions(+), 3 deletions(-)
+ .../speechcontinuousrecognition.c             | 55 ++++++++++++++++++-
+ 1 file changed, 52 insertions(+), 3 deletions(-)
 
 diff --git a/dlls/windows.media.speech/speechcontinuousrecognition.c b/dlls/windows.media.speech/speechcontinuousrecognition.c
-index ecf6fed710a..4637796f773 100644
+index ecf6fed710a..2f170e90060 100644
 --- a/dlls/windows.media.speech/speechcontinuousrecognition.c
 +++ b/dlls/windows.media.speech/speechcontinuousrecognition.c
 @@ -302,12 +302,20 @@ struct completed_event
@@ -92,6 +92,14 @@ index ecf6fed710a..4637796f773 100644
  }
  
  static const struct ISpeechContinuousRecognitionSessionVtbl 
+@@ -557,6 +605,7 @@ HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_create_from_iid(
+     impl->ref = 1;
+ 
+     list_init(&impl->completed_event_list);
++    list_init(&impl->result_event_list);
+ 
+     hr = ISpeechContinuousRecognitionSession_QueryInterface(&impl->ISpeechContinuousRecognitionSession_iface, iid, obj);
+     ISpeechContinuousRecognitionSession_Release(&impl->ISpeechContinuousRecognitionSession_iface);
 -- 
 2.34.1
 

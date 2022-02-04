@@ -1,7 +1,7 @@
 From d172570e708b1e95f4f0a2ab9aa03dbf084586fc Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 3 Feb 2022 16:58:37 +0100
-Subject: [PATCH v2 26/33] windows.media.speech: Add
+Subject: [PATCH v2 26/35] windows.media.speech: Add
  SpeechContinuousRecognitionCompletedEventArgs stub.
 
 ---
