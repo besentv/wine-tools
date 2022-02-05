@@ -1,7 +1,7 @@
-From 16d4b2c5749bd8085cd0630551299c7e3a62e040 Mon Sep 17 00:00:00 2001
+From a88f232bbb420048b9d62b567734d4021f481812 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Fri, 4 Feb 2022 23:28:21 +0100
-Subject: [PATCH v2 38/41] windows.media.speech: Store voice commands in a
+Subject: [PATCH v2 38/45] windows.media.speech: Store voice commands in a
  vector.
 
 ---

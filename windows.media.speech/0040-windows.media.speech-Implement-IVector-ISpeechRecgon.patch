@@ -1,7 +1,7 @@
-From 669882a1b8eac802225c2e4f2fa32022aee31f7e Mon Sep 17 00:00:00 2001
+From 4a249560f691112937512ad903a1113336c56316 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sat, 5 Feb 2022 00:05:03 +0100
-Subject: [PATCH v2 40/41] windows.media.speech: Implement
+Subject: [PATCH v2 40/45] windows.media.speech: Implement
  IVector<ISpeechRecgonitionListConstraint> Clear.
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH v2 40/41] windows.media.speech: Implement
  1 file changed, 9 insertions(+), 2 deletions(-)
 
 diff --git a/dlls/windows.media.speech/speechrecognizer.c b/dlls/windows.media.speech/speechrecognizer.c
-index d2b9fb11590..2112d16c88c 100644
+index 1d65ae6cf37..b17a5b5077d 100644
 --- a/dlls/windows.media.speech/speechrecognizer.c
 +++ b/dlls/windows.media.speech/speechrecognizer.c
 @@ -186,8 +186,15 @@ static HRESULT STDMETHODCALLTYPE vector_speech_recgonition_constraint_RemoveAtEn

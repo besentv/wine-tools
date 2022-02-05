@@ -1,14 +1,14 @@
-From 82814fd1e728baff54330f27a6c837c6f5376abe Mon Sep 17 00:00:00 2001
+From b7e3ce8a43a50aa2ae3cb52a3ca76670dce3a2f2 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 15:42:59 +0100
-Subject: [PATCH v2 25/41] windows.media.speech: Add
+Subject: [PATCH v2 25/45] windows.media.speech: Add
  SpeechContinuousRecognitionSession stub.
 
 ---
  dlls/windows.media.speech/Makefile.in         |   1 +
- .../speechcontinuousrecognition.c             | 246 ++++++++++++++++++
+ .../speechcontinuousrecognition.c             | 243 ++++++++++++++++++
  .../windows_media_speech_private.h            |   2 +
- 3 files changed, 249 insertions(+)
+ 3 files changed, 246 insertions(+)
  create mode 100644 dlls/windows.media.speech/speechcontinuousrecognition.c
 
 diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
@@ -25,10 +25,10 @@ index b9c78f705a8..d52ce3aa80a 100644
  	speechsynthesizer.c
 diff --git a/dlls/windows.media.speech/speechcontinuousrecognition.c b/dlls/windows.media.speech/speechcontinuousrecognition.c
 new file mode 100644
-index 00000000000..d26a1b5205e
+index 00000000000..95c739d6534
 --- /dev/null
 +++ b/dlls/windows.media.speech/speechcontinuousrecognition.c
-@@ -0,0 +1,246 @@
+@@ -0,0 +1,243 @@
 +/* WinRT Windows.Media.SpeechRecognition implementation
 + *
 + * Copyright 2022 Bernhard Kölbl
@@ -254,37 +254,34 @@ index 00000000000..d26a1b5205e
 +    speech_continuous_recognition_session_remove_ResultGenerated
 +};
 +
-+HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_create_from_iid(REFIID iid, void **obj)
++HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_create(ISpeechContinuousRecognitionSession **out)
 +{
 +    struct speech_continuous_recognition_session *impl;
-+    HRESULT hr;
 +
-+    TRACE("iid %p, obj %p.\n", iid, obj);
++    TRACE("out %p.\n", out);
 +
 +    if (!(impl = calloc(1, sizeof(*impl))))
 +    {
-+        *obj = NULL;
++        *out = NULL;
 +        return E_OUTOFMEMORY;
 +    }
 +
 +    impl->ISpeechContinuousRecognitionSession_iface.lpVtbl = &speech_continuous_recognition_session_vtbl;
 +    impl->ref = 1;
 +
-+    hr = ISpeechContinuousRecognitionSession_QueryInterface(&impl->ISpeechContinuousRecognitionSession_iface, iid, obj);
-+    ISpeechContinuousRecognitionSession_Release(&impl->ISpeechContinuousRecognitionSession_iface);
-+
-+    return hr;
++    *out = &impl->ISpeechContinuousRecognitionSession_iface;
++    return S_OK;
 +}
 \ No newline at end of file
 diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
-index 06ea55b423d..5ef18c6a6fe 100644
+index 06ea55b423d..31360f0a36e 100644
 --- a/dlls/windows.media.speech/windows_media_speech_private.h
 +++ b/dlls/windows.media.speech/windows_media_speech_private.h
 @@ -67,6 +67,8 @@ static inline const char *debugstr_hstring(HSTRING hstr)
  void STDMETHODCALLTYPE speech_recognition_list_constraint_get_activation_factory(IActivationFactory **factory) DECLSPEC_HIDDEN;
  void STDMETHODCALLTYPE speech_recognizer_get_activation_factory(IActivationFactory **factory) DECLSPEC_HIDDEN;
  
-+HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_create_from_iid(REFIID iid, void **obj) DECLSPEC_HIDDEN;
++HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_create(ISpeechContinuousRecognitionSession **out) DECLSPEC_HIDDEN;
 +
  /*
   *

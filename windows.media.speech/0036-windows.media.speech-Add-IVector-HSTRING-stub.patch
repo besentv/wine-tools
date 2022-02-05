@@ -1,7 +1,7 @@
-From fe285a59e6c07c5125785e679bcbda4e3d5a2b46 Mon Sep 17 00:00:00 2001
+From ceb5ad18a51f3fb6d4f666ea8d6b7a15245e447c Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Fri, 4 Feb 2022 21:32:08 +0100
-Subject: [PATCH v2 36/41] windows.media.speech: Add IVector<HSTRING> stub.
+Subject: [PATCH v2 36/45] windows.media.speech: Add IVector<HSTRING> stub.
 
 ---
  .../speechrecognitionlistconstraint.c         | 223 ++++++++++++++++++

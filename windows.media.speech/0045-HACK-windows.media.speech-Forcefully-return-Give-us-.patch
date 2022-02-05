@@ -1,0 +1,219 @@
+From 85e2bfc73fc5350cbdf3b558360bba7d0effba96 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Sat, 5 Feb 2022 23:02:20 +0100
+Subject: [PATCH v2 45/45] HACK: windows.media.speech: Forcefully return "Give
+ us a sign" as recognition result.
+
+---
+ .../speechcontinuousrecognition.c             | 41 ++++++++++++++++++-
+ .../speechrecognitionresult.c                 | 22 +++++++---
+ dlls/windows.media.speech/speechrecognizer.c  | 15 ++++++-
+ .../windows_media_speech_private.h            |  2 +-
+ 4 files changed, 71 insertions(+), 9 deletions(-)
+
+diff --git a/dlls/windows.media.speech/speechcontinuousrecognition.c b/dlls/windows.media.speech/speechcontinuousrecognition.c
+index 5074267a074..0e4f1b42d41 100644
+--- a/dlls/windows.media.speech/speechcontinuousrecognition.c
++++ b/dlls/windows.media.speech/speechcontinuousrecognition.c
+@@ -255,8 +255,13 @@ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_result_generated_
+ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_result_generated_event_args_get_Result(
+         ISpeechContinuousRecognitionResultGeneratedEventArgs *iface, ISpeechRecognitionResult **value)
+ {
++    struct speech_continuous_recognition_result_generated_event_args *impl = impl_from_ISpeechContinuousRecognitionResultGeneratedEventArgs(iface);
++
+     FIXME("iface %p, value %p stub!\n", iface, value);
+-    return E_NOTIMPL;
++    ISpeechRecognitionResult_AddRef(impl->result);
++
++    *value = impl->result;
++    return S_OK;
+ }
+ 
+ static const struct ISpeechContinuousRecognitionResultGeneratedEventArgsVtbl
+@@ -323,6 +328,8 @@ struct speech_continuous_recognition_session
+ 
+     struct list completed_event_list;
+     struct list result_event_list;
++    HANDLE worker_thread;
++    ISpeechRecognitionConstraint *tmp;
+ };
+ 
+ /*
+@@ -376,7 +383,10 @@ static ULONG STDMETHODCALLTYPE speech_continuous_recognition_session_Release(
+     TRACE("iface %p, ref %u.\n", iface, ref);
+ 
+     if(!ref)
++    {
++        CloseHandle(impl->worker_thread);
+         free(impl);
++    }
+ 
+     return ref;
+ }
+@@ -416,10 +426,39 @@ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_set_AutoS
+     return E_NOTIMPL;
+ }
+ 
++static DWORD WINAPI async_worker(LPVOID param)
++{
++    struct speech_continuous_recognition_session *impl = param;
++    struct result_event *event;
++    ISpeechContinuousRecognitionResultGeneratedEventArgs *event_args;
++    ISpeechRecognitionResult *result;
++
++    SleepEx(10, 0);
++
++    speech_recognition_result_create(impl->tmp, &result);
++    speech_continuous_recognition_result_generated_event_args_create(result, &event_args);
++
++    LIST_FOR_EACH_ENTRY(event, &impl->result_event_list, struct result_event, entry)
++    {
++        ITypedEventHandler_SpeechContinuousRecognitionSession_SpeechContinuousRecognitionResultGeneratedEventArgs_Invoke(
++            event->handler,
++            &impl->ISpeechContinuousRecognitionSession_iface,
++            event_args
++        );
++    }
++
++    return 0;
++}
++
+ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_StartAsync(
+     ISpeechContinuousRecognitionSession *iface, IAsyncAction **action)
+ {
++    struct speech_continuous_recognition_session *impl = impl_from_ISpeechContinuousRecognitionSession(iface);
++
+     FIXME("iface %p, action %p stub!\n", iface, action);
++    impl->tmp = *action;
++    impl->worker_thread = CreateThread(NULL, 0, async_worker, impl, 0, NULL);
++
+     return E_NOTIMPL;
+ }
+ 
+diff --git a/dlls/windows.media.speech/speechrecognitionresult.c b/dlls/windows.media.speech/speechrecognitionresult.c
+index 32042905f01..5e77d0e87ee 100644
+--- a/dlls/windows.media.speech/speechrecognitionresult.c
++++ b/dlls/windows.media.speech/speechrecognitionresult.c
+@@ -21,6 +21,8 @@
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(speech);
+ 
++const WCHAR *tmp_text = L"Give us a sign"; 
++
+ /*
+  *
+  * SpeechRecognitionResult
+@@ -32,6 +34,8 @@ struct speech_recognition_result
+     ISpeechRecognitionResult ISpeechRecognitionResult_iface;
+     ISpeechRecognitionResult2 ISpeechRecognitionResult2_iface;
+     LONG ref;
++
++    ISpeechRecognitionConstraint *constraint;
+ };
+ 
+ /*
+@@ -128,16 +132,16 @@ static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_Text(
+     ISpeechRecognitionResult *iface, HSTRING *value)
+ {
+     FIXME("iface %p, operation %p stub!\n", iface, value);
+-
+-    return E_NOTIMPL;
++    WindowsCreateString(tmp_text, wcslen(tmp_text), value);
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_Confidence(
+     ISpeechRecognitionResult *iface, SpeechRecognitionConfidence *value)
+ {
+     FIXME("iface %p, operation %p stub!\n", iface, value);
+-
+-    return E_NOTIMPL;
++    *value = 0;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_SemanticInterpretation(
+@@ -159,9 +163,13 @@ static HRESULT STDMETHODCALLTYPE speech_recognition_result_GetAlternatives(
+ static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_Constraint(
+     ISpeechRecognitionResult *iface, ISpeechRecognitionConstraint **value)
+ {
++    struct speech_recognition_result *impl = impl_from_ISpeechRecognitionResult(iface);
++
+     FIXME("iface %p, operation %p stub!\n", iface, value);
++    ISpeechRecognitionConstraint_AddRef(impl->constraint);
+ 
+-    return E_NOTIMPL;
++    *value = impl->constraint;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_RulePath(
+@@ -301,7 +309,7 @@ static const struct ISpeechRecognitionResult2Vtbl speech_recognition_result2_vtb
+     speech_recognition_result2_get_PhraseDuration
+ };
+ 
+-HRESULT STDMETHODCALLTYPE speech_recognition_result_create(ISpeechRecognitionResult **out)
++HRESULT STDMETHODCALLTYPE speech_recognition_result_create(ISpeechRecognitionConstraint *constraint, ISpeechRecognitionResult **out)
+ {
+     struct speech_recognition_result *impl;
+ 
+@@ -317,6 +325,8 @@ HRESULT STDMETHODCALLTYPE speech_recognition_result_create(ISpeechRecognitionRes
+     impl->ISpeechRecognitionResult2_iface.lpVtbl = &speech_recognition_result2_vtbl;
+     impl->ref = 1;
+ 
++    impl->constraint = constraint;
++
+     *out = &impl->ISpeechRecognitionResult_iface;
+     return S_OK;
+ }
+diff --git a/dlls/windows.media.speech/speechrecognizer.c b/dlls/windows.media.speech/speechrecognizer.c
+index 48f112d23b5..06bfa03c5e5 100644
+--- a/dlls/windows.media.speech/speechrecognizer.c
++++ b/dlls/windows.media.speech/speechrecognizer.c
+@@ -367,8 +367,13 @@ static HRESULT STDMETHODCALLTYPE vector_speech_recgonition_constraint_GetTrustLe
+ static HRESULT STDMETHODCALLTYPE vector_speech_recgonition_constraint_GetAt(
+     IVector_ISpeechRecognitionConstraint *iface, UINT32 index, ISpeechRecognitionConstraint **value)
+ {
++    struct vector_speech_recgonition_constraint *impl = impl_from_IVector_ISpeechRecognitionConstraint(iface);
++
+     FIXME("iface %p, index %u, value %p stub!\n", iface, index, value);
+-    return E_NOTIMPL;
++    ISpeechRecognitionConstraint_AddRef(impl->values[index]);
++    *value = impl->values[index];
++
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE vector_speech_recgonition_constraint_get_Size(
+@@ -654,7 +659,15 @@ static HRESULT STDMETHODCALLTYPE speech_recognizer_get_UIOptions(ISpeechRecogniz
+ static HRESULT STDMETHODCALLTYPE speech_recognizer_CompileConstraintsAsync(ISpeechRecognizer *iface,
+     IAsyncOperation_SpeechRecognitionCompilationResult **operation)
+ {
++    struct speech_recognizer *impl = impl_from_ISpeechRecognizer(iface);
++    ISpeechRecognitionConstraint *src;
++
++    IVector_ISpeechRecognitionConstraint_GetAt(impl->vector_constraints, 0, &src);
++
++    //ISpeechRecognitionListConstraint_QueryInterface(srlc, IID_ISpeechRecognitionConstraint, &src);
++
+     FIXME("iface %p, operation %p stub!\n", iface, operation);
++    ISpeechContinuousRecognitionSession_StartAsync(impl->recognition_session, &src);
+ 
+     return async_operation_speech_recognition_compilation_result_create(operation);
+ }
+diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
+index ca13d967a8c..8af6ac03cd2 100644
+--- a/dlls/windows.media.speech/windows_media_speech_private.h
++++ b/dlls/windows.media.speech/windows_media_speech_private.h
+@@ -69,7 +69,7 @@ void STDMETHODCALLTYPE speech_recognition_list_constraint_get_activation_factory
+ void STDMETHODCALLTYPE speech_recognizer_get_activation_factory(IActivationFactory **factory) DECLSPEC_HIDDEN;
+ 
+ HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_create(ISpeechContinuousRecognitionSession **out) DECLSPEC_HIDDEN;
+-HRESULT STDMETHODCALLTYPE speech_recognition_result_create(ISpeechRecognitionResult **out) DECLSPEC_HIDDEN;
++HRESULT STDMETHODCALLTYPE speech_recognition_result_create(ISpeechRecognitionConstraint *constraint, ISpeechRecognitionResult **out) DECLSPEC_HIDDEN;
+ HRESULT STDMETHODCALLTYPE speech_recognizer_state_changed_event_args_create_from_iid(REFIID iid, void **obj) DECLSPEC_HIDDEN;
+ 
+ /*
+-- 
+2.34.1
+

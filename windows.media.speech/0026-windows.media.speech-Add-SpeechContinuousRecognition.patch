@@ -1,18 +1,18 @@
-From d172570e708b1e95f4f0a2ab9aa03dbf084586fc Mon Sep 17 00:00:00 2001
+From 9f4cfb9fa00d9d182fd665bebea6035ab6b6fb8a Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 3 Feb 2022 16:58:37 +0100
-Subject: [PATCH v2 26/41] windows.media.speech: Add
+Subject: [PATCH v2 26/45] windows.media.speech: Add
  SpeechContinuousRecognitionCompletedEventArgs stub.
 
 ---
- .../speechcontinuousrecognition.c             | 133 ++++++++++++++++++
- 1 file changed, 133 insertions(+)
+ .../speechcontinuousrecognition.c             | 135 ++++++++++++++++++
+ 1 file changed, 135 insertions(+)
 
 diff --git a/dlls/windows.media.speech/speechcontinuousrecognition.c b/dlls/windows.media.speech/speechcontinuousrecognition.c
-index d26a1b5205e..4749cce91b5 100644
+index 95c739d6534..83c070916c3 100644
 --- a/dlls/windows.media.speech/speechcontinuousrecognition.c
 +++ b/dlls/windows.media.speech/speechcontinuousrecognition.c
-@@ -21,6 +21,139 @@
+@@ -21,6 +21,141 @@
  
  WINE_DEFAULT_DEBUG_CHANNEL(speech);
  
@@ -26,6 +26,8 @@ index d26a1b5205e..4749cce91b5 100644
 +{
 +    ISpeechContinuousRecognitionCompletedEventArgs ISpeechContinuousRecognitionCompletedEventArgs_iface;
 +    LONG ref;
++
++    SpeechRecognitionResultStatus status;
 +};
 +
 +/*
@@ -127,26 +129,26 @@ index d26a1b5205e..4749cce91b5 100644
 +    speech_continuous_recognition_completed_event_args_get_Status
 +};
 +
-+HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_create_from_iid(REFIID iid, void **obj)
++HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_create_from_iid(
++    SpeechRecognitionResultStatus status, ISpeechContinuousRecognitionCompletedEventArgs **out)
 +{
 +    struct speech_continuous_recognition_completed_event_args *impl;
-+    HRESULT hr;
 +
-+    TRACE("iid %p, obj %p.\n", iid, obj);
++    TRACE("out %p.\n", out);
 +
 +    if (!(impl = calloc(1, sizeof(*impl))))
 +    {
-+        *obj = NULL;
++        *out = NULL;
 +        return E_OUTOFMEMORY;
 +    }
 +
 +    impl->ISpeechContinuousRecognitionCompletedEventArgs_iface.lpVtbl = &speech_continuous_recognition_completed_event_args_vtbl;
 +    impl->ref = 1;
 +
-+    hr = ISpeechContinuousRecognitionCompletedEventArgs_QueryInterface(&impl->ISpeechContinuousRecognitionCompletedEventArgs_iface, iid, obj);
-+    ISpeechContinuousRecognitionCompletedEventArgs_Release(&impl->ISpeechContinuousRecognitionCompletedEventArgs_iface);
++    impl->status = status;
 +
-+    return hr;
++    *out = &impl->ISpeechContinuousRecognitionCompletedEventArgs_iface;
++    return S_OK;
 +}
 +
  /*

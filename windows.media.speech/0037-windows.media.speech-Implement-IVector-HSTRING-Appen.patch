@@ -1,7 +1,7 @@
-From 9b2706f4f5c1fab0787b2c68fde4f28d1f5b5fb5 Mon Sep 17 00:00:00 2001
+From bb83163fcd43b3d9aaa5362d54d84acdf6fd6266 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Fri, 4 Feb 2022 22:42:39 +0100
-Subject: [PATCH v2 37/41] windows.media.speech: Implement IVector<HSTRING>
+Subject: [PATCH v2 37/45] windows.media.speech: Implement IVector<HSTRING>
  Append.
 
 ---

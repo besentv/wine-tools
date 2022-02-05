@@ -1,7 +1,7 @@
-From 2e9122b69259d07616a1bc352b5c1f5a9262ef17 Mon Sep 17 00:00:00 2001
+From 09274364290da56ec4dcc465ae9794b10f668aae Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Tue, 18 Jan 2022 15:19:01 +0100
-Subject: [PATCH v2 33/41] windows.media.speech: Add
+Subject: [PATCH v2 33/45] windows.media.speech: Add
  SpeechRecognizerStateChangedEventArgs stub.
 
 ---
@@ -187,13 +187,13 @@ index 00000000000..66e8b562566
 +}
 \ No newline at end of file
 diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
-index 6062a7a514f..d85b79f7c06 100644
+index bf1fb3757d5..ca13d967a8c 100644
 --- a/dlls/windows.media.speech/windows_media_speech_private.h
 +++ b/dlls/windows.media.speech/windows_media_speech_private.h
-@@ -69,6 +69,7 @@ void STDMETHODCALLTYPE speech_recognition_list_constraint_get_activation_factory
- void STDMETHODCALLTYPE speech_recognizer_get_activation_factory(IActivationFactory **factory) DECLSPEC_HIDDEN;
+@@ -70,6 +70,7 @@ void STDMETHODCALLTYPE speech_recognizer_get_activation_factory(IActivationFacto
  
- HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_create_from_iid(REFIID iid, void **obj) DECLSPEC_HIDDEN;
+ HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_create(ISpeechContinuousRecognitionSession **out) DECLSPEC_HIDDEN;
+ HRESULT STDMETHODCALLTYPE speech_recognition_result_create(ISpeechRecognitionResult **out) DECLSPEC_HIDDEN;
 +HRESULT STDMETHODCALLTYPE speech_recognizer_state_changed_event_args_create_from_iid(REFIID iid, void **obj) DECLSPEC_HIDDEN;
  
  /*

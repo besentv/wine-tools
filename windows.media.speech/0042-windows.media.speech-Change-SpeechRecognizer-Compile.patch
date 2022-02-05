@@ -1,7 +1,7 @@
-From 8feb672cfe577fb3b55d0db822350910ee4d6d59 Mon Sep 17 00:00:00 2001
+From f397e87c1c189016c7d551641221957d7d018d13 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sat, 5 Feb 2022 00:05:44 +0100
-Subject: [PATCH v2 41/41] windows.media.speech: Change SpeechRecognizer
+Subject: [PATCH v2 42/45] windows.media.speech: Change SpeechRecognizer
  CompileConstraintsAsync return value.
 
 ---
@@ -9,16 +9,16 @@ Subject: [PATCH v2 41/41] windows.media.speech: Change SpeechRecognizer
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/dlls/windows.media.speech/speechrecognizer.c b/dlls/windows.media.speech/speechrecognizer.c
-index 2112d16c88c..fb9dbc45b91 100644
+index 6edabe1819d..8ffc6743bb7 100644
 --- a/dlls/windows.media.speech/speechrecognizer.c
 +++ b/dlls/windows.media.speech/speechrecognizer.c
-@@ -401,7 +401,8 @@ static HRESULT STDMETHODCALLTYPE speech_recognizer_CompileConstraintsAsync(ISpee
+@@ -538,7 +538,8 @@ static HRESULT STDMETHODCALLTYPE speech_recognizer_CompileConstraintsAsync(ISpee
      IAsyncOperation_SpeechRecognitionCompilationResult **operation)
  {
      FIXME("iface %p, operation %p stub!\n", iface, operation);
 -    return E_NOTIMPL;
-+    *operation = (IAsyncOperation_SpeechRecognitionCompilationResult*)0xdeadbeef;
-+    return S_OK;
++
++    return async_operation_speech_recognition_compilation_result_create(operation);
  }
  
  static HRESULT STDMETHODCALLTYPE speech_recognizer_RecognizeAsync(ISpeechRecognizer *iface,

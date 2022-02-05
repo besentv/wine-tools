@@ -1,7 +1,7 @@
-From b28460e1a5e6de718e310db14c29dd9914b81f89 Mon Sep 17 00:00:00 2001
+From a32e2343f80583c193c0c5c09e3caebc27ee4a3d Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Fri, 4 Feb 2022 15:36:22 +0100
-Subject: [PATCH v2 30/41] windows.media.speech: Implement
+Subject: [PATCH v2 30/45] windows.media.speech: Implement
  ISpeechContinuousRecognitionSession add/remove_ResultGenerated.
 
 ---
@@ -9,10 +9,10 @@ Subject: [PATCH v2 30/41] windows.media.speech: Implement
  1 file changed, 52 insertions(+), 3 deletions(-)
 
 diff --git a/dlls/windows.media.speech/speechcontinuousrecognition.c b/dlls/windows.media.speech/speechcontinuousrecognition.c
-index ecf6fed710a..2f170e90060 100644
+index 327cfd940e7..5074267a074 100644
 --- a/dlls/windows.media.speech/speechcontinuousrecognition.c
 +++ b/dlls/windows.media.speech/speechcontinuousrecognition.c
-@@ -302,12 +302,20 @@ struct completed_event
+@@ -309,12 +309,20 @@ struct completed_event
      struct list entry;
  };
  
@@ -33,7 +33,7 @@ index ecf6fed710a..2f170e90060 100644
  };
  
  /*
-@@ -503,15 +511,55 @@ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_add_Resul
+@@ -510,15 +518,55 @@ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_add_Resul
      ITypedEventHandler_SpeechContinuousRecognitionSession_SpeechContinuousRecognitionResultGeneratedEventArgs *handler,
      EventRegistrationToken *token)
  {
@@ -92,14 +92,14 @@ index ecf6fed710a..2f170e90060 100644
  }
  
  static const struct ISpeechContinuousRecognitionSessionVtbl 
-@@ -557,6 +605,7 @@ HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_create_from_iid(
+@@ -563,6 +611,7 @@ HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_create(ISpeechCo
      impl->ref = 1;
  
      list_init(&impl->completed_event_list);
 +    list_init(&impl->result_event_list);
  
-     hr = ISpeechContinuousRecognitionSession_QueryInterface(&impl->ISpeechContinuousRecognitionSession_iface, iid, obj);
-     ISpeechContinuousRecognitionSession_Release(&impl->ISpeechContinuousRecognitionSession_iface);
+     *out = &impl->ISpeechContinuousRecognitionSession_iface;
+     return S_OK;
 -- 
 2.34.1
 

@@ -1,7 +1,7 @@
-From d3b8bc148fd292e9dfc75e09fca0162a5be53e2a Mon Sep 17 00:00:00 2001
+From d5b209f7d33719812af77b791219b03290c237ee Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Fri, 4 Feb 2022 15:22:27 +0100
-Subject: [PATCH v2 29/41] windows.media.speech: Implement
+Subject: [PATCH v2 29/45] windows.media.speech: Implement
  ISpeechContinuousRecognitionSession add/remove_Completed.
 
 ---
@@ -10,10 +10,10 @@ Subject: [PATCH v2 29/41] windows.media.speech: Implement
  2 files changed, 55 insertions(+), 3 deletions(-)
 
 diff --git a/dlls/windows.media.speech/speechcontinuousrecognition.c b/dlls/windows.media.speech/speechcontinuousrecognition.c
-index 533cfef3eb3..ecf6fed710a 100644
+index 17762a02a4f..327cfd940e7 100644
 --- a/dlls/windows.media.speech/speechcontinuousrecognition.c
 +++ b/dlls/windows.media.speech/speechcontinuousrecognition.c
-@@ -295,10 +295,19 @@ HRESULT STDMETHODCALLTYPE speech_continuous_recognition_result_generated_event_a
+@@ -302,10 +302,19 @@ HRESULT STDMETHODCALLTYPE speech_continuous_recognition_result_generated_event_a
   *
   */
  
@@ -33,7 +33,7 @@ index 533cfef3eb3..ecf6fed710a 100644
  };
  
  /*
-@@ -438,15 +447,55 @@ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_add_Compl
+@@ -445,15 +454,55 @@ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_add_Compl
      ITypedEventHandler_SpeechContinuousRecognitionSession_SpeechContinuousRecognitionCompletedEventArgs *handler,
      EventRegistrationToken *token)
  {
@@ -92,17 +92,18 @@ index 533cfef3eb3..ecf6fed710a 100644
  }
  
  static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_add_ResultGenerated(
-@@ -507,6 +556,8 @@ HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_create_from_iid(
+@@ -513,6 +562,8 @@ HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_create(ISpeechCo
      impl->ISpeechContinuousRecognitionSession_iface.lpVtbl = &speech_continuous_recognition_session_vtbl;
      impl->ref = 1;
  
 +    list_init(&impl->completed_event_list);
 +
-     hr = ISpeechContinuousRecognitionSession_QueryInterface(&impl->ISpeechContinuousRecognitionSession_iface, iid, obj);
-     ISpeechContinuousRecognitionSession_Release(&impl->ISpeechContinuousRecognitionSession_iface);
- 
+     *out = &impl->ISpeechContinuousRecognitionSession_iface;
+     return S_OK;
+ }
+\ No newline at end of file
 diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
-index 5ef18c6a6fe..6062a7a514f 100644
+index 31360f0a36e..8f77876f80a 100644
 --- a/dlls/windows.media.speech/windows_media_speech_private.h
 +++ b/dlls/windows.media.speech/windows_media_speech_private.h
 @@ -22,6 +22,7 @@

@@ -1,7 +1,7 @@
 From 2020df0a7c7234b2ce4f2c2804b1a9d0480e4269 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 22:13:03 +0100
-Subject: [PATCH v2 19/41] windows.media.speech: Explicitly check for available
+Subject: [PATCH v2 19/45] windows.media.speech: Explicitly check for available
  activation factory.
 
 ---

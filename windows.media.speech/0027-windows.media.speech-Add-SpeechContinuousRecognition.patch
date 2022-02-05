@@ -1,19 +1,19 @@
-From e522a55e58c31cd87e1d78bd499cc254186dae3e Mon Sep 17 00:00:00 2001
+From 028e23ce2a7fda221ecd8d0bc17f617af753fe91 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 3 Feb 2022 17:42:13 +0100
-Subject: [PATCH v2 27/41] windows.media.speech: Add
+Subject: [PATCH v2 27/45] windows.media.speech: Add
  SpeechContinuousRecognitionResultGeneratedEventArgs stub.
 
 ---
- .../speechcontinuousrecognition.c             | 135 ++++++++++++++++++
- 1 file changed, 135 insertions(+)
+ .../speechcontinuousrecognition.c             | 140 ++++++++++++++++++
+ 1 file changed, 140 insertions(+)
 
 diff --git a/dlls/windows.media.speech/speechcontinuousrecognition.c b/dlls/windows.media.speech/speechcontinuousrecognition.c
-index 4749cce91b5..533cfef3eb3 100644
+index 83c070916c3..17762a02a4f 100644
 --- a/dlls/windows.media.speech/speechcontinuousrecognition.c
 +++ b/dlls/windows.media.speech/speechcontinuousrecognition.c
-@@ -154,6 +154,141 @@ HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_cre
-     return hr;
+@@ -156,6 +156,146 @@ HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_cre
+     return S_OK;
  }
  
 +/*
@@ -26,6 +26,8 @@ index 4749cce91b5..533cfef3eb3 100644
 +{
 +    ISpeechContinuousRecognitionResultGeneratedEventArgs ISpeechContinuousRecognitionResultGeneratedEventArgs_iface;
 +    LONG ref;
++
++    ISpeechRecognitionResult *result;
 +};
 +
 +/*
@@ -81,7 +83,10 @@ index 4749cce91b5..533cfef3eb3 100644
 +    TRACE("iface %p, ref %u.\n", iface, ref);
 +
 +    if(!ref)
++    {
++        ISpeechRecognitionResult_Release(impl->result);
 +        free(impl);
++    }
 +
 +    return ref;
 +}
@@ -129,26 +134,26 @@ index 4749cce91b5..533cfef3eb3 100644
 +    speech_continuous_recognition_result_generated_event_args_get_Result
 +};
 +
-+HRESULT STDMETHODCALLTYPE speech_continuous_recognition_result_generated_event_args_create_from_iid(REFIID iid, void **obj)
++HRESULT STDMETHODCALLTYPE speech_continuous_recognition_result_generated_event_args_create(
++    ISpeechRecognitionResult *result, ISpeechContinuousRecognitionResultGeneratedEventArgs **out)
 +{
 +    struct speech_continuous_recognition_result_generated_event_args *impl;
-+    HRESULT hr;
 +
-+    TRACE("iid %p, obj %p.\n", iid, obj);
++    TRACE("out %p.\n", out);
 +
 +    if (!(impl = calloc(1, sizeof(*impl))))
 +    {
-+        *obj = NULL;
++        *out = NULL;
 +        return E_OUTOFMEMORY;
 +    }
 +
 +    impl->ISpeechContinuousRecognitionResultGeneratedEventArgs_iface.lpVtbl = &speech_continuous_recognition_result_generated_event_args_vtbl;
 +    impl->ref = 1;
 +
-+    hr = ISpeechContinuousRecognitionResultGeneratedEventArgs_QueryInterface(&impl->ISpeechContinuousRecognitionResultGeneratedEventArgs_iface, iid, obj);
-+    ISpeechContinuousRecognitionResultGeneratedEventArgs_Release(&impl->ISpeechContinuousRecognitionResultGeneratedEventArgs_iface);
++    impl->result = result;
 +
-+    return hr;
++    *out = &impl->ISpeechContinuousRecognitionResultGeneratedEventArgs_iface;
++    return S_OK;
 +}
 +
  /*
