@@ -1,3 +1,6 @@
+#
+# Script to generate WinRT C stubs for Wine from the compiled IDL files.
+#
 import argparse
 import re
 
@@ -14,7 +17,7 @@ def main():
     vtbl_name = iface_name + 'Vtbl'
     full_vtbl_name = ''
 
-    print('Looking for ' + vtbl_name)
+    print('Searching for define of ' + vtbl_name)
 
     header = args.input
     for line in header:
@@ -30,7 +33,7 @@ def main():
 
     #print(full_iface_name)
     search_text = 'typedef struct ' + full_vtbl_name
-    print('Searching for "' + search_text + '"')
+    print('Searching Vtbl -> "' + search_text + '"')
 
     output_file = open(iface_name + '.winrtstub', 'w+')
     header.seek(0)
@@ -47,7 +50,8 @@ def main():
     header.close()
 
     class_obj_name = re.sub(r"([a-z])()([A-Z])", r"\1_\3", iface_name)
-    class_obj_name = re.sub(r"I", r"", class_obj_name).lower()
+    class_obj_name = re.sub(r"^I|(_)I", r"\1", class_obj_name)
+    class_obj_name = class_obj_name.lower()
     #print(class_obj_name)
 
     class_obj_definition = '''struct {struct_type}
@@ -164,6 +168,9 @@ static HRESULT STDMETHODCALLTYPE {class_obj_name}_create({interface} *out)
 
     output_file.seek(0)
     output_file.write(final_definition)
+    output_file.close()
+
+    print("Generation done!")
 
 
 if __name__ == '__main__':
