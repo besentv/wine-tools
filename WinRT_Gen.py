@@ -1,6 +1,8 @@
 #
-# Script to generate WinRT C stubs for Wine from the compiled IDL files.
+# Script to generate WinRT C stubs for Wine from a compiled IDL file.
+# Example usage: $python3 ./WinRT_Gen.py -i ./windows.foundation.h -n IVectorView_HSTRING
 #
+
 import argparse
 import re
 
