@@ -95,5 +95,28 @@ static const struct {struct_type} {struct_name}
 
     print(vtbl_defition)
 
+    output_file.seek(0)
+
+    functions_list = []
+    function = ''
+
+    for line in output_file:
+        match = re.match(r"(\s+)([A-Z]+ )\(([A-Z]+) \*(\w+)\)\([\n]", line)
+        if match:
+            function = re.sub(r"(\s+)([A-Z]+ )\(([A-Z]+) \*(\w+)\)\([\n]", r"\2\3 " + class_obj_name + r"_\4(", line)
+        match = re.match(r"(\ +)((\w+) \**(\w+,))[\n]", line)
+        if match:
+            tmp = re.sub(r"(\ +)((\w+) \**(\w+,))[\n]", r"\2 ", line)
+            function = function + tmp
+        match = re.match(r"(\ +)((\w+) \**\w+\));", line)
+        if match:
+            function = function + re.sub(r"(\ +)((\w+) \**\w+\));", r"\2", line)
+            function = re.sub(r"__x_ABI_C\w+_C(\w+)( \**\w+)", r"\1\2", function)
+            function = re.sub(r"(\w+)(I[a-zA-Z]+)(\w+)__C(\w+)( \**\w+)", r"\2_\4\5", function)
+            function = function + "{\n    FIXME(\"Stub!\");\n    return E_NOTIMPL;\n}"
+            functions_list.append(function)
+            print(function)
+
+
 if __name__ == '__main__':
     main()
