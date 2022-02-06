@@ -32,7 +32,7 @@ def main():
     search_text = 'typedef struct ' + full_vtbl_name
     print('Searching for "' + search_text + '"')
 
-    output_file = open(iface_name + '.winrtstub', 'w')
+    output_file = open(iface_name + '.winrtstub', 'w+')
     header.seek(0)
     copy_line = False
 
@@ -51,15 +51,49 @@ def main():
     print(class_obj_name)
 
     class_obj_defition = '''
-struct {struct_name}
+struct {struct_type}
 {{
     {interface} {interface}_iface;
     LONG ref;
-}};'''.format(struct_name=class_obj_name, interface=iface_name)
+}};'''.format(struct_type=class_obj_name, interface=iface_name)
 
     print(class_obj_defition)
 
-    vtbl_functions = []
+    vtbl_function_list = []
+
+    output_file.seek(0)
+
+    for line in output_file:
+        match = re.match(r"\s*[A-Z]+ \(STDMETHODCALLTYPE \*([\w+]+)\)\(", line)
+        if match:
+            print(class_obj_name + '_' + match.group(1))
+            vtbl_function_list.append(class_obj_name + '_' + match.group(1))
+            continue
+        match = re.match(r"\s+(/\*{3}\s.*\s\*{3}\/)", line)
+        if match:
+            print(match.group(1))
+            vtbl_function_list.append(match.group(1))
+            continue
+
+    vtbl_function_str = ''
+
+    for x in vtbl_function_list:
+        if x == vtbl_function_list[-1]:
+            vtbl_function_str = vtbl_function_str + '    ' + x
+        elif x.startswith("/*"):
+            vtbl_function_str = vtbl_function_str + '    ' + x + '\n'
+        else:
+            vtbl_function_str = vtbl_function_str + '    ' + x + ',\n'
+
+    print(vtbl_function_str)
+
+    vtbl_defition = '''
+static const struct {struct_type} {struct_name}
+{{
+{functions}
+}};'''.format(struct_type=vtbl_name, struct_name=class_obj_name+'_vtbl', functions=vtbl_function_str)
+
+    print(vtbl_defition)
 
 if __name__ == '__main__':
     main()
