@@ -19,7 +19,7 @@ def main():
     header = args.input
     for line in header:
         if vtbl_name in line:
-            print(line)
+            #print(line)
             full_vtbl_name = re.findall("__\w+Vtbl", line)[0]
             full_iface_name = full_vtbl_name.replace('Vtbl', '')
             break
@@ -28,7 +28,7 @@ def main():
         print('Error: Full vtbl or iface name not found!')
         return
 
-    print(full_iface_name)
+    #print(full_iface_name)
     search_text = 'typedef struct ' + full_vtbl_name
     print('Searching for "' + search_text + '"')
 
@@ -48,7 +48,7 @@ def main():
 
     class_obj_name = re.sub(r"([a-z])()([A-Z])", r"\1_\3", iface_name)
     class_obj_name = re.sub(r"I", r"", class_obj_name).lower()
-    print(class_obj_name)
+    #print(class_obj_name)
 
     class_obj_definition = '''struct {struct_type}
 {{
@@ -56,7 +56,7 @@ def main():
     LONG ref;
 }};'''.format(struct_type=class_obj_name, interface=iface_name)
 
-    print(class_obj_definition)
+    #print(class_obj_definition)
 
     vtbl_function_list = []
 
@@ -65,12 +65,12 @@ def main():
     for line in output_file:
         match = re.match(r"\s*[A-Z]+ \(STDMETHODCALLTYPE \*([\w+]+)\)\(", line)
         if match:
-            print(class_obj_name + '_' + match.group(1))
+            #print(class_obj_name + '_' + match.group(1))
             vtbl_function_list.append(class_obj_name + '_' + match.group(1))
             continue
         match = re.match(r"\s+(/\*{3}\s.*\s\*{3}\/)", line)
         if match:
-            print(match.group(1))
+            #print(match.group(1))
             vtbl_function_list.append(match.group(1))
             continue
 
@@ -84,21 +84,21 @@ def main():
         else:
             vtbl_function_str = vtbl_function_str + '    ' + x + ',\n'
 
-    print(vtbl_function_str)
+    #print(vtbl_function_str)
 
     vtbl_definition = '''static const struct {struct_type} {struct_name}
 {{
 {functions}
 }};'''.format(struct_type=vtbl_name, struct_name=class_obj_name+'_vtbl', functions=vtbl_function_str) #Note: {functions} are already tabbed.
 
-    print(vtbl_definition)
+    #print(vtbl_definition)
 
     impl_from_definition = '''static inline struct {impl_struct_type} *impl_from_{iface_name}({iface_name} *iface)
 {{
     return CONTAINING_RECORD(iface, struct {impl_struct_type}, {iface_name}_iface);
 }}'''.format(impl_struct_type=class_obj_name, iface_name=iface_name)
 
-    print(impl_from_definition)
+    #print(impl_from_definition)
 
     output_file.seek(0)
 
@@ -118,9 +118,10 @@ def main():
             function = function + re.sub(r"(\ +)((\w+) \**\w+\));", r"\2", line)
             function = re.sub(r"__x_ABI_C\w+_C(\w+)( \**\w+)", r"\1\2", function) # Make eg __x_ABI_CWindows_CMedia_CSpeechRecognition_CISpeechRecognitionResult to ISpeechRecognitionResult
             function = re.sub(r"(\w+)(I[a-zA-Z]+)(\w+)__C(\w+)( \**\w+)", r"\2_\4\5", function) #Make eg __FIVectorView_1_Windows__CMedia__CSpeechRecognition__CSpeechRecognitionResult to IVectorView_SpeechRecognitionResult
-            function = function + "{\n    FIXME(\"Stub!\\n\");\n    return E_NOTIMPL;\n}"
+            function = re.sub(r"This", r"iface", function) #Replace This with iface
+            function = function + "{\n    FIXME(\"iface %p stub!\\n\", iface);\n    return E_NOTIMPL;\n}"
             functions_list.append(function)
-            print(function)
+            #print(function)
 
     functions_str = ''
 
@@ -131,7 +132,7 @@ def main():
             functions_str = functions_str + x + '\n\n'
 
     create_fun_definition = '''
-static HRESULT STDMETHODCALLTYPE speech_recognition_result_create({interface} *out)
+static HRESULT STDMETHODCALLTYPE {class_obj_name}_create({interface} *out)
 {{
     struct {class_obj_name} *impl;
 
