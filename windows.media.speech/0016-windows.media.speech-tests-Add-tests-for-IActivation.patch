@@ -1,7 +1,7 @@
 From 2bb6628e28c177700943f74620c44f1cd70b3309 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 27 Jan 2022 23:52:32 +0100
-Subject: [PATCH v2 16/45] windows.media.speech/tests: Add tests for
+Subject: [PATCH v2 16/49] windows.media.speech/tests: Add tests for
  IActivationFactory.
 
 ---
@@ -132,5 +132,5 @@ index 38fd5c90dd0..05bcd762813 100644
      test_VoiceInformation();
  }
 -- 
-2.34.1
+2.35.1
 

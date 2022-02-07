@@ -1,7 +1,7 @@
-From bb83163fcd43b3d9aaa5362d54d84acdf6fd6266 Mon Sep 17 00:00:00 2001
+From 705a0ae2f1ae50691b8eae1eaa0f8cfea62b8bcf Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Fri, 4 Feb 2022 22:42:39 +0100
-Subject: [PATCH v2 37/45] windows.media.speech: Implement IVector<HSTRING>
+Subject: [PATCH v2 37/49] windows.media.speech: Implement IVector<HSTRING>
  Append.
 
 ---
@@ -34,5 +34,5 @@ index 62d71d71ddc..36908dd2c7c 100644
  
  static HRESULT STDMETHODCALLTYPE vector_hstring_RemoveAtEnd(
 -- 
-2.34.1
+2.35.1
 

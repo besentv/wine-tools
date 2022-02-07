@@ -1,7 +1,7 @@
-From ceb5ad18a51f3fb6d4f666ea8d6b7a15245e447c Mon Sep 17 00:00:00 2001
+From bb623e46620813fad2a5ea46148fbc4aed7b9d67 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Fri, 4 Feb 2022 21:32:08 +0100
-Subject: [PATCH v2 36/45] windows.media.speech: Add IVector<HSTRING> stub.
+Subject: [PATCH v2 36/49] windows.media.speech: Add IVector<HSTRING> stub.
 
 ---
  .../speechrecognitionlistconstraint.c         | 223 ++++++++++++++++++
@@ -264,5 +264,5 @@ index 962f908bd41..62d71d71ddc 100644
      hr = ISpeechRecognitionListConstraint_QueryInterface(&impl->ISpeechRecognitionListConstraint_iface, &IID_ISpeechRecognitionListConstraint, (void**)listconstraint);
      ISpeechRecognitionListConstraint_Release(&impl->ISpeechRecognitionListConstraint_iface);
 -- 
-2.34.1
+2.35.1
 

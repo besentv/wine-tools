@@ -1,7 +1,7 @@
 From 36bce92c85f82ffb84935ff877aa709397638398 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 6 Jan 2022 18:36:08 +0100
-Subject: [PATCH v2 05/45] include: Add windows.media.speechrecognition.idl.
+Subject: [PATCH v2 05/49] include: Add windows.media.speechrecognition.idl.
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -125,5 +125,5 @@ index 00000000000..0092c244ffb
 +    }
 +}
 -- 
-2.34.1
+2.35.1
 

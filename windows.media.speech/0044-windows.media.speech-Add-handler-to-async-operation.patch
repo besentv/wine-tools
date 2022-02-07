@@ -1,7 +1,7 @@
-From 4730947cf9325223f0ece733158ea14b89456d1c Mon Sep 17 00:00:00 2001
+From 37d1acb2929c44e69ebf5bd3bc04d3a65f29ed46 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sat, 5 Feb 2022 16:16:12 +0100
-Subject: [PATCH v2 44/45] windows.media.speech: Add handler to async
+Subject: [PATCH v2 44/49] windows.media.speech: Add handler to async
  operation.
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH v2 44/45] windows.media.speech: Add handler to async
  1 file changed, 14 insertions(+), 2 deletions(-)
 
 diff --git a/dlls/windows.media.speech/speechrecognizer.c b/dlls/windows.media.speech/speechrecognizer.c
-index a0e386389ec..48f112d23b5 100644
+index 8edd59e4c89..4a5ab745f29 100644
 --- a/dlls/windows.media.speech/speechrecognizer.c
 +++ b/dlls/windows.media.speech/speechrecognizer.c
 @@ -136,6 +136,8 @@ struct async_operation_speech_recognition_compilation_result
@@ -58,5 +58,5 @@ index a0e386389ec..48f112d23b5 100644
      return S_OK;
  }
 -- 
-2.34.1
+2.35.1
 

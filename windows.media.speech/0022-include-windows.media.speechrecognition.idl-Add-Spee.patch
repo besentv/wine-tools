@@ -1,7 +1,7 @@
 From 56c39866834a84417838cfbc50395830944ebcde Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Mon, 31 Jan 2022 17:26:34 +0100
-Subject: [PATCH v2 22/45] include/windows.media.speechrecognition.idl: Add
+Subject: [PATCH v2 22/49] include/windows.media.speechrecognition.idl: Add
  SpeechRecognitionListConstraint.
 
 And it's dependencies.
@@ -86,5 +86,5 @@ index a20a414f543..f3cec4e6466 100644
                  contract(Windows.Foundation.UniversalApiContract, 1.0),
                  marshaling_behavior(agile)
 -- 
-2.34.1
+2.35.1
 

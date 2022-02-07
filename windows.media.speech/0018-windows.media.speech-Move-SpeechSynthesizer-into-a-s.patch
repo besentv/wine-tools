@@ -1,7 +1,7 @@
 From f74ae54cc57429086ce38e91aa51f736d3eeae9a Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 22:10:13 +0100
-Subject: [PATCH v2 18/45] windows.media.speech: Move SpeechSynthesizer into a
+Subject: [PATCH v2 18/49] windows.media.speech: Move SpeechSynthesizer into a
  sperate file.
 
 ---
@@ -1179,5 +1179,5 @@ index af53a1139f0..020e5f142b6 100644
 +
  #endif
 -- 
-2.34.1
+2.35.1
 

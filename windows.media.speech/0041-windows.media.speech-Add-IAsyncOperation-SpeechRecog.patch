@@ -1,7 +1,7 @@
-From 9cf10fba3d545b10ab845ff59f1695409187925a Mon Sep 17 00:00:00 2001
+From 653649f7ef12275f50bbb492251290c1af5ed1a6 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sat, 5 Feb 2022 13:35:17 +0100
-Subject: [PATCH v2 41/45] windows.media.speech: Add
+Subject: [PATCH v2 41/49] windows.media.speech: Add
  IAsyncOperation<SpeechRecognitionCompilationResult> stub.
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH v2 41/45] windows.media.speech: Add
  1 file changed, 137 insertions(+)
 
 diff --git a/dlls/windows.media.speech/speechrecognizer.c b/dlls/windows.media.speech/speechrecognizer.c
-index b17a5b5077d..6edabe1819d 100644
+index 01c0ab93b71..87561cfca25 100644
 --- a/dlls/windows.media.speech/speechrecognizer.c
 +++ b/dlls/windows.media.speech/speechrecognizer.c
 @@ -21,6 +21,143 @@
@@ -157,5 +157,5 @@ index b17a5b5077d..6edabe1819d 100644
   *
   * IVector<ISpeechRecognitionConstraint>
 -- 
-2.34.1
+2.35.1
 

@@ -1,7 +1,7 @@
-From 874c616a98861bf03db61f58a9d44adeb5f0d55b Mon Sep 17 00:00:00 2001
+From ec81b0a58b5d86990c9aa62ae593f059befc816b Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sat, 5 Feb 2022 14:18:35 +0100
-Subject: [PATCH v2 43/45] windows.media.speech: Add
+Subject: [PATCH v2 43/49] windows.media.speech: Add
  IAsyncOperationCompletedHandler<SpeechRecognitionCompilationResult> stub.
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH v2 43/45] windows.media.speech: Add
  1 file changed, 105 insertions(+)
 
 diff --git a/dlls/windows.media.speech/speechrecognizer.c b/dlls/windows.media.speech/speechrecognizer.c
-index 8ffc6743bb7..a0e386389ec 100644
+index d0ce1a5469c..8edd59e4c89 100644
 --- a/dlls/windows.media.speech/speechrecognizer.c
 +++ b/dlls/windows.media.speech/speechrecognizer.c
 @@ -21,6 +21,111 @@
@@ -125,5 +125,5 @@ index 8ffc6743bb7..a0e386389ec 100644
   *
   * IAsyncOperation<SpeechRecognitionCompilationResult>
 -- 
-2.34.1
+2.35.1
 

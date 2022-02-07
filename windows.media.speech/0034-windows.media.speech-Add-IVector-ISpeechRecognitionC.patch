@@ -1,7 +1,7 @@
-From d6e578977cda474996bb2f1426e3221befa95417 Mon Sep 17 00:00:00 2001
+From 90031abb2db57f4504c13919cc672048b4d6f30e Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Fri, 4 Feb 2022 18:10:28 +0100
-Subject: [PATCH v2 34/45] windows.media.speech: Add
+Subject: [PATCH v2 34/49] windows.media.speech: Add
  IVector<ISpeechRecognitionConstraint> stub.
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH v2 34/45] windows.media.speech: Add
  1 file changed, 223 insertions(+)
 
 diff --git a/dlls/windows.media.speech/speechrecognizer.c b/dlls/windows.media.speech/speechrecognizer.c
-index f711a635f8b..1fb69dd44c2 100644
+index ef98f14824f..d00633aee09 100644
 --- a/dlls/windows.media.speech/speechrecognizer.c
 +++ b/dlls/windows.media.speech/speechrecognizer.c
 @@ -21,6 +21,226 @@
@@ -239,30 +239,30 @@ index f711a635f8b..1fb69dd44c2 100644
  /*
   *
   * SpeechRecognizer
-@@ -35,6 +255,7 @@ struct speech_recognizer
-     LONG ref;
+@@ -53,6 +273,7 @@ struct speech_recognizer
  
-     ISpeechContinuousRecognitionSession *recognition_session;
+     struct list completed_event_list;
+     struct list result_event_list;
 +    IVector_ISpeechRecognitionConstraint *vector_constraints;
  };
  
  /*
-@@ -102,6 +323,7 @@ static ULONG STDMETHODCALLTYPE speech_recognizer_Release(ISpeechRecognizer *ifac
-     if(!ref)
-     {
-         ISpeechContinuousRecognitionSession_Release(impl->recognition_session);
+@@ -394,6 +615,7 @@ static ULONG STDMETHODCALLTYPE speech_recognizer_Release(ISpeechRecognizer *ifac
+             free(re);
+         }
+ 
 +        IVector_ISpeechRecognitionConstraint_Release(impl->vector_constraints);
          free(impl);
      }
  
-@@ -477,6 +699,7 @@ static HRESULT STDMETHODCALLTYPE speech_recognizer_create(ILanguage *language, I
+@@ -772,6 +994,7 @@ static HRESULT STDMETHODCALLTYPE speech_recognizer_create(ILanguage *language, I
  
-     impl->recognition_session = NULL;
-     hr = speech_continuous_recognition_session_create(&impl->recognition_session);
+     list_init(&impl->completed_event_list);
+     list_init(&impl->result_event_list);
 +    hr = vector_speech_recgonition_constraint_create(NULL, 0, &impl->vector_constraints);
  
      hr = ISpeechRecognizer_QueryInterface(&impl->ISpeechRecognizer_iface, &IID_ISpeechRecognizer, (void**)speechrecognizer);
      ISpeechRecognizer_Release(&impl->ISpeechRecognizer_iface);
 -- 
-2.34.1
+2.35.1
 

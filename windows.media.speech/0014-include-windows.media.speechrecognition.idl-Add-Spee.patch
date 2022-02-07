@@ -1,7 +1,7 @@
 From 1d1595db691ed550e60329330032f12023e05867 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 20:50:56 +0100
-Subject: [PATCH v2 14/45] include/windows.media.speechrecognition.idl: Add
+Subject: [PATCH v2 14/49] include/windows.media.speechrecognition.idl: Add
  SpeechRecognizerStateChangedEventArgs.
 
 And a needed enum.
@@ -92,5 +92,5 @@ index 75a060d38d1..26ad8c016df 100644
                  contract(Windows.Foundation.UniversalApiContract, 1.0),
                  marshaling_behavior(agile)
 -- 
-2.34.1
+2.35.1
 

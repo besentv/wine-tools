@@ -1,7 +1,7 @@
-From ce016c789ef9afc91f1aa619fc350e5fad0528a6 Mon Sep 17 00:00:00 2001
+From 0c1b08e30e479ba67de47a2f6935ab78f95bc617 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Fri, 4 Feb 2022 18:30:27 +0100
-Subject: [PATCH v2 35/45] windows.media.speech: Implement ISpeechRecognizer
+Subject: [PATCH v2 35/49] windows.media.speech: Implement ISpeechRecognizer
  get_Constraints.
 
 ---
@@ -9,10 +9,10 @@ Subject: [PATCH v2 35/45] windows.media.speech: Implement ISpeechRecognizer
  1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/dlls/windows.media.speech/speechrecognizer.c b/dlls/windows.media.speech/speechrecognizer.c
-index 1fb69dd44c2..5fd9d0c3059 100644
+index d00633aee09..7de192e9587 100644
 --- a/dlls/windows.media.speech/speechrecognizer.c
 +++ b/dlls/windows.media.speech/speechrecognizer.c
-@@ -351,8 +351,12 @@ static HRESULT STDMETHODCALLTYPE speech_recognizer_GetTrustLevel(ISpeechRecogniz
+@@ -643,8 +643,12 @@ static HRESULT STDMETHODCALLTYPE speech_recognizer_GetTrustLevel(ISpeechRecogniz
  static HRESULT STDMETHODCALLTYPE speech_recognizer_get_Constraints(ISpeechRecognizer *iface,
      IVector_ISpeechRecognitionConstraint **vector)
  {
@@ -28,5 +28,5 @@ index 1fb69dd44c2..5fd9d0c3059 100644
  
  static HRESULT STDMETHODCALLTYPE speech_recognizer_get_CurrentLanguage(ISpeechRecognizer *iface,
 -- 
-2.34.1
+2.35.1
 

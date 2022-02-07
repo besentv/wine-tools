@@ -1,7 +1,7 @@
 From 4879df5764c38085db359d75522f6e81e5c8a1e3 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Sun, 30 Jan 2022 21:48:46 +0100
-Subject: [PATCH v2 17/45] windows.media.speech: Create private header.
+Subject: [PATCH v2 17/49] windows.media.speech: Create private header.
 
 ---
  dlls/windows.media.speech/main.c              | 27 +--------
@@ -115,5 +115,5 @@ index 00000000000..af53a1139f0
 +
 +#endif
 -- 
-2.34.1
+2.35.1
 

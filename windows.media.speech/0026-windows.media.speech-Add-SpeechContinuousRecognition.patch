@@ -1,18 +1,18 @@
-From 9f4cfb9fa00d9d182fd665bebea6035ab6b6fb8a Mon Sep 17 00:00:00 2001
+From 5cbd7ba01fb020dc8b4f7360c4822a8975d1bb3d Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 3 Feb 2022 16:58:37 +0100
-Subject: [PATCH v2 26/45] windows.media.speech: Add
+Subject: [PATCH v2 26/49] windows.media.speech: Add
  SpeechContinuousRecognitionCompletedEventArgs stub.
 
 ---
- .../speechcontinuousrecognition.c             | 135 ++++++++++++++++++
- 1 file changed, 135 insertions(+)
+ .../speechcontinuousrecognition.c             | 134 ++++++++++++++++++
+ 1 file changed, 134 insertions(+)
 
 diff --git a/dlls/windows.media.speech/speechcontinuousrecognition.c b/dlls/windows.media.speech/speechcontinuousrecognition.c
-index 95c739d6534..83c070916c3 100644
+index 8ff31dda14d..7415cbab135 100644
 --- a/dlls/windows.media.speech/speechcontinuousrecognition.c
 +++ b/dlls/windows.media.speech/speechcontinuousrecognition.c
-@@ -21,6 +21,141 @@
+@@ -21,3 +21,137 @@
  
  WINE_DEFAULT_DEBUG_CHANNEL(speech);
  
@@ -129,7 +129,7 @@ index 95c739d6534..83c070916c3 100644
 +    speech_continuous_recognition_completed_event_args_get_Status
 +};
 +
-+HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_create_from_iid(
++HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_create(
 +    SpeechRecognitionResultStatus status, ISpeechContinuousRecognitionCompletedEventArgs **out)
 +{
 +    struct speech_continuous_recognition_completed_event_args *impl;
@@ -150,10 +150,6 @@ index 95c739d6534..83c070916c3 100644
 +    *out = &impl->ISpeechContinuousRecognitionCompletedEventArgs_iface;
 +    return S_OK;
 +}
-+
- /*
-  *
-  * SpeechContinuousRecognitionSession
 -- 
-2.34.1
+2.35.1
 

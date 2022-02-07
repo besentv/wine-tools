@@ -1,7 +1,7 @@
-From 09274364290da56ec4dcc465ae9794b10f668aae Mon Sep 17 00:00:00 2001
+From 0364a6c6f42cf7504e454b7773a7fb7380db42fb Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Tue, 18 Jan 2022 15:19:01 +0100
-Subject: [PATCH v2 33/45] windows.media.speech: Add
+Subject: [PATCH v2 33/49] windows.media.speech: Add
  SpeechRecognizerStateChangedEventArgs stub.
 
 ---
@@ -199,5 +199,5 @@ index bf1fb3757d5..ca13d967a8c 100644
  /*
   *
 -- 
-2.34.1
+2.35.1
 

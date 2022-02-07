@@ -1,7 +1,7 @@
-From 028e23ce2a7fda221ecd8d0bc17f617af753fe91 Mon Sep 17 00:00:00 2001
+From d649f5964833b05ebe2f6b80eb551bcfb790b217 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
 Date: Thu, 3 Feb 2022 17:42:13 +0100
-Subject: [PATCH v2 27/45] windows.media.speech: Add
+Subject: [PATCH v2 27/49] windows.media.speech: Add
  SpeechContinuousRecognitionResultGeneratedEventArgs stub.
 
 ---
@@ -9,13 +9,14 @@ Subject: [PATCH v2 27/45] windows.media.speech: Add
  1 file changed, 140 insertions(+)
 
 diff --git a/dlls/windows.media.speech/speechcontinuousrecognition.c b/dlls/windows.media.speech/speechcontinuousrecognition.c
-index 83c070916c3..17762a02a4f 100644
+index 7415cbab135..601a1fd21df 100644
 --- a/dlls/windows.media.speech/speechcontinuousrecognition.c
 +++ b/dlls/windows.media.speech/speechcontinuousrecognition.c
-@@ -156,6 +156,146 @@ HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_cre
+@@ -155,3 +155,143 @@ HRESULT STDMETHODCALLTYPE speech_continuous_recognition_completed_event_args_cre
+     *out = &impl->ISpeechContinuousRecognitionCompletedEventArgs_iface;
      return S_OK;
  }
- 
++
 +/*
 + *
 + * SpeechContinuousRecognitionResultGeneratedEventArgs
@@ -155,10 +156,6 @@ index 83c070916c3..17762a02a4f 100644
 +    *out = &impl->ISpeechContinuousRecognitionResultGeneratedEventArgs_iface;
 +    return S_OK;
 +}
-+
- /*
-  *
-  * SpeechContinuousRecognitionSession
 -- 
-2.34.1
+2.35.1
 
