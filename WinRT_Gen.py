@@ -102,7 +102,7 @@ def main():
 
     #print(vtbl_function_str)
 
-    vtbl_definition = '''static const struct {struct_type} {struct_name}
+    vtbl_definition = '''static const struct {struct_type} {struct_name} =
 {{
 {functions}
 }};'''.format(struct_type=vtbl_name, struct_name=class_obj_name+'_vtbl', functions=vtbl_function_str) #Note: {functions} are already tabbed.
@@ -154,7 +154,7 @@ def main():
             functions_str = functions_str + x + '\n\n'
 
     create_fun_definition = '''
-static HRESULT STDMETHODCALLTYPE {class_obj_name}_create({interface} *out)
+static HRESULT STDMETHODCALLTYPE {class_obj_name}_create({interface} **out)
 {{
     struct {class_obj_name} *impl;
 
