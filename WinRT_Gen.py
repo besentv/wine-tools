@@ -41,16 +41,20 @@ def main():
     header.seek(0)
     copy_line = False
 
-    for line in header:
+    #Copy vtbl from header file to dst file.
+    for num,line in enumerate(header, 1):
         if search_text in line:
+            print("Found Vtbl in line " + str(num))
             copy_line = True
         if copy_line:
             output_file.write(line)
-        if '}' in line:
+        if copy_line and '}' in line:
             copy_line = False
+            break
 
     header.close()
 
+    #Create class object name from the interface name.
     class_obj_name = re.sub(r"([a-z])()([A-Z])", r"\1_\3", iface_name)
     class_obj_name = re.sub(r"^I|(_)I", r"\1", class_obj_name)
     class_obj_name = class_obj_name.lower()
@@ -64,16 +68,21 @@ def main():
 
     #print(class_obj_definition)
 
+    #Inner content of vtbl -> functions and comments.
     vtbl_function_list = []
 
     output_file.seek(0)
 
+    #Generate vtble function names from imported vtbl and put it in the list.
     for line in output_file:
+        #Matches function pointer from copied header vtbl.
         match = re.match(r"\s*[A-Z]+ \(STDMETHODCALLTYPE \*([\w+]+)\)\(", line)
         if match:
             #print(class_obj_name + '_' + match.group(1))
+            #Put class obj name in front of function name.
             vtbl_function_list.append(class_obj_name + '_' + match.group(1))
             continue
+        #Matches /*** IIface methods ***/ comment.
         match = re.match(r"\s+(/\*{3}\s.*\s\*{3}\/)", line)
         if match:
             #print(match.group(1))
@@ -82,6 +91,7 @@ def main():
 
     vtbl_function_str = ''
 
+    #Put newlines, commas or both, depending on where in the function is in the list.
     for x in vtbl_function_list:
         if x == vtbl_function_list[-1]:
             vtbl_function_str = vtbl_function_str + '    ' + x
@@ -111,19 +121,25 @@ def main():
     functions_list = []
     function = ''
 
+    #Create list of function definitions.
     for line in output_file:
+        #Matches function return value and name from header.
         match = re.match(r"(\s+)([A-Z]+ )\(([A-Z]+) \*(\w+)\)\([\n]", line)
         if match:
             function = re.sub(r"(\s+)([A-Z]+ )\(([A-Z]+) \*(\w+)\)\([\n]", r"\2\3 " + class_obj_name + r"_\4(", line)
+        #Matches any line containing a function parameter, apart from the last.
         match = re.match(r"(\ +)((\w+) \**(\w+,))[\n]", line)
         if match:
-            tmp = re.sub(r"(\ +)((\w+) \**(\w+,))[\n]", r"\2 ", line)
-            function = function + tmp
+            function = function + re.sub(r"(\ +)((\w+) \**(\w+,))[\n]", r"\2 ", line)
+        #Matches last line containing a parameter.
         match = re.match(r"(\ +)((\w+) \**\w+\));", line)
         if match:
             function = function + re.sub(r"(\ +)((\w+) \**\w+\));", r"\2", line)
-            function = re.sub(r"__x_ABI_C\w+_C(\w+)( \**\w+)", r"\1\2", function) # Make eg __x_ABI_CWindows_CMedia_CSpeechRecognition_CISpeechRecognitionResult to ISpeechRecognitionResult
-            function = re.sub(r"(\w+)(I[a-zA-Z]+)(\w+)__C(\w+)( \**\w+)", r"\2_\4\5", function) #Make eg __FIVectorView_1_Windows__CMedia__CSpeechRecognition__CSpeechRecognitionResult to IVectorView_SpeechRecognitionResult
+            #Next line generates the short versions of for example
+            #__FIMapView_2_HSTRING___FIVectorView_1_HSTRING -> IMapView_HSTRING_IVectorView_HSTRING
+            #__x_ABI_CWindows_CMedia_CSpeechRecognition_CISpeechRecognitionResult -> ISpeechRecognitionResult
+            #__FIVectorView_1_Windows__CMedia__CSpeechRecognition__CSpeechRecognitionResult -> IVectorView_SpeechRecognitionResult
+            function = re.sub(r"([1-9]_)|(__F)|([A-Za-z]+__C)|(__x_ABI_|([A-Za-z]+_C))", r"", function)
             function = re.sub(r"This", r"iface", function) #Replace This with iface
             function = function + "{\n    FIXME(\"iface %p stub!\\n\", iface);\n    return E_NOTIMPL;\n}"
             functions_list.append(function)
@@ -172,7 +188,7 @@ static HRESULT STDMETHODCALLTYPE {class_obj_name}_create({interface} *out)
     output_file.write(final_definition)
     output_file.close()
 
-    print("Generation done!")
+    print("Generation done!~")
 
 
 if __name__ == '__main__':
