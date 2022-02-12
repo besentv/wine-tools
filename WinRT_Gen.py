@@ -55,8 +55,9 @@ def main():
     header.close()
 
     #Create class object name from the interface name.
-    class_obj_name = re.sub(r"([a-z])()([A-Z])", r"\1_\3", iface_name)
+    class_obj_name = iface_name
     class_obj_name = re.sub(r"^I|(_)I", r"\1", class_obj_name)
+    class_obj_name = re.sub(r"([a-z])()([A-Z])", r"\1_\3", class_obj_name)
     class_obj_name = class_obj_name.lower()
     #print(class_obj_name)
 
@@ -124,26 +125,34 @@ def main():
     #Create list of function definitions.
     for line in output_file:
         #Matches function return value and name from header.
+        tmp = ''
         match = re.match(r"(\s+)([A-Z]+ )\(([A-Z]+) \*(\w+)\)\([\n]", line)
         if match:
             function = re.sub(r"(\s+)([A-Z]+ )\(([A-Z]+) \*(\w+)\)\([\n]", r"\2\3 " + class_obj_name + r"_\4(", line)
+            #print(function)
         #Matches any line containing a function parameter, apart from the last.
         match = re.match(r"(\ +)((\w+) \**(\w+,))[\n]", line)
         if match:
-            function = function + re.sub(r"(\ +)((\w+) \**(\w+,))[\n]", r"\2 ", line)
-        #Matches last line containing a parameter.
-        match = re.match(r"(\ +)((\w+) \**\w+\));", line)
-        if match:
-            function = function + re.sub(r"(\ +)((\w+) \**\w+\));", r"\2", line)
+            tmp = re.sub(r"(\ +)((\w+) \**(\w+,))[\n]", r"\2 ", line)
             #Next line generates the short versions of for example
             #__FIMapView_2_HSTRING___FIVectorView_1_HSTRING -> IMapView_HSTRING_IVectorView_HSTRING
             #__x_ABI_CWindows_CMedia_CSpeechRecognition_CISpeechRecognitionResult -> ISpeechRecognitionResult
             #__FIVectorView_1_Windows__CMedia__CSpeechRecognition__CSpeechRecognitionResult -> IVectorView_SpeechRecognitionResult
-            function = re.sub(r"([1-9]_)|(__F)|([A-Za-z]+__C)|(__x_ABI_|([A-Za-z]+_C))", r"", function)
+            function = function + re.sub(r"([1-9]_)|(__F)|([A-Za-z]+__C)|(__x_ABI_|([A-Za-z]+_C))", r"", tmp)
+        #Matches last line containing a parameter.
+        match = re.match(r"(\ +)((\w+) \**\w+\));", line)
+        if match:
+            tmp = re.sub(r"(\ +)((\w+) \**\w+\));", r"\2", line)
+            #Next line generates the short versions of for example
+            #__FIMapView_2_HSTRING___FIVectorView_1_HSTRING -> IMapView_HSTRING_IVectorView_HSTRING
+            #__x_ABI_CWindows_CMedia_CSpeechRecognition_CISpeechRecognitionResult -> ISpeechRecognitionResult
+            #__FIVectorView_1_Windows__CMedia__CSpeechRecognition__CSpeechRecognitionResult -> IVectorView_SpeechRecognitionResult
+            function = function + re.sub(r"([1-9]_)|(__F)|([A-Za-z]+__C)|(__x_ABI_|([A-Za-z]+_C))", r"", tmp)
             function = re.sub(r"This", r"iface", function) #Replace This with iface
             function = function + "{\n    FIXME(\"iface %p stub!\\n\", iface);\n    return E_NOTIMPL;\n}"
             functions_list.append(function)
             #print(function)
+
 
     functions_str = ''
 
