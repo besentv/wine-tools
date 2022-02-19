@@ -1,0 +1,134 @@
+From ea9b3cf194f735ca753bfc8a69d4ae92518a16ad Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Tue, 8 Feb 2022 13:16:07 +0100
+Subject: [PATCH v2 47/52] windows.media.speech: Add
+ ISpeechRecognitionSemanticInterpretation stub.
+
+---
+ .../speechrecognitionresult.c                 | 110 ++++++++++++++++++
+ 1 file changed, 110 insertions(+)
+
+diff --git a/dlls/windows.media.speech/speechrecognitionresult.c b/dlls/windows.media.speech/speechrecognitionresult.c
+index 1aceba97261..c8dc782817d 100644
+--- a/dlls/windows.media.speech/speechrecognitionresult.c
++++ b/dlls/windows.media.speech/speechrecognitionresult.c
+@@ -21,6 +21,116 @@
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(speech);
+ 
++struct speech_recognition_semantic_interpretation
++{
++    ISpeechRecognitionSemanticInterpretation ISpeechRecognitionSemanticInterpretation_iface;
++    LONG ref;
++};
++
++static inline struct speech_recognition_semantic_interpretation *impl_from_ISpeechRecognitionSemanticInterpretation(ISpeechRecognitionSemanticInterpretation *iface)
++{
++    return CONTAINING_RECORD(iface, struct speech_recognition_semantic_interpretation, ISpeechRecognitionSemanticInterpretation_iface);
++}
++
++HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_QueryInterface(ISpeechRecognitionSemanticInterpretation *iface, REFIID iid, void **out)
++{
++    TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
++
++    if (IsEqualGUID(iid, &IID_IUnknown) ||
++        IsEqualGUID(iid, &IID_IInspectable) ||
++        IsEqualGUID(iid, &IID_ISpeechRecognitionSemanticInterpretation))
++    {
++        IUnknown_AddRef(iface);
++        *out = iface;
++        return S_OK;
++    }
++
++    WARN("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
++    *out = NULL;
++    return E_NOINTERFACE;
++}
++
++ULONG STDMETHODCALLTYPE speech_recognition_semantic_interpretation_AddRef(ISpeechRecognitionSemanticInterpretation *iface)
++{
++    struct speech_recognition_semantic_interpretation *impl = impl_from_ISpeechRecognitionSemanticInterpretation(iface);
++
++    ULONG ref = InterlockedIncrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    return ref;
++}
++
++ULONG STDMETHODCALLTYPE speech_recognition_semantic_interpretation_Release(ISpeechRecognitionSemanticInterpretation *iface)
++{
++    struct speech_recognition_semantic_interpretation *impl = impl_from_ISpeechRecognitionSemanticInterpretation(iface);
++
++    ULONG ref = InterlockedDecrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    if(!ref)
++        free(impl);
++
++    return ref;
++}
++
++HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_GetIids(ISpeechRecognitionSemanticInterpretation *iface, ULONG *iid_count, IID **iids)
++{
++    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++    return E_NOTIMPL;
++}
++
++HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_GetRuntimeClassName(ISpeechRecognitionSemanticInterpretation *iface, HSTRING *class_name)
++{
++    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
++    return E_NOTIMPL;
++}
++
++HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_GetTrustLevel(ISpeechRecognitionSemanticInterpretation *iface, TrustLevel *trust_level)
++{
++    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
++    return E_NOTIMPL;
++}
++
++HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_get_Properties(ISpeechRecognitionSemanticInterpretation *iface, IMapView_HSTRING_IVectorView_HSTRING **value)
++{
++    FIXME("iface %p stub!\n", iface);
++    return E_NOTIMPL;
++}
++
++static const struct ISpeechRecognitionSemanticInterpretationVtbl speech_recognition_semantic_interpretation_vtbl =
++{
++    /*** IUnknown methods ***/
++    speech_recognition_semantic_interpretation_QueryInterface,
++    speech_recognition_semantic_interpretation_AddRef,
++    speech_recognition_semantic_interpretation_Release,
++    /*** IInspectable methods ***/
++    speech_recognition_semantic_interpretation_GetIids,
++    speech_recognition_semantic_interpretation_GetRuntimeClassName,
++    speech_recognition_semantic_interpretation_GetTrustLevel,
++    /*** ISpeechRecognitionSemanticInterpretation methods ***/
++    speech_recognition_semantic_interpretation_get_Properties
++};
++
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_create(ISpeechRecognitionSemanticInterpretation **out)
++{
++    struct speech_recognition_semantic_interpretation *impl;
++
++    TRACE("out %p.\n", out);
++
++    if (!(impl = calloc(1, sizeof(*impl))))
++    {
++        *out = NULL;
++        return E_OUTOFMEMORY;
++    }
++
++    impl->ISpeechRecognitionSemanticInterpretation_iface.lpVtbl = &speech_recognition_semantic_interpretation_vtbl;
++    impl->ref = 1;
++
++    *out = &impl->ISpeechRecognitionSemanticInterpretation_iface;
++    return S_OK;
++}
++
+ struct vector_view_speech_recognition_result
+ {
+     IVectorView_SpeechRecognitionResult IVectorView_SpeechRecognitionResult_iface;
+-- 
+2.35.1
+

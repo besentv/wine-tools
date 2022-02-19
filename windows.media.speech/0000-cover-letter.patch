@@ -1,19 +1,14 @@
-From 21b64761d0e434e0ffa52c446a4c327e4f6ccf98 Mon Sep 17 00:00:00 2001
+From ab7ceb1f235c44a034fdad9542d7c4836668b3da Mon Sep 17 00:00:00 2001
 From: Bernhard Kölbl <besentv@gmail.com>
-Date: Mon, 7 Feb 2022 23:21:13 +0100
-Subject: [PATCH v2 00/49] *** SUBJECT HERE ***
+Date: Sun, 20 Feb 2022 00:19:00 +0100
+Subject: [PATCH v2 00/52] *** SUBJECT HERE ***
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
 *** BLURB HERE ***
 
-Bernhard Kölbl (49):
-  include/windows.foundation.collections.idl: Add IVector<T> interface.
-  include/windows.foundation.idl: Add IAsyncAction interface.
-  include/windows.foundation.idl: Add more declares.
-  include/windows.globalization.idl: Add Language class and interfaces.
-  include: Add windows.media.speechrecognition.idl.
+Bernhard Kölbl (52):
   include/windows.media.speechrecognition.idl: Add
     SpeechRecognitionResult.
   include/windows.media.speechrecognition.idl: Add
@@ -83,34 +78,43 @@ Bernhard Kölbl (49):
   windows.media.speech: Return dummy value for get_Confidence.
   windows.media.speech: Implement
     ISpeechRecognitionResult_get_Constraint.
+  windows.media.speech: Return dummy value for
+    ISpeechRecognitionResult_get_PhraseStartTime.
+  windows.media.speech: Return dummy value for
+    ISpeechRecognitionResult2_get_PhraseDuration.
+  windows.media.speech: Add ISpeechRecognitionSemanticInterpretation
+    stub.
+  windows.media.speech: Return dummy value for
+    ISpeechRecognitionResult_get_Status.
+  windows.media.speech: Return dummy value for
+    ISpeechRecognitionResult_get_SemanticInterpretation.
+  windows.media.speech: Return dummy value for
+    ISpeechRecognitionResult_GetAlternatives.
+  Some work.
+  Profit?!
 
- dlls/windows.media.speech/Makefile.in         |    9 +-
+ dlls/windows.media.speech/Makefile.in         |   11 +-
  dlls/windows.media.speech/classes.idl         |    1 +
- dlls/windows.media.speech/main.c              |  590 +-----
- .../speechcontinuousrecognition.c             |  297 +++
- .../speechrecognitioncompilationresult.c      |  151 ++
- .../speechrecognitionlistconstraint.c         |  833 ++++++++
- .../speechrecognitionresult.c                 |  595 ++++++
- dlls/windows.media.speech/speechrecognizer.c  | 1756 +++++++++++++++++
- .../speechrecognizerstatechangedrventargs.c   |  156 ++
- dlls/windows.media.speech/speechsynthesizer.c |  569 ++++++
- dlls/windows.media.speech/tests/speech.c      |  611 ++++++
- .../windows_media_speech_private.h            |   83 +
- include/Makefile.in                           |    1 +
- include/windows.foundation.collections.idl    |   20 +
- include/windows.foundation.idl                |   31 +-
- include/windows.globalization.idl             |  132 ++
- include/windows.media.speechrecognition.idl   |  614 ++++++
- 17 files changed, 5877 insertions(+), 572 deletions(-)
- create mode 100644 dlls/windows.media.speech/speechcontinuousrecognition.c
- create mode 100644 dlls/windows.media.speech/speechrecognitioncompilationresult.c
+ dlls/windows.media.speech/main.c              |  596 +---
+ .../speechrecognitionlistconstraint.c         |  840 ++++++
+ .../speechrecognitionresult.c                 |  945 ++++++
+ dlls/windows.media.speech/speechrecognizer.c  | 2551 +++++++++++++++++
+ dlls/windows.media.speech/speechsynthesizer.c |  569 ++++
+ dlls/windows.media.speech/tests/speech.c      |  864 ++++++
+ dlls/windows.media.speech/unixlib.c           |  112 +
+ dlls/windows.media.speech/unixlib.h           |   45 +
+ .../windows_media_speech_private.h            |   89 +
+ include/windows.foundation.collections.idl    |   12 +
+ include/windows.foundation.idl                |    3 +
+ include/windows.media.speechrecognition.idl   |  526 ++++
+ 14 files changed, 6599 insertions(+), 565 deletions(-)
  create mode 100644 dlls/windows.media.speech/speechrecognitionlistconstraint.c
  create mode 100644 dlls/windows.media.speech/speechrecognitionresult.c
  create mode 100644 dlls/windows.media.speech/speechrecognizer.c
- create mode 100644 dlls/windows.media.speech/speechrecognizerstatechangedrventargs.c
  create mode 100644 dlls/windows.media.speech/speechsynthesizer.c
+ create mode 100644 dlls/windows.media.speech/unixlib.c
+ create mode 100644 dlls/windows.media.speech/unixlib.h
  create mode 100644 dlls/windows.media.speech/windows_media_speech_private.h
- create mode 100644 include/windows.media.speechrecognition.idl
 
 -- 
 2.35.1

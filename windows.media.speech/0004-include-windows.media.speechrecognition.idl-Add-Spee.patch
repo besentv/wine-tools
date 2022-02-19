@@ -1,0 +1,67 @@
+From 19db0f76f4b5e24ca566ff67f356b85347ac1925 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Sun, 30 Jan 2022 18:30:07 +0100
+Subject: [PATCH v2 04/52] include/windows.media.speechrecognition.idl: Add
+ SpeechRecognitionHypothesisGeneratedEventArgs.
+
+---
+ include/windows.media.speechrecognition.idl | 22 +++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/include/windows.media.speechrecognition.idl b/include/windows.media.speechrecognition.idl
+index 9ecb3213663..76352531116 100644
+--- a/include/windows.media.speechrecognition.idl
++++ b/include/windows.media.speechrecognition.idl
+@@ -42,6 +42,7 @@ namespace Windows {
+             interface ISpeechContinuousRecognitionSession;
+             interface ISpeechRecognitionConstraint;
+             interface ISpeechRecognitionHypothesis;
++            interface ISpeechRecognitionHypothesisGeneratedEventArgs;
+             interface ISpeechRecognitionResult;
+             interface ISpeechRecognitionResult2;
+             interface ISpeechRecognitionSemanticInterpretation;
+@@ -49,6 +50,7 @@ namespace Windows {
+             runtimeclass SpeechContinuousRecognitionResultGeneratedEventArgs;
+             runtimeclass SpeechContinuousRecognitionSession;
+             runtimeclass SpeechRecognitionHypothesis;
++            runtimeclass SpeechRecognitionHypothesisGeneratedEventArgs;
+             runtimeclass SpeechRecognitionResult;
+             runtimeclass SpeechRecognitionSemanticInterpretation;
+         }
+@@ -192,6 +194,16 @@ namespace Windows {
+                 [propget] HRESULT Text([out, retval] HSTRING *value);
+             }
+ 
++            [
++                contract(Windows.Foundation.UniversalApiContract, 1.0),
++                exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionHypothesisGeneratedEventArgs),
++                uuid(55161a7a-8023-5866-411d-1213bb271476)
++            ]
++            interface ISpeechRecognitionHypothesisGeneratedEventArgs : IInspectable
++            {
++                [propget] HRESULT Hypothesis([out, retval] Windows.Media.SpeechRecognition.SpeechRecognitionHypothesis **value);
++            }
++
+             [
+                 contract(Windows.Foundation.UniversalApiContract, 1.0),
+                 exclusiveto(Windows.Media.SpeechRecognition.SpeechRecognitionResult),
+@@ -270,6 +282,16 @@ namespace Windows {
+                 [default] interface Windows.Media.SpeechRecognition.ISpeechRecognitionHypothesis;
+             }
+ 
++            [
++                contract(Windows.Foundation.UniversalApiContract, 1.0),
++                marshaling_behavior(agile),
++                threading(both)
++            ]
++            runtimeclass SpeechRecognitionHypothesisGeneratedEventArgs
++            {
++                [default] interface Windows.Media.SpeechRecognition.ISpeechRecognitionHypothesisGeneratedEventArgs;
++            }
++
+             [
+                 contract(Windows.Foundation.UniversalApiContract, 1.0),
+                 marshaling_behavior(agile)
+-- 
+2.35.1
+

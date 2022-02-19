@@ -1,0 +1,27 @@
+From ca22aefeb3584e63008aec6f887a61447243da05 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Tue, 8 Feb 2022 13:20:29 +0100
+Subject: [PATCH v2 49/52] windows.media.speech: Return dummy value for
+ ISpeechRecognitionResult_get_SemanticInterpretation.
+
+---
+ dlls/windows.media.speech/speechrecognitionresult.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/dlls/windows.media.speech/speechrecognitionresult.c b/dlls/windows.media.speech/speechrecognitionresult.c
+index 8e8f8636163..969cde1f68c 100644
+--- a/dlls/windows.media.speech/speechrecognitionresult.c
++++ b/dlls/windows.media.speech/speechrecognitionresult.c
+@@ -527,7 +527,8 @@ static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_SemanticInterpret
+     ISpeechRecognitionResult *iface, ISpeechRecognitionSemanticInterpretation **value)
+ {
+     FIXME("iface %p, operation %p stub!\n", iface, value);
+-    return E_NOTIMPL;
++    speech_recognition_semantic_interpretation_create(value);
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE speech_recognition_result_GetAlternatives(
+-- 
+2.35.1
+

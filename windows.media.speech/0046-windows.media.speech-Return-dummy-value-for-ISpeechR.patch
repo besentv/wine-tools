@@ -1,0 +1,29 @@
+From 5d80719c729e0a3cf27a995369fd7cb045fe23f2 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Tue, 8 Feb 2022 12:50:17 +0100
+Subject: [PATCH v2 46/52] windows.media.speech: Return dummy value for
+ ISpeechRecognitionResult2_get_PhraseDuration.
+
+---
+ dlls/windows.media.speech/speechrecognitionresult.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/dlls/windows.media.speech/speechrecognitionresult.c b/dlls/windows.media.speech/speechrecognitionresult.c
+index 4a028ebf747..1aceba97261 100644
+--- a/dlls/windows.media.speech/speechrecognitionresult.c
++++ b/dlls/windows.media.speech/speechrecognitionresult.c
+@@ -554,8 +554,10 @@ static HRESULT STDMETHODCALLTYPE speech_recognition_result2_get_PhraseStartTime(
+ 
+ static HRESULT STDMETHODCALLTYPE speech_recognition_result2_get_PhraseDuration(ISpeechRecognitionResult2 *iface, TimeSpan *value)
+ {
++    TimeSpan ts = { .Duration = 0 };
+     FIXME("iface %p, value %p stub!\n", iface, value);
+-    return E_NOTIMPL;
++    *value = ts;
++    return S_OK;
+ }
+ 
+ static const struct ISpeechRecognitionResult2Vtbl speech_recognition_result2_vtbl =
+-- 
+2.35.1
+

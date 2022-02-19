@@ -1,0 +1,1612 @@
+From ab7ceb1f235c44a034fdad9542d7c4836668b3da Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Sun, 13 Feb 2022 18:38:44 +0100
+Subject: [PATCH v2 52/52] Profit?!
+
+---
+ dlls/windows.media.speech/Makefile.in         |   7 +-
+ dlls/windows.media.speech/main.c              |  20 +
+ .../speechrecognitionlistconstraint.c         |   6 +-
+ .../speechrecognitionresult.c                 | 431 ++++++++++++++----
+ dlls/windows.media.speech/speechrecognizer.c  | 251 +++++++++-
+ dlls/windows.media.speech/tests/speech.c      | 102 ++++-
+ dlls/windows.media.speech/unixlib.c           | 112 +++++
+ dlls/windows.media.speech/unixlib.h           |  45 ++
+ .../windows_media_speech_private.h            |  13 +-
+ include/windows.foundation.collections.idl    |  12 +
+ include/windows.foundation.idl                |   3 +
+ 11 files changed, 855 insertions(+), 147 deletions(-)
+ create mode 100644 dlls/windows.media.speech/unixlib.c
+ create mode 100644 dlls/windows.media.speech/unixlib.h
+
+diff --git a/dlls/windows.media.speech/Makefile.in b/dlls/windows.media.speech/Makefile.in
+index 9d5a25ea8e5..e678154313e 100644
+--- a/dlls/windows.media.speech/Makefile.in
++++ b/dlls/windows.media.speech/Makefile.in
+@@ -1,12 +1,15 @@
+ EXTRADEFS = -DWINE_NO_LONG_TYPES
+ MODULE = windows.media.speech.dll
+-IMPORTS = combase uuid
++UNIXLIB   = windows.media.speech.so
++IMPORTS = combase winmm
++EXTRALIBS = -lvosk
+ 
+ C_SRCS = \
+ 	main.c \
+ 	speechrecognitionlistconstraint.c \
+ 	speechrecognitionresult.c \
+ 	speechrecognizer.c \
+-	speechsynthesizer.c
++	speechsynthesizer.c \
++	unixlib.c
+ 
+ IDL_SRCS = classes.idl
+diff --git a/dlls/windows.media.speech/main.c b/dlls/windows.media.speech/main.c
+index 2eea8f3ff7f..b74607f13c2 100644
+--- a/dlls/windows.media.speech/main.c
++++ b/dlls/windows.media.speech/main.c
+@@ -20,9 +20,29 @@
+ #define WINDOWS_MEDIA_SPEECH_INIT_GUID
+ 
+ #include "windows_media_speech_private.h"
++#include "unixlib.h"
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(speech);
+ 
++unixlib_handle_t speech_handle = 0;
++#define SPEECH_CALL(func, args) __wine_unix_call( speech_handle, unix_ ## func, args )
++
++BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
++{
++    NTSTATUS status;
++    TRACE("hinstDLL %p, fdwReason %x, lpvReserved %p\n", hinstDLL, fdwReason, lpvReserved);
++
++    switch (fdwReason) {
++        case DLL_PROCESS_ATTACH:
++            status = NtQueryVirtualMemory( GetCurrentProcess(), hinstDLL, MemoryWineUnixFuncs,
++                                  &speech_handle, sizeof(speech_handle), NULL );
++            TRACE("status %u\n", status);
++            break;
++    }
++
++    return TRUE;
++}
++
+ HRESULT WINAPI DllGetClassObject(REFCLSID clsid, REFIID riid, void **out)
+ {
+     FIXME("clsid %s, riid %s, out %p stub!\n", debugstr_guid(clsid), debugstr_guid(riid), out);
+diff --git a/dlls/windows.media.speech/speechrecognitionlistconstraint.c b/dlls/windows.media.speech/speechrecognitionlistconstraint.c
+index b31124a4fc9..63f3ae4fee8 100644
+--- a/dlls/windows.media.speech/speechrecognitionlistconstraint.c
++++ b/dlls/windows.media.speech/speechrecognitionlistconstraint.c
+@@ -125,7 +125,7 @@ static HRESULT STDMETHODCALLTYPE vector_hstring_get_Size(
+     struct vector_hstring *impl = impl_from_IVector_HSTRING(iface);
+     FIXME("iface %p, value %p stub!\n", iface, value);
+     *value = (UINT32)impl->count;
+-    FIXME("ret value %p stub!\n", *value);
++    //FIXME("ret value %p stub!\n", *value);
+     return S_OK;
+ }
+ 
+@@ -252,7 +252,7 @@ static HRESULT vector_hstring_create(HSTRING *values, SIZE_T count, IVector_HSTR
+     memcpy(impl->values, values, count * sizeof(HSTRING));
+ 
+     *out = &impl->IVector_HSTRING_iface;
+-    TRACE("ret %p\n", *out);
++    //TRACE("ret %p\n", *out);
+     return S_OK;
+ }
+ 
+@@ -582,7 +582,7 @@ static HRESULT STDMETHODCALLTYPE speech_recognition_list_constraint_create_with_
+     }
+ 
+     *out = &impl->ISpeechRecognitionListConstraint_iface;
+-    TRACE("ret %p\n", *out);
++    //TRACE("ret %p\n", *out);
+     return hr;
+ }
+ 
+diff --git a/dlls/windows.media.speech/speechrecognitionresult.c b/dlls/windows.media.speech/speechrecognitionresult.c
+index b7f41adf631..29a65bbed5c 100644
+--- a/dlls/windows.media.speech/speechrecognitionresult.c
++++ b/dlls/windows.media.speech/speechrecognitionresult.c
+@@ -21,24 +21,30 @@
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(speech);
+ 
+-struct speech_recognition_semantic_interpretation
++/*
++ *
++ * IVectorView<HSTRING>
++ *
++ */
++
++struct vector_view_hstring
+ {
+-    ISpeechRecognitionSemanticInterpretation ISpeechRecognitionSemanticInterpretation_iface;
++    IVectorView_HSTRING IVectorView_HSTRING_iface;
+     LONG ref;
+ };
+ 
+-static inline struct speech_recognition_semantic_interpretation *impl_from_ISpeechRecognitionSemanticInterpretation(ISpeechRecognitionSemanticInterpretation *iface)
++static inline struct vector_view_hstring *impl_from_IVectorView_HSTRING(IVectorView_HSTRING *iface)
+ {
+-    return CONTAINING_RECORD(iface, struct speech_recognition_semantic_interpretation, ISpeechRecognitionSemanticInterpretation_iface);
++    return CONTAINING_RECORD(iface, struct vector_view_hstring, IVectorView_HSTRING_iface);
+ }
+ 
+-HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_QueryInterface(ISpeechRecognitionSemanticInterpretation *iface, REFIID iid, void **out)
++HRESULT STDMETHODCALLTYPE vector_view_hstring_QueryInterface(IVectorView_HSTRING *iface, REFIID iid, void **out)
+ {
+     TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
+ 
+     if (IsEqualGUID(iid, &IID_IUnknown) ||
+         IsEqualGUID(iid, &IID_IInspectable) ||
+-        IsEqualGUID(iid, &IID_ISpeechRecognitionSemanticInterpretation))
++        IsEqualGUID(iid, &IID_IVectorView_SpeechRecognitionResult))
+     {
+         IUnknown_AddRef(iface);
+         *out = iface;
+@@ -50,9 +56,9 @@ HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_QueryInterf
+     return E_NOINTERFACE;
+ }
+ 
+-ULONG STDMETHODCALLTYPE speech_recognition_semantic_interpretation_AddRef(ISpeechRecognitionSemanticInterpretation *iface)
++ULONG STDMETHODCALLTYPE vector_view_hstring_AddRef(IVectorView_HSTRING *iface)
+ {
+-    struct speech_recognition_semantic_interpretation *impl = impl_from_ISpeechRecognitionSemanticInterpretation(iface);
++    struct vector_view_hstring *impl = impl_from_IVectorView_HSTRING(iface);
+ 
+     ULONG ref = InterlockedIncrement(&impl->ref);
+     TRACE("iface %p, ref %u.\n", iface, ref);
+@@ -60,9 +66,9 @@ ULONG STDMETHODCALLTYPE speech_recognition_semantic_interpretation_AddRef(ISpeec
+     return ref;
+ }
+ 
+-ULONG STDMETHODCALLTYPE speech_recognition_semantic_interpretation_Release(ISpeechRecognitionSemanticInterpretation *iface)
++ULONG STDMETHODCALLTYPE vector_view_hstring_Release(IVectorView_HSTRING *iface)
+ {
+-    struct speech_recognition_semantic_interpretation *impl = impl_from_ISpeechRecognitionSemanticInterpretation(iface);
++    struct vector_view_hstring *impl = impl_from_IVectorView_HSTRING(iface);
+ 
+     ULONG ref = InterlockedDecrement(&impl->ref);
+     TRACE("iface %p, ref %u.\n", iface, ref);
+@@ -73,48 +79,69 @@ ULONG STDMETHODCALLTYPE speech_recognition_semantic_interpretation_Release(ISpee
+     return ref;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_GetIids(ISpeechRecognitionSemanticInterpretation *iface, ULONG *iid_count, IID **iids)
++HRESULT STDMETHODCALLTYPE vector_view_hstring_GetIids(IVectorView_HSTRING *iface, ULONG *iid_count, IID **iids)
+ {
+     FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
+     return E_NOTIMPL;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_GetRuntimeClassName(ISpeechRecognitionSemanticInterpretation *iface, HSTRING *class_name)
++HRESULT STDMETHODCALLTYPE vector_view_hstring_GetRuntimeClassName(IVectorView_HSTRING *iface, HSTRING *class_name)
+ {
+     FIXME("iface %p, class_name %p stub!\n", iface, class_name);
+     return E_NOTIMPL;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_GetTrustLevel(ISpeechRecognitionSemanticInterpretation *iface, TrustLevel *trust_level)
++HRESULT STDMETHODCALLTYPE vector_view_hstring_GetTrustLevel(IVectorView_HSTRING *iface, TrustLevel *trust_level)
+ {
+     FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
+     return E_NOTIMPL;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_get_Properties(ISpeechRecognitionSemanticInterpretation *iface, IMapView_HSTRING_IVectorView_HSTRING **value)
++HRESULT STDMETHODCALLTYPE vector_view_hstring_GetAt(IVectorView_HSTRING *iface, UINT32 index, HSTRING *value)
+ {
+     FIXME("iface %p stub!\n", iface);
+     return E_NOTIMPL;
+ }
+ 
+-static const struct ISpeechRecognitionSemanticInterpretationVtbl speech_recognition_semantic_interpretation_vtbl =
++HRESULT STDMETHODCALLTYPE vector_view_hstring_get_Size(IVectorView_HSTRING *iface, UINT32 *value)
++{
++    FIXME("iface %p stub!\n", iface);
++    return E_NOTIMPL;
++}
++
++HRESULT STDMETHODCALLTYPE vector_view_hstring_IndexOf(IVectorView_HSTRING *iface, HSTRING element, UINT32 *index, BOOLEAN *value)
++{
++    FIXME("iface %p stub!\n", iface);
++    return E_NOTIMPL;
++}
++
++HRESULT STDMETHODCALLTYPE vector_view_hstring_GetMany(IVectorView_HSTRING *iface, UINT32 start_index, UINT32 items_size, HSTRING *items, UINT32 *value)
++{
++    FIXME("iface %p stub!\n", iface);
++    return E_NOTIMPL;
++}
++
++static const struct IVectorView_HSTRINGVtbl vector_view_hstring_vtbl =
+ {
+     /*** IUnknown methods ***/
+-    speech_recognition_semantic_interpretation_QueryInterface,
+-    speech_recognition_semantic_interpretation_AddRef,
+-    speech_recognition_semantic_interpretation_Release,
++    vector_view_hstring_QueryInterface,
++    vector_view_hstring_AddRef,
++    vector_view_hstring_Release,
+     /*** IInspectable methods ***/
+-    speech_recognition_semantic_interpretation_GetIids,
+-    speech_recognition_semantic_interpretation_GetRuntimeClassName,
+-    speech_recognition_semantic_interpretation_GetTrustLevel,
+-    /*** ISpeechRecognitionSemanticInterpretation methods ***/
+-    speech_recognition_semantic_interpretation_get_Properties
++    vector_view_hstring_GetIids,
++    vector_view_hstring_GetRuntimeClassName,
++    vector_view_hstring_GetTrustLevel,
++    /*** IVectorView<HSTRING > methods ***/
++    vector_view_hstring_GetAt,
++    vector_view_hstring_get_Size,
++    vector_view_hstring_IndexOf,
++    vector_view_hstring_GetMany
+ };
+ 
+ 
+-static HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_create(ISpeechRecognitionSemanticInterpretation **out)
++static HRESULT STDMETHODCALLTYPE vector_view_hstring_create(IVectorView_HSTRING **out)
+ {
+-    struct speech_recognition_semantic_interpretation *impl;
++    struct vector_view_hstring *impl;
+ 
+     TRACE("out %p.\n", out);
+ 
+@@ -124,32 +151,40 @@ static HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_crea
+         return E_OUTOFMEMORY;
+     }
+ 
+-    impl->ISpeechRecognitionSemanticInterpretation_iface.lpVtbl = &speech_recognition_semantic_interpretation_vtbl;
++    impl->IVectorView_HSTRING_iface.lpVtbl = &vector_view_hstring_vtbl;
+     impl->ref = 1;
+ 
+-    *out = &impl->ISpeechRecognitionSemanticInterpretation_iface;
++    *out = &impl->IVectorView_HSTRING_iface;
+     TRACE("ret %p\n", *out);
+     return S_OK;
+ }
+ 
+-struct vector_view_speech_recognition_result
++/*
++ *
++ * IMapView<HSTRING, Windows.Foundation.Collections.IVectorView<HSTRING>*>
++ *
++ */
++
++struct map_view_hstring_vector_view_hstring
+ {
+-    IVectorView_SpeechRecognitionResult IVectorView_SpeechRecognitionResult_iface;
++    IMapView_HSTRING_IVectorView_HSTRING IMapView_HSTRING_IVectorView_HSTRING_iface;
++    IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING_iface;
+     LONG ref;
+ };
+ 
+-static inline struct vector_view_speech_recognition_result *impl_from_IVectorView_SpeechRecognitionResult(IVectorView_SpeechRecognitionResult *iface)
++static inline struct map_view_hstring_vector_view_hstring *impl_from_IMapView_HSTRING_IVectorView_HSTRING(IMapView_HSTRING_IVectorView_HSTRING *iface)
+ {
+-    return CONTAINING_RECORD(iface, struct vector_view_speech_recognition_result, IVectorView_SpeechRecognitionResult_iface);
++    return CONTAINING_RECORD(iface, struct map_view_hstring_vector_view_hstring, IMapView_HSTRING_IVectorView_HSTRING_iface);
+ }
+ 
+-HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_QueryInterface(IVectorView_SpeechRecognitionResult *iface, REFIID iid, void **out)
++HRESULT STDMETHODCALLTYPE map_view_hstring_vector_view_hstring_QueryInterface(IMapView_HSTRING_IVectorView_HSTRING *iface, const IID *iid, void **out)
+ {
+     TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
+ 
+     if (IsEqualGUID(iid, &IID_IUnknown) ||
+         IsEqualGUID(iid, &IID_IInspectable) ||
+-        IsEqualGUID(iid, &IID_IVectorView_SpeechRecognitionResult))
++        IsEqualGUID(iid, &IID_IMapView_HSTRING_IVectorView_HSTRING) ||
++        IsEqualGUID(iid, &IID_IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING))
+     {
+         IUnknown_AddRef(iface);
+         *out = iface;
+@@ -161,9 +196,9 @@ HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_QueryInterface(I
+     return E_NOINTERFACE;
+ }
+ 
+-ULONG STDMETHODCALLTYPE vector_view_speech_recognition_result_AddRef(IVectorView_SpeechRecognitionResult *iface)
++ULONG STDMETHODCALLTYPE map_view_hstring_vector_view_hstring_AddRef(IMapView_HSTRING_IVectorView_HSTRING *iface)
+ {
+-    struct vector_view_speech_recognition_result *impl = impl_from_IVectorView_SpeechRecognitionResult(iface);
++    struct map_view_hstring_vector_view_hstring *impl = impl_from_IMapView_HSTRING_IVectorView_HSTRING(iface);
+ 
+     ULONG ref = InterlockedIncrement(&impl->ref);
+     TRACE("iface %p, ref %u.\n", iface, ref);
+@@ -171,9 +206,9 @@ ULONG STDMETHODCALLTYPE vector_view_speech_recognition_result_AddRef(IVectorView
+     return ref;
+ }
+ 
+-ULONG STDMETHODCALLTYPE vector_view_speech_recognition_result_Release(IVectorView_SpeechRecognitionResult *iface)
++ULONG STDMETHODCALLTYPE map_view_hstring_vector_view_hstring_Release(IMapView_HSTRING_IVectorView_HSTRING *iface)
+ {
+-    struct vector_view_speech_recognition_result *impl = impl_from_IVectorView_SpeechRecognitionResult(iface);
++    struct map_view_hstring_vector_view_hstring *impl = impl_from_IMapView_HSTRING_IVectorView_HSTRING(iface);
+ 
+     ULONG ref = InterlockedDecrement(&impl->ref);
+     TRACE("iface %p, ref %u.\n", iface, ref);
+@@ -184,68 +219,158 @@ ULONG STDMETHODCALLTYPE vector_view_speech_recognition_result_Release(IVectorVie
+     return ref;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_GetIids(IVectorView_SpeechRecognitionResult *iface, ULONG *iid_count, IID **iids)
++HRESULT STDMETHODCALLTYPE map_view_hstring_vector_view_hstring_GetIids(IMapView_HSTRING_IVectorView_HSTRING *iface, ULONG *iid_count, IID **iids)
+ {
+     FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
+     return E_NOTIMPL;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_GetRuntimeClassName(IVectorView_SpeechRecognitionResult *iface, HSTRING *class_name)
++HRESULT STDMETHODCALLTYPE map_view_hstring_vector_view_hstring_GetRuntimeClassName(IMapView_HSTRING_IVectorView_HSTRING *iface, HSTRING *class_name)
+ {
+     FIXME("iface %p, class_name %p stub!\n", iface, class_name);
+     return E_NOTIMPL;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_GetTrustLevel(IVectorView_SpeechRecognitionResult *iface, TrustLevel *trust_level)
++HRESULT STDMETHODCALLTYPE map_view_hstring_vector_view_hstring_GetTrustLevel(IMapView_HSTRING_IVectorView_HSTRING *iface, TrustLevel *trust_level)
+ {
+     FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
+     return E_NOTIMPL;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_GetAt(IVectorView_SpeechRecognitionResult *iface, UINT32 index, ISpeechRecognitionResult **value)
++HRESULT STDMETHODCALLTYPE map_view_hstring_vector_view_hstring_Lookup(IMapView_HSTRING_IVectorView_HSTRING *iface, HSTRING key, IVectorView_HSTRING **value)
+ {
+-    FIXME("iface %p stub!\n", iface);
++    FIXME("iface %p, key %s, value %p stub!\n", iface, debugstr_hstring(key), value);
++
++    if(!value)
++        return E_POINTER;
++
+     return E_NOTIMPL;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_get_Size(IVectorView_SpeechRecognitionResult *iface, UINT32 *value)
++HRESULT STDMETHODCALLTYPE map_view_hstring_vector_view_hstring_get_Size(IMapView_HSTRING_IVectorView_HSTRING *iface, UINT32 *size)
++{
++    FIXME("iface %p semi stub.\n", iface);
++    *size = 0;
++    return S_OK; 
++}
++
++HRESULT STDMETHODCALLTYPE map_view_hstring_vector_view_hstring_HasKey(IMapView_HSTRING_IVectorView_HSTRING *iface, HSTRING key, boolean *found)
+ {
+     FIXME("iface %p stub!\n", iface);
+     return E_NOTIMPL;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_IndexOf(IVectorView_SpeechRecognitionResult *iface, ISpeechRecognitionResult *element, UINT32 *index, BOOLEAN *value)
++HRESULT STDMETHODCALLTYPE map_view_hstring_vector_view_hstring_Split(IMapView_HSTRING_IVectorView_HSTRING *iface, IMapView_HSTRING_IVectorView_HSTRING **first, IMapView_HSTRING_IVectorView_HSTRING **second)
+ {
+     FIXME("iface %p stub!\n", iface);
+     return E_NOTIMPL;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_GetMany(IVectorView_SpeechRecognitionResult *iface, UINT32 start_index, UINT32 items_size, ISpeechRecognitionResult **items, UINT32 *value)
++static const struct IMapView_HSTRING_IVectorView_HSTRINGVtbl map_view_hstring_vector_view_hstring_vtbl =
++{
++    /*** IUnknown methods ***/
++    map_view_hstring_vector_view_hstring_QueryInterface,
++    map_view_hstring_vector_view_hstring_AddRef,
++    map_view_hstring_vector_view_hstring_Release,
++    /*** IInspectable methods ***/
++    map_view_hstring_vector_view_hstring_GetIids,
++    map_view_hstring_vector_view_hstring_GetRuntimeClassName,
++    map_view_hstring_vector_view_hstring_GetTrustLevel,
++    /*** IMapView<HSTRING,ABI::Windows::Foundation::Collections::IVectorView<HSTRING >* > methods ***/
++    map_view_hstring_vector_view_hstring_Lookup,
++    map_view_hstring_vector_view_hstring_get_Size,
++    map_view_hstring_vector_view_hstring_HasKey,
++    map_view_hstring_vector_view_hstring_Split
++};
++
++/*
++ *
++ * IIterable<Windows.Foundation.Collections.IKeyValuePair<HSTRING, Windows.Foundation.Collections.IVectorView<HSTRING>*>*>
++ *
++ */
++
++static inline struct map_view_hstring_vector_view_hstring *impl_from_IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING(IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING *iface)
++{
++    return CONTAINING_RECORD(iface, struct map_view_hstring_vector_view_hstring, IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING_iface);
++}
++
++HRESULT STDMETHODCALLTYPE iterable_key_value_pair_hstring_vector_view_hstring_QueryInterface(IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING *iface, const IID *iid, void **out)
++{
++    struct map_view_hstring_vector_view_hstring *impl = impl_from_IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING(iface);
++    TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
++    /* IUnknown_QueryInterface already defined by IMapView_HSTRING_IVectorView_HSTRING_iface. Redirect there. */
++    return IMapView_HSTRING_IVectorView_HSTRING_QueryInterface(&impl->IMapView_HSTRING_IVectorView_HSTRING_iface, iid, out);
++}
++
++ULONG STDMETHODCALLTYPE iterable_key_value_pair_hstring_vector_view_hstring_AddRef(IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING *iface)
++{
++    struct map_view_hstring_vector_view_hstring *impl = impl_from_IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING(iface);
++    TRACE("iface %p.\n", iface);
++    /* IUnknown_AddRef already defined by IMapView_HSTRING_IVectorView_HSTRING_iface. Redirect there. */
++    return IMapView_HSTRING_IVectorView_HSTRING_AddRef(&impl->IMapView_HSTRING_IVectorView_HSTRING_iface);
++}
++
++ULONG STDMETHODCALLTYPE iterable_key_value_pair_hstring_vector_view_hstring_Release(IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING *iface)
++{
++    struct map_view_hstring_vector_view_hstring *impl = impl_from_IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING(iface);
++    TRACE("iface %p.\n", iface);
++    /* IUnknown_AddRef already defined by IMapView_HSTRING_IVectorView_HSTRING_iface. Redirect there. */
++    return IMapView_HSTRING_IVectorView_HSTRING_AddRef(&impl->IMapView_HSTRING_IVectorView_HSTRING_iface);
++}
++
++HRESULT STDMETHODCALLTYPE iterable_key_value_pair_hstring_vector_view_hstring_GetIids(IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING *iface, ULONG *iid_count, IID **iids)
++{
++    struct map_view_hstring_vector_view_hstring *impl = impl_from_IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING(iface);
++
++    TRACE("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++
++    /* IInspectable_GetIids already defined by IMapView_HSTRING_IVectorView_HSTRING_iface. Redirect there. */
++    return IMapView_HSTRING_IVectorView_HSTRING_GetIids(&impl->IMapView_HSTRING_IVectorView_HSTRING_iface, iid_count, iids);
++}
++
++HRESULT STDMETHODCALLTYPE iterable_key_value_pair_hstring_vector_view_hstring_GetRuntimeClassName(IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING *iface, HSTRING *class_name)
++{
++    struct map_view_hstring_vector_view_hstring *impl = impl_from_IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING(iface);
++
++    TRACE("iface %p, class_name %p.\n", iface, class_name);
++
++    /* IInspectable_GetRuntimeClassName already defined by IMapView_HSTRING_IVectorView_HSTRING_iface. Redirect there. */
++    return IMapView_HSTRING_IVectorView_HSTRING_GetRuntimeClassName(&impl->IMapView_HSTRING_IVectorView_HSTRING_iface, class_name);
++}
++
++HRESULT STDMETHODCALLTYPE iterable_key_value_pair_hstring_vector_view_hstring_GetTrustLevel(IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING *iface, TrustLevel *trust_level)
++{
++    struct map_view_hstring_vector_view_hstring *impl = impl_from_IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING(iface);
++
++    TRACE("iface %p, trust_level %p stub!\n", iface, trust_level);
++
++    /* IInspectable_GetTrustLevel already defined by IMapView_HSTRING_IVectorView_HSTRING_iface. Redirect there. */
++    return IMapView_HSTRING_IVectorView_HSTRING_GetTrustLevel(&impl->IMapView_HSTRING_IVectorView_HSTRING_iface, trust_level);
++}
++
++HRESULT STDMETHODCALLTYPE iterable_key_value_pair_hstring_vector_view_hstring_First(IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING *iface, IIterator_IKeyValuePair_HSTRING_IVectorView_HSTRING **value)
+ {
+     FIXME("iface %p stub!\n", iface);
+     return E_NOTIMPL;
+ }
+ 
+-static const struct IVectorView_SpeechRecognitionResultVtbl vector_view_speech_recognition_result_vtbl =
++static const struct IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRINGVtbl iterable_key_value_pair_hstring_vector_view_hstring_vtbl =
+ {
+     /*** IUnknown methods ***/
+-    vector_view_speech_recognition_result_QueryInterface,
+-    vector_view_speech_recognition_result_AddRef,
+-    vector_view_speech_recognition_result_Release,
++    iterable_key_value_pair_hstring_vector_view_hstring_QueryInterface,
++    iterable_key_value_pair_hstring_vector_view_hstring_AddRef,
++    iterable_key_value_pair_hstring_vector_view_hstring_Release,
+     /*** IInspectable methods ***/
+-    vector_view_speech_recognition_result_GetIids,
+-    vector_view_speech_recognition_result_GetRuntimeClassName,
+-    vector_view_speech_recognition_result_GetTrustLevel,
+-    /*** IVectorView<ABI::Windows::Media::SpeechRecognition::SpeechRecognitionResult* > methods ***/
+-    vector_view_speech_recognition_result_GetAt,
+-    vector_view_speech_recognition_result_get_Size,
+-    vector_view_speech_recognition_result_IndexOf,
+-    vector_view_speech_recognition_result_GetMany
++    iterable_key_value_pair_hstring_vector_view_hstring_GetIids,
++    iterable_key_value_pair_hstring_vector_view_hstring_GetRuntimeClassName,
++    iterable_key_value_pair_hstring_vector_view_hstring_GetTrustLevel,
++    /*** IIterable<ABI::Windows::Foundation::Collections::IKeyValuePair<HSTRING,ABI::Windows::Foundation::Collections::IVectorView<HSTRING >* >* > methods ***/
++    iterable_key_value_pair_hstring_vector_view_hstring_First
+ };
+ 
+-static HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_create(IVectorView_SpeechRecognitionResult **out)
++static HRESULT STDMETHODCALLTYPE map_view_hstring_vector_view_hstring_create(IMapView_HSTRING_IVectorView_HSTRING **out)
+ {
+-    struct vector_view_speech_recognition_result *impl;
++    struct map_view_hstring_vector_view_hstring *impl;
+ 
+     TRACE("out %p.\n", out);
+ 
+@@ -255,32 +380,137 @@ static HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_create(IV
+         return E_OUTOFMEMORY;
+     }
+ 
+-    impl->IVectorView_SpeechRecognitionResult_iface.lpVtbl = &vector_view_speech_recognition_result_vtbl;
++    impl->IMapView_HSTRING_IVectorView_HSTRING_iface.lpVtbl = &map_view_hstring_vector_view_hstring_vtbl;
++    impl->IIterable_IKeyValuePair_HSTRING_IVectorView_HSTRING_iface.lpVtbl = &iterable_key_value_pair_hstring_vector_view_hstring_vtbl;
+     impl->ref = 1;
+ 
+-    *out = &impl->IVectorView_SpeechRecognitionResult_iface;
+-    TRACE("ret %p\n", *out);
++    *out = &impl->IMapView_HSTRING_IVectorView_HSTRING_iface;
+     return S_OK;
+ }
+ 
+-/*
+- *
+- * IVectorView<HSTRING>
+- *
+- */
++struct speech_recognition_semantic_interpretation
++{
++    ISpeechRecognitionSemanticInterpretation ISpeechRecognitionSemanticInterpretation_iface;
++    LONG ref;
++};
+ 
+-struct vector_view_hstring
++static inline struct speech_recognition_semantic_interpretation *impl_from_ISpeechRecognitionSemanticInterpretation(ISpeechRecognitionSemanticInterpretation *iface)
+ {
+-    IVectorView_HSTRING IVectorView_HSTRING_iface;
++    return CONTAINING_RECORD(iface, struct speech_recognition_semantic_interpretation, ISpeechRecognitionSemanticInterpretation_iface);
++}
++
++HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_QueryInterface(ISpeechRecognitionSemanticInterpretation *iface, REFIID iid, void **out)
++{
++    TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
++
++    if (IsEqualGUID(iid, &IID_IUnknown) ||
++        IsEqualGUID(iid, &IID_IInspectable) ||
++        IsEqualGUID(iid, &IID_ISpeechRecognitionSemanticInterpretation))
++    {
++        IUnknown_AddRef(iface);
++        *out = iface;
++        return S_OK;
++    }
++
++    WARN("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
++    *out = NULL;
++    return E_NOINTERFACE;
++}
++
++ULONG STDMETHODCALLTYPE speech_recognition_semantic_interpretation_AddRef(ISpeechRecognitionSemanticInterpretation *iface)
++{
++    struct speech_recognition_semantic_interpretation *impl = impl_from_ISpeechRecognitionSemanticInterpretation(iface);
++
++    ULONG ref = InterlockedIncrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    return ref;
++}
++
++ULONG STDMETHODCALLTYPE speech_recognition_semantic_interpretation_Release(ISpeechRecognitionSemanticInterpretation *iface)
++{
++    struct speech_recognition_semantic_interpretation *impl = impl_from_ISpeechRecognitionSemanticInterpretation(iface);
++
++    ULONG ref = InterlockedDecrement(&impl->ref);
++    TRACE("iface %p, ref %u.\n", iface, ref);
++
++    if(!ref)
++        free(impl);
++
++    return ref;
++}
++
++HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_GetIids(ISpeechRecognitionSemanticInterpretation *iface, ULONG *iid_count, IID **iids)
++{
++    FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
++    return E_NOTIMPL;
++}
++
++HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_GetRuntimeClassName(ISpeechRecognitionSemanticInterpretation *iface, HSTRING *class_name)
++{
++    FIXME("iface %p, class_name %p stub!\n", iface, class_name);
++    return E_NOTIMPL;
++}
++
++HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_GetTrustLevel(ISpeechRecognitionSemanticInterpretation *iface, TrustLevel *trust_level)
++{
++    FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
++    return E_NOTIMPL;
++}
++
++HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_get_Properties(ISpeechRecognitionSemanticInterpretation *iface, IMapView_HSTRING_IVectorView_HSTRING **value)
++{
++    FIXME("iface %p stub!\n", iface);
++    return map_view_hstring_vector_view_hstring_create(value);
++}
++
++static const struct ISpeechRecognitionSemanticInterpretationVtbl speech_recognition_semantic_interpretation_vtbl =
++{
++    /*** IUnknown methods ***/
++    speech_recognition_semantic_interpretation_QueryInterface,
++    speech_recognition_semantic_interpretation_AddRef,
++    speech_recognition_semantic_interpretation_Release,
++    /*** IInspectable methods ***/
++    speech_recognition_semantic_interpretation_GetIids,
++    speech_recognition_semantic_interpretation_GetRuntimeClassName,
++    speech_recognition_semantic_interpretation_GetTrustLevel,
++    /*** ISpeechRecognitionSemanticInterpretation methods ***/
++    speech_recognition_semantic_interpretation_get_Properties
++};
++
++
++static HRESULT STDMETHODCALLTYPE speech_recognition_semantic_interpretation_create(ISpeechRecognitionSemanticInterpretation **out)
++{
++    struct speech_recognition_semantic_interpretation *impl;
++
++    TRACE("out %p.\n", out);
++
++    if (!(impl = calloc(1, sizeof(*impl))))
++    {
++        *out = NULL;
++        return E_OUTOFMEMORY;
++    }
++
++    impl->ISpeechRecognitionSemanticInterpretation_iface.lpVtbl = &speech_recognition_semantic_interpretation_vtbl;
++    impl->ref = 1;
++
++    *out = &impl->ISpeechRecognitionSemanticInterpretation_iface;
++    TRACE("ret %p\n", *out);
++    return S_OK;
++}
++
++struct vector_view_speech_recognition_result
++{
++    IVectorView_SpeechRecognitionResult IVectorView_SpeechRecognitionResult_iface;
+     LONG ref;
+ };
+ 
+-static inline struct vector_view_hstring *impl_from_IVectorView_HSTRING(IVectorView_HSTRING *iface)
++static inline struct vector_view_speech_recognition_result *impl_from_IVectorView_SpeechRecognitionResult(IVectorView_SpeechRecognitionResult *iface)
+ {
+-    return CONTAINING_RECORD(iface, struct vector_view_hstring, IVectorView_HSTRING_iface);
++    return CONTAINING_RECORD(iface, struct vector_view_speech_recognition_result, IVectorView_SpeechRecognitionResult_iface);
+ }
+ 
+-HRESULT STDMETHODCALLTYPE vector_view_hstring_QueryInterface(IVectorView_HSTRING *iface, REFIID iid, void **out)
++HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_QueryInterface(IVectorView_SpeechRecognitionResult *iface, REFIID iid, void **out)
+ {
+     TRACE("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
+ 
+@@ -298,9 +528,9 @@ HRESULT STDMETHODCALLTYPE vector_view_hstring_QueryInterface(IVectorView_HSTRING
+     return E_NOINTERFACE;
+ }
+ 
+-ULONG STDMETHODCALLTYPE vector_view_hstring_AddRef(IVectorView_HSTRING *iface)
++ULONG STDMETHODCALLTYPE vector_view_speech_recognition_result_AddRef(IVectorView_SpeechRecognitionResult *iface)
+ {
+-    struct vector_view_hstring *impl = impl_from_IVectorView_HSTRING(iface);
++    struct vector_view_speech_recognition_result *impl = impl_from_IVectorView_SpeechRecognitionResult(iface);
+ 
+     ULONG ref = InterlockedIncrement(&impl->ref);
+     TRACE("iface %p, ref %u.\n", iface, ref);
+@@ -308,9 +538,9 @@ ULONG STDMETHODCALLTYPE vector_view_hstring_AddRef(IVectorView_HSTRING *iface)
+     return ref;
+ }
+ 
+-ULONG STDMETHODCALLTYPE vector_view_hstring_Release(IVectorView_HSTRING *iface)
++ULONG STDMETHODCALLTYPE vector_view_speech_recognition_result_Release(IVectorView_SpeechRecognitionResult *iface)
+ {
+-    struct vector_view_hstring *impl = impl_from_IVectorView_HSTRING(iface);
++    struct vector_view_speech_recognition_result *impl = impl_from_IVectorView_SpeechRecognitionResult(iface);
+ 
+     ULONG ref = InterlockedDecrement(&impl->ref);
+     TRACE("iface %p, ref %u.\n", iface, ref);
+@@ -321,69 +551,68 @@ ULONG STDMETHODCALLTYPE vector_view_hstring_Release(IVectorView_HSTRING *iface)
+     return ref;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE vector_view_hstring_GetIids(IVectorView_HSTRING *iface, ULONG *iid_count, IID **iids)
++HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_GetIids(IVectorView_SpeechRecognitionResult *iface, ULONG *iid_count, IID **iids)
+ {
+     FIXME("iface %p, iid_count %p, iids %p stub!\n", iface, iid_count, iids);
+     return E_NOTIMPL;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE vector_view_hstring_GetRuntimeClassName(IVectorView_HSTRING *iface, HSTRING *class_name)
++HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_GetRuntimeClassName(IVectorView_SpeechRecognitionResult *iface, HSTRING *class_name)
+ {
+     FIXME("iface %p, class_name %p stub!\n", iface, class_name);
+     return E_NOTIMPL;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE vector_view_hstring_GetTrustLevel(IVectorView_HSTRING *iface, TrustLevel *trust_level)
++HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_GetTrustLevel(IVectorView_SpeechRecognitionResult *iface, TrustLevel *trust_level)
+ {
+     FIXME("iface %p, trust_level %p stub!\n", iface, trust_level);
+     return E_NOTIMPL;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE vector_view_hstring_GetAt(IVectorView_HSTRING *iface, UINT32 index, HSTRING *value)
++HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_GetAt(IVectorView_SpeechRecognitionResult *iface, UINT32 index, ISpeechRecognitionResult **value)
+ {
+     FIXME("iface %p stub!\n", iface);
+     return E_NOTIMPL;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE vector_view_hstring_get_Size(IVectorView_HSTRING *iface, UINT32 *value)
++HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_get_Size(IVectorView_SpeechRecognitionResult *iface, UINT32 *value)
+ {
+     FIXME("iface %p stub!\n", iface);
+     return E_NOTIMPL;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE vector_view_hstring_IndexOf(IVectorView_HSTRING *iface, HSTRING element, UINT32 *index, BOOLEAN *value)
++HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_IndexOf(IVectorView_SpeechRecognitionResult *iface, ISpeechRecognitionResult *element, UINT32 *index, BOOLEAN *value)
+ {
+     FIXME("iface %p stub!\n", iface);
+     return E_NOTIMPL;
+ }
+ 
+-HRESULT STDMETHODCALLTYPE vector_view_hstring_GetMany(IVectorView_HSTRING *iface, UINT32 start_index, UINT32 items_size, HSTRING *items, UINT32 *value)
++HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_GetMany(IVectorView_SpeechRecognitionResult *iface, UINT32 start_index, UINT32 items_size, ISpeechRecognitionResult **items, UINT32 *value)
+ {
+     FIXME("iface %p stub!\n", iface);
+     return E_NOTIMPL;
+ }
+ 
+-static const struct IVectorView_HSTRINGVtbl vector_view_hstring_vtbl =
++static const struct IVectorView_SpeechRecognitionResultVtbl vector_view_speech_recognition_result_vtbl =
+ {
+     /*** IUnknown methods ***/
+-    vector_view_hstring_QueryInterface,
+-    vector_view_hstring_AddRef,
+-    vector_view_hstring_Release,
++    vector_view_speech_recognition_result_QueryInterface,
++    vector_view_speech_recognition_result_AddRef,
++    vector_view_speech_recognition_result_Release,
+     /*** IInspectable methods ***/
+-    vector_view_hstring_GetIids,
+-    vector_view_hstring_GetRuntimeClassName,
+-    vector_view_hstring_GetTrustLevel,
+-    /*** IVectorView<HSTRING > methods ***/
+-    vector_view_hstring_GetAt,
+-    vector_view_hstring_get_Size,
+-    vector_view_hstring_IndexOf,
+-    vector_view_hstring_GetMany
++    vector_view_speech_recognition_result_GetIids,
++    vector_view_speech_recognition_result_GetRuntimeClassName,
++    vector_view_speech_recognition_result_GetTrustLevel,
++    /*** IVectorView<ABI::Windows::Media::SpeechRecognition::SpeechRecognitionResult* > methods ***/
++    vector_view_speech_recognition_result_GetAt,
++    vector_view_speech_recognition_result_get_Size,
++    vector_view_speech_recognition_result_IndexOf,
++    vector_view_speech_recognition_result_GetMany
+ };
+ 
+-
+-static HRESULT STDMETHODCALLTYPE vector_view_hstring_create(IVectorView_HSTRING **out)
++static HRESULT STDMETHODCALLTYPE vector_view_speech_recognition_result_create(IVectorView_SpeechRecognitionResult **out)
+ {
+-    struct vector_view_hstring *impl;
++    struct vector_view_speech_recognition_result *impl;
+ 
+     TRACE("out %p.\n", out);
+ 
+@@ -393,10 +622,10 @@ static HRESULT STDMETHODCALLTYPE vector_view_hstring_create(IVectorView_HSTRING
+         return E_OUTOFMEMORY;
+     }
+ 
+-    impl->IVectorView_HSTRING_iface.lpVtbl = &vector_view_hstring_vtbl;
++    impl->IVectorView_SpeechRecognitionResult_iface.lpVtbl = &vector_view_speech_recognition_result_vtbl;
+     impl->ref = 1;
+ 
+-    *out = &impl->IVectorView_HSTRING_iface;
++    *out = &impl->IVectorView_SpeechRecognitionResult_iface;
+     TRACE("ret %p\n", *out);
+     return S_OK;
+ }
+@@ -520,7 +749,7 @@ static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_Text(
+ static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_Confidence(
+     ISpeechRecognitionResult *iface, SpeechRecognitionConfidence *value)
+ {
+-    FIXME("iface %p, operation %p stub!\n", iface, value);
++    FIXME("iface %p, operation %p semi stub!\n", iface, value);
+ 
+     *value = SpeechRecognitionConfidence_High;
+     return S_OK;
+diff --git a/dlls/windows.media.speech/speechrecognizer.c b/dlls/windows.media.speech/speechrecognizer.c
+index 0ebc3c09d38..7d6c9e9a8da 100644
+--- a/dlls/windows.media.speech/speechrecognizer.c
++++ b/dlls/windows.media.speech/speechrecognizer.c
+@@ -18,11 +18,10 @@
+  */
+ 
+ #include "windows_media_speech_private.h"
++#include "unixlib.h"
+ 
+ WINE_DEFAULT_DEBUG_CHANNEL(speech);
+ 
+-CRITICAL_SECTION speech_session_cs;
+-
+ /*
+  *
+  * IAsyncAction
+@@ -1034,6 +1033,7 @@ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_result_generated_
+ {
+     struct speech_continuous_recognition_result_generated_event_args *impl = impl_from_ISpeechContinuousRecognitionResultGeneratedEventArgs(iface);
+     FIXME("iface %p, value %p stub!\n", iface, value);
++
+     ISpeechRecognitionResult_AddRef(impl->result);
+     *value = impl->result;
+     return S_OK;
+@@ -1110,8 +1110,141 @@ struct speech_recognizer
+     struct list completed_event_list;
+     struct list result_event_list;
+     IVector_ISpeechRecognitionConstraint *vector_constraints;
++
++    IAudioClient *audio_client;
++    IAudioCaptureClient *capture_client;
++    UINT32 audio_frame_count;
++    HANDLE continuous_recognition_thread;
++    HANDLE continuous_recognition_running_event;
+ };
+ 
++DWORD CALLBACK continuous_recognition_thread(void *data)
++{
++    struct speech_recognizer *impl = data;
++    struct recognize_pcm_params args;
++    UINT32 frames_available = 0;
++    UINT32 packet_len = 0;
++    BYTE tmp_buf[6400];
++    UINT32 buf_offset = 0;
++    BYTE *audio_data;
++    DWORD flags = 0;
++    HRESULT hr;
++
++    while(impl->ref)
++    {
++        if(WaitForSingleObject(impl->continuous_recognition_running_event, 100) != WAIT_OBJECT_0)
++            continue;
++
++        /* As soon as tmp_buf is full with PCM data, try to recognize it. */
++        if(buf_offset == ARRAYSIZE(tmp_buf))
++        {
++
++            args.audio_buf = tmp_buf;
++            args.buf_len = ARRAYSIZE(tmp_buf);
++            args.recognized_text = NULL;
++            args.recognized_text_len = 0;
++            /* Call speech recognizer. */
++            SPEECH_CALL(recognize_pcm, &args);
++
++            /* If something was recognized. */
++            if(args.recognized_text)
++            {
++                IVector_HSTRING *hstring_vector;
++                UINT32 hstring_vector_size;
++                IVector_ISpeechRecognitionConstraint *constraint_vector;
++                UINT32 constraint_vector_size;
++                ISpeechRecognitionConstraint *constraint;
++                ISpeechRecognitionListConstraint *listconstraint;
++                BOOLEAN enabled, found = FALSE;
++                UINT32 i, j = 0;
++
++                if(args.recognized_text_len == 0)
++                    goto cleanup_text;
++
++                TRACE("Got text %ls\n", args.recognized_text);
++                ISpeechRecognizer_get_Constraints(&impl->ISpeechRecognizer_iface, &constraint_vector);
++                IVector_ISpeechRecognitionConstraint_get_Size(constraint_vector, &constraint_vector_size);
++                for(i=0; i<constraint_vector_size; i++)
++                {
++                    IVector_ISpeechRecognitionConstraint_GetAt(constraint_vector, i, &constraint);
++                    ISpeechRecognitionConstraint_get_IsEnabled(constraint, &enabled);
++                    if(!enabled)
++                    {   
++                        TRACE("Tried to skip disabled constraint!\n");
++                        ISpeechRecognitionConstraint_Release(constraint);
++                        continue;
++                    }
++                    ISpeechRecognitionConstraint_QueryInterface(constraint, &IID_ISpeechRecognitionListConstraint, (void**) &listconstraint);
++                    ISpeechRecognitionListConstraint_get_Commands(listconstraint, &hstring_vector);
++                    IVector_HSTRING_get_Size(hstring_vector, &hstring_vector_size);
++                    for(j=0; j<hstring_vector_size; j++)
++                    {
++                        HSTRING hstr, hstr_copy;
++                        WCHAR *str;
++                        IVector_HSTRING_GetAt(hstring_vector, j, &hstr);
++                        WindowsSubstring(hstr, 0, &hstr_copy);
++                        str = _wcslwr(WindowsGetStringRawBuffer(hstr_copy, NULL));
++                        TRACE("looking for: %ls\n", str);
++                        if(wcsstr(args.recognized_text, str))
++                        {
++                            struct result_event *event;
++                            
++                            TRACE("found %ls in %ls\n", str, args.recognized_text);
++                            found = TRUE;
++                            LIST_FOR_EACH_ENTRY(event, &impl->result_event_list, struct result_event, entry)
++                            {
++                                ISpeechContinuousRecognitionResultGeneratedEventArgs *args;
++                                ISpeechRecognitionResult *result;
++                                /* ISpeechRecognitionResult is freed by the Invoked handler. */
++                                speech_recognition_result_create(hstr, constraint, &result);
++                                speech_continuous_recognition_result_generated_event_args_create(result, &args);
++                                ITypedEventHandler_SpeechContinuousRecognitionSession_SpeechContinuousRecognitionResultGeneratedEventArgs_Invoke(
++                                    event->handler, &impl->ISpeechContinuousRecognitionSession_iface, args);
++                                
++                                /* FIXME: Releasing this causes a segfault.
++                                ISpeechContinuousRecognitionResultGeneratedEventArgs_Release(args); */
++                            }
++                        }
++                        WindowsDeleteString(hstr);
++                        WindowsDeleteString(hstr_copy);
++                        if(found)
++                            break;
++                    }
++                    IVector_HSTRING_Release(hstring_vector);
++                    ISpeechRecognitionListConstraint_Release(listconstraint);
++                    ISpeechRecognitionConstraint_Release(constraint);
++                    if(found)
++                        break;
++                }
++                IVector_ISpeechRecognitionConstraint_Release(constraint_vector);
++
++                cleanup_text:
++                    free(args.recognized_text);
++                    args.recognized_text = NULL;
++                    args.recognized_text_len = 0;
++            }
++
++            buf_offset = 0;
++        }
++        else
++        {
++            SleepEx(9, 0);
++        }
++
++        /* Capture audio data for speech recognizer */
++        hr = IAudioCaptureClient_GetNextPacketSize(impl->capture_client, &packet_len);
++        hr = IAudioCaptureClient_GetBuffer(impl->capture_client, &audio_data, &frames_available, &flags, NULL, NULL);
++
++        /* Copy the data to our temp buffer */
++        memcpy(tmp_buf + buf_offset, audio_data, packet_len * 2);
++        buf_offset += packet_len * 2; /* packet_len means number of samples recorded -> *2 because it's 16bit PCM (each sample uses 2 bytes) */
++
++        IAudioCaptureClient_ReleaseBuffer(impl->capture_client, frames_available);
++    }
++
++    return 0;
++}
++
+ /*
+  *
+  * ISpeechContinuousRecognitionSession
+@@ -1199,7 +1332,12 @@ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_set_AutoS
+ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_StartAsync(
+     ISpeechContinuousRecognitionSession *iface, IAsyncAction **action)
+ {
+-    FIXME("iface %p, action %p stub!\n", iface, action);
++    struct speech_recognizer *impl = impl_from_ISpeechContinuousRecognitionSession(iface);
++    FIXME("iface %p, action %p semi stub!\n", iface, action);
++
++    if(impl->continuous_recognition_running_event)
++        SetEvent(impl->continuous_recognition_running_event);
++
+     return async_action_create(action);
+ }
+ 
+@@ -1227,14 +1365,24 @@ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_CancelAsy
+ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_PauseAsync(
+     ISpeechContinuousRecognitionSession *iface, IAsyncAction **action)
+ {
+-    FIXME("iface %p, action %p stub!\n", iface, action);
+-    return E_NOTIMPL;
++    struct speech_recognizer *impl = impl_from_ISpeechContinuousRecognitionSession(iface);
++    FIXME("iface %p, action %p semi stub!\n", iface, action);
++
++    if(impl->continuous_recognition_running_event)
++        ResetEvent(impl->continuous_recognition_running_event);
++
++    return async_action_create(action);
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_Resume(ISpeechContinuousRecognitionSession *iface)
+ {
+-    FIXME("iface %p stub!\n", iface);
+-    return E_NOTIMPL;
++    struct speech_recognizer *impl = impl_from_ISpeechContinuousRecognitionSession(iface);
++    FIXME("iface %p semi stub!\n", iface);
++
++    if(impl->continuous_recognition_running_event)
++        SetEvent(impl->continuous_recognition_running_event);
++
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE speech_continuous_recognition_session_add_Completed(
+@@ -1447,6 +1595,20 @@ static ULONG STDMETHODCALLTYPE speech_recognizer_Release(ISpeechRecognizer *ifac
+     {
+         struct completed_event *event, *event_cursor2;
+         struct result_event *re, *re2;
++
++        if(impl->continuous_recognition_thread)
++        {
++            WaitForSingleObject(impl->continuous_recognition_thread, INFINITE);
++            CloseHandle(impl->continuous_recognition_thread);
++        }
++
++        TRACE("impl->audio_client %p.\n", impl->audio_client);
++
++        if(impl->continuous_recognition_running_event)
++            CloseHandle(impl->continuous_recognition_running_event);
++
++        SPEECH_CALL(release_vosk, NULL);
++
+         LIST_FOR_EACH_ENTRY_SAFE(event, event_cursor2, &impl->completed_event_list, struct completed_event, entry)
+         {
+             list_remove(&event->entry);
+@@ -1458,14 +1620,10 @@ static ULONG STDMETHODCALLTYPE speech_recognizer_Release(ISpeechRecognizer *ifac
+             list_remove(&re->entry);
+             free(re);
+         }
+-
+-        //SetEvent(impl->session_end_event);
+-        //WaitForSingleObject(impl->session_thread, INFINITE);
+-        //CloseHandle(impl->session_end_event);
+-        //CloseHandle(impl->session_thread);
+-        //DeleteCriticalSection(&speech_session_cs);
+-
++        IAudioClient_Release(impl->audio_client);
++        IAudioCaptureClient_Release(impl->capture_client);
+         IVector_ISpeechRecognitionConstraint_Release(impl->vector_constraints);
++
+         free(impl);
+     }
+ 
+@@ -1526,9 +1684,7 @@ static HRESULT STDMETHODCALLTYPE speech_recognizer_CompileConstraintsAsync(ISpee
+     IAsyncOperation_SpeechRecognitionCompilationResult **operation)
+ {
+     FIXME("iface %p, operation %p stub!\n", iface, operation);
+-
+     async_operation_speech_recognition_compilation_result_create(operation);
+-
+     return S_OK;
+ }
+ 
+@@ -1825,12 +1981,62 @@ static const struct ISpeechRecognizer2Vtbl speech_recognizer2_vtbl =
+     speech_recognizer2_remove_HypothesisGenerated,
+ };
+ 
++static HRESULT init_audio_capture(IAudioClient **audio_client, IAudioCaptureClient **capture_client, UINT32 *frame_count)
++{
++    /*IAudioClient *audio_client = NULL;
++    IAudioCaptureClient *capture_client = NULL; */
++    IMMDevice *device = NULL;
++    IMMDeviceEnumerator *enumerator = NULL;
++    REFERENCE_TIME buffer_duration = 10000000; /* 1 second */
++    WAVEFORMATEX *formatex = NULL; 
++    LPWSTR str;
++    //UINT32 frame_count;
++
++    HRESULT hr;
++    hr = CoCreateInstance(&CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, &IID_IMMDeviceEnumerator, (void**)&enumerator);
++    TRACE("%#x\n", hr);
++    hr = IMMDeviceEnumerator_GetDefaultAudioEndpoint(enumerator, eCapture, eMultimedia, &device);
++    TRACE("%#x\n", hr);
++    IMMDeviceEnumerator_Release(enumerator);
++    hr = IMMDevice_Activate(device, &IID_IAudioClient, CLSCTX_ALL, NULL, (void**)audio_client);
++    TRACE("%#x\n", hr);
++    hr = IMMDevice_GetId(device, &str);
++    TRACE("Device ID:%ls\n", str);
++    if(SUCCEEDED(hr))
++        CoTaskMemFree(str);
++
++    IMMDevice_Release(device);
++    hr = IAudioClient_GetMixFormat(*audio_client, (WAVEFORMATEX**) &formatex);
++    TRACE("%#x\n", hr);
++    formatex->wFormatTag = WAVE_FORMAT_PCM;
++    formatex->nChannels = 1;
++    formatex->nSamplesPerSec = 16000;
++    formatex->nBlockAlign = 2;
++    formatex->wBitsPerSample = 16;
++    TRACE("tag %u, channels %u, samples %u, bits %u, align %u.\n", formatex->wFormatTag, formatex->nChannels, formatex->nSamplesPerSec, formatex->wBitsPerSample, formatex->nBlockAlign);
++    hr = IAudioClient_Initialize(*audio_client, AUDCLNT_SHAREMODE_SHARED, 0, buffer_duration, 0, formatex, NULL);
++    TRACE("%#x\n", hr);
++    hr = IAudioClient_GetBufferSize(*audio_client, frame_count);
++    TRACE("%#x\n", hr);
++    hr = IAudioClient_Start(*audio_client);
++    TRACE("%#x\n", hr);
++    hr = IAudioClient_GetService(*audio_client, &IID_IAudioCaptureClient, (void**)capture_client);
++    TRACE("%#x\n", hr);
++
++    TRACE("audio_client %p, capture_client %p, frame_count %u\n", audio_client, capture_client, *frame_count);
++
++    return hr;
++}
++
+ static HRESULT STDMETHODCALLTYPE speech_recognizer_create(ILanguage *language, ISpeechRecognizer **out)
+ {
++    const WCHAR *vosk_model_path = L"C:\\windows\\Speech\\Engines\\Vosk\\en-US";
++    struct init_vosk_params params;
++
+     struct speech_recognizer *impl;
+     HRESULT hr;
+ 
+-    TRACE("language %p, out %p stub!\n", language, out);
++    TRACE("language %p, out %p.\n", language, out);
+ 
+     if (!(impl = calloc(1, sizeof(*impl))))
+     {
+@@ -1853,6 +2059,17 @@ static HRESULT STDMETHODCALLTYPE speech_recognizer_create(ILanguage *language, I
+     list_init(&impl->result_event_list);
+     hr = vector_speech_recgonition_constraint_create(NULL, 0, &impl->vector_constraints);
+ 
++    hr = init_audio_capture(&impl->audio_client, &impl->capture_client, &impl->audio_frame_count);
++    TRACE("impl->audio_client %p.\n", impl->audio_client);
++
++    params.model_path = wine_get_unix_file_name(vosk_model_path);
++    SPEECH_CALL(init_vosk, &params);
++    free(params.model_path);
++
++    impl->continuous_recognition_running_event = CreateEventW(NULL, TRUE, FALSE, NULL);
++    impl->continuous_recognition_thread = CreateThread(0, 0, &continuous_recognition_thread , impl, 0, 0);
++    
++
+     *out = &impl->ISpeechRecognizer_iface;
+     TRACE("ret %p\n", *out);
+     return hr;
+diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speech.c
+index fa148ad3de3..130c271cf38 100644
+--- a/dlls/windows.media.speech/tests/speech.c
++++ b/dlls/windows.media.speech/tests/speech.c
+@@ -577,10 +577,11 @@ static inline struct handler_speech_recognition_compilation_result
+ static HRESULT STDMETHODCALLTYPE async_operation_completed_handler_speech_recognition_compilation_result_QueryInterface(
+     IAsyncOperationCompletedHandler_SpeechRecognitionCompilationResult *iface, REFIID iid, void **out)
+ {
+-    //trace("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
++    trace("iface %p, iid %s, out %p.\n", iface, debugstr_guid(iid), out);
+ 
+     if (IsEqualGUID(iid, &IID_IUnknown) ||
+         IsEqualGUID(iid, &IID_IInspectable) ||
++        IsEqualGUID(iid, &IID_IAgileObject) ||
+         IsEqualGUID(iid, &IID_IAsyncOperationCompletedHandler_SpeechRecognitionCompilationResult))
+     {
+         IUnknown_AddRef(iface);
+@@ -588,7 +589,7 @@ static HRESULT STDMETHODCALLTYPE async_operation_completed_handler_speech_recogn
+         return S_OK;
+     }
+ 
+-    //WARN("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
++    trace("%s not implemented, returning E_NOINTERFACE.\n", debugstr_guid(iid));
+     *out = NULL;
+     return E_NOINTERFACE;
+ }
+@@ -612,7 +613,7 @@ static ULONG STDMETHODCALLTYPE async_operation_completed_handler_speech_recognit
+         impl_from_IAsyncOperationCompletedHandler_SpeechRecognitionCompilationResult(iface);
+ 
+     ULONG ref = InterlockedDecrement(&impl->ref);
+-    //trace("iface %p, ref %u.\n", iface, ref);
++    trace("iface %p, ref %u.\n", iface, ref);
+ 
+     if(!ref)
+         free(impl);
+@@ -662,18 +663,23 @@ static const struct IAsyncOperationCompletedHandler_SpeechRecognitionCompilation
+     async_operation_completed_handler_speech_recognition_compilation_result_Invoke,
+ };
+ 
++BOOLEAN async_action_finished = FALSE;
++
+ static void test_SpeechRecognition(void)
+ {
+     static const WCHAR *speech_recognition_list_constraint_name = L"Windows.Media.SpeechRecognition.SpeechRecognitionListConstraint";
+     static const WCHAR *speech_recognizer_name = L"Windows.Media.SpeechRecognition.SpeechRecognizer";
+-    static const WCHAR *speech_constraints[] = { L"This is a test.", L"Number 5!", L"What time is it?" };
++    static const WCHAR *speech_constraints[][3] = {
++        { L"This is a test.", L"Number 5!", L"What time is it?" },
++        { L"Hello World.", L"Is it really that time again?", L"How are you?" },
++    };
+     static const WCHAR *speech_constraint_tag = L"test_message";
+     IAsyncOperationCompletedHandler_SpeechRecognitionCompilationResult *async_compile_result_handler = NULL;
+     IAsyncOperation_SpeechRecognitionCompilationResult *async_compile_result = NULL;
+     ISpeechRecognitionListConstraintFactory *listconstraint_factory = NULL;
+-    IVector_ISpeechRecognitionConstraint *vector_constraints = NULL;
+-    ISpeechRecognitionListConstraint *listconstraint = NULL;
+-    ISpeechRecognitionConstraint *constraint = NULL;
++    IVector_ISpeechRecognitionConstraint *vector_constraints, *vector_constraints2 = NULL;
++    ISpeechRecognitionListConstraint *listconstraint, *listconstraint2 = NULL;
++    ISpeechRecognitionConstraint *constraint, *constraint2 = NULL;
+     ISpeechContinuousRecognitionSession *sr_session, *sr_session2, *sr_session3 = NULL;
+     SpeechRecognizerState recognizer_state = SpeechRecognizerState_Paused;
+     struct handler_speech_recognition_compilation_result ao_handler;
+@@ -682,14 +688,14 @@ static void test_SpeechRecognition(void)
+     IVector_HSTRING *hstring_vector;
+     ISpeechRecognizerFactory *sr_factory = NULL;
+     ISpeechRecognizer2 *recognizer2, *recognizer2_2 = NULL;
+-    ISpeechRecognizer *recognizer = NULL;
++    ISpeechRecognizer *recognizer, *recognizer_4 = NULL;
+     ISpeechRecognizerStatics *sr_statics = NULL;
+     ISpeechRecognizerStatics2 *sr_statics2 = NULL;
+     IActivationFactory *afactory, *afactory2 = NULL;
+-    IInspectable *inspectable, *inspectable2, *inspectable3 = NULL;
++    IInspectable *inspectable, *inspectable2, *inspectable3, *inspectable4 = NULL;
+     IClosable *closable = NULL;
+     ILanguage *language = NULL;
+-    HSTRING str, str2, tag, hstr_lang, commands[3];
++    HSTRING str, str2, tag, hstr_lang, commands[3], commands2[3];
+     BOOLEAN enabled, is_win10_1507 = FALSE;
+     HRESULT hr;
+     UINT32 i, size;
+@@ -709,10 +715,14 @@ static void test_SpeechRecognition(void)
+ 
+     for (i = 0; i < ARRAY_SIZE(commands); i++)
+     {
+-        hr = WindowsCreateString(speech_constraints[i], wcslen(speech_constraints[i]), &commands[i]);
++        hr = WindowsCreateString(speech_constraints[0][i], wcslen(speech_constraints[0][i]), &commands[i]);
++        ok(hr == S_OK, "WindowsCreateString failed, hr %#x.\n", hr);
++    }
++    for (i = 0; i < ARRAY_SIZE(commands2); i++)
++    {
++        hr = WindowsCreateString(speech_constraints[1][i], wcslen(speech_constraints[1][i]), &commands2[i]);
+         ok(hr == S_OK, "WindowsCreateString failed, hr %#x.\n", hr);
+     }
+-
+ 
+     hr = RoGetActivationFactory(str, &IID_IActivationFactory, (void **)&afactory);
+     ok(hr == S_OK || broken(hr == REGDB_E_CLASSNOTREG), "RoGetActivationFactory failed, hr %#x.\n", hr);
+@@ -781,9 +791,6 @@ static void test_SpeechRecognition(void)
+     hr = IActivationFactory_ActivateInstance(afactory, &inspectable2);
+     ok(hr == S_OK || broken(hr == DEFAULT_LANG_NOT_SUPPORTED), "IActivationFactory_ActivateInstance failed, hr %#x.\n", hr);
+ 
+-    ref = IActivationFactory_Release(afactory);
+-    ok(ref == 1, "Got unexpected ref %u.\n", ref);
+-
+     hr = IActivationFactory_ActivateInstance(afactory2, &inspectable3);
+     ok(hr == E_NOTIMPL, "IActivationFactory_ActivateInstance failed, hr %#x.\n", hr);
+ 
+@@ -799,7 +806,7 @@ static void test_SpeechRecognition(void)
+     if(inspectable == NULL || inspectable2 == NULL)
+     {
+         win_skip("Couldn't create an instance of SpeechRecognizer.\n");
+-        goto done;
++        goto skip_1507; /* This actually doesn't skip 1507 but is called to properly clean up. */
+     }
+ 
+     hr = IInspectable_QueryInterface(inspectable, &IID_ISpeechRecognizer, (void **)&recognizer);
+@@ -876,7 +883,7 @@ static void test_SpeechRecognition(void)
+         hr = IVector_HSTRING_GetAt(hstring_vector, i, &hstr);
+         ok(hr == S_OK, "IVector_HSTRING_GetAt failed, hr %#x.\n", hr);
+         str = WindowsGetStringRawBuffer(hstr, NULL);
+-        ok(!wcscmp(str, speech_constraints[i]), "Strings not equivalent.\n");
++        ok(!wcscmp(str, speech_constraints[0][i]), "Strings not equivalent.\n");
+         hr = WindowsDeleteString(hstr);
+         ok(hr == S_OK, "WindowsDeleteString failed, hr %#x.\n", hr);
+     }
+@@ -915,9 +922,9 @@ static void test_SpeechRecognition(void)
+     todo_wine ok(hr == S_OK, "ISpeechRecognizer2_get_State failed, hr %#x.\n", hr);
+     todo_wine ok(recognizer_state == SpeechRecognizerState_Idle, "Got unexpected recognizer state %u.\n", recognizer_state);
+ 
+-    ref = IAsyncOperation_SpeechRecognitionCompilationResult_Release(async_compile_result);
++    //ref = IAsyncOperation_SpeechRecognitionCompilationResult_Release(async_compile_result);
+      /* IAsyncAction seems to be passed to multiple threads on Windows, which makes the returned ref semi random on the next test. */
+-    ok(ref == 0 || broken(ref), "Got unexpected ref %u.\n", ref);
++    //ok(ref == 0 || broken(ref), "Got unexpected ref %u.\n", ref);
+ 
+     /* Release SpeechRecognizer first to completely eliminate any reference to listconstraint from other running threads.
+      * Also for some reason the ref counting on these is off by one on x64.
+@@ -952,6 +959,12 @@ static void test_SpeechRecognition(void)
+         ok(ref == 0, "Got unexpected ref %u.\n", ref);
+     }
+ 
++    hr = IActivationFactory_ActivateInstance(afactory, &inspectable4);
++    ok(hr == S_OK, "IActivationFactory_ActivateInstance failed, hr %#x.\n", hr);
++
++    hr = IInspectable_QueryInterface(inspectable, &IID_ISpeechRecognizer, (void **)&recognizer_4);
++    ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++
+     iterator_hstring.current_item = 0;
+     iterator_hstring.count = 3;
+     iterator_hstring.values = commands;
+@@ -978,10 +991,54 @@ static void test_SpeechRecognition(void)
+     hr = ISpeechRecognitionConstraint_put_IsEnabled(constraint, TRUE);
+     ok(hr == S_OK, "ISpeechRecognitionConstraint_put_IsEnabled failed, hr %#x.\n", hr);
+ 
++    hr = ISpeechRecognizer_get_Constraints(recognizer_4, &vector_constraints2);
++    ok(hr == S_OK, "ISpeechRecognizer_get_Constraints failed, hr %#x.\n", hr);
++
++    hr = IVector_ISpeechRecognitionConstraint_Clear(vector_constraints2);
++    ok(hr == S_OK, "IVector_ISpeechRecognitionConstraint_Clear failed, hr %#x.\n", hr);
++
++    hr = IVector_ISpeechRecognitionConstraint_Append(vector_constraints2, constraint);
++    ok(hr == S_OK, "IVector_ISpeechRecognitionConstraint_Clear failed, hr %#x.\n", hr);
++
+     ref = ISpeechRecognitionConstraint_Release(constraint);
+-    ok(ref == 1, "Got unexpected ref %u.\n", ref);
++    ok(ref == 2, "Got unexpected ref %u.\n", ref);
+ 
+     ref = ISpeechRecognitionListConstraint_Release(listconstraint);
++    ok(ref == 1, "Got unexpected ref %u.\n", ref);
++
++    hr = IVector_ISpeechRecognitionConstraint_get_Size(vector_constraints2, &size);
++    ok(hr == S_OK, "IVector_ISpeechRecognitionConstraint_get_Size failed, hr %#x.\n", hr);
++    ok(size == 1, "Size %u\n", size);
++
++    iterator_hstring.current_item = 0;
++    iterator_hstring.count = 3;
++    iterator_hstring.values = commands2;
++
++    iterable_hstring.iterator = &iterator_hstring.IIterator_HSTRING_iface;
++
++    hr = ISpeechRecognitionListConstraintFactory_Create(listconstraint_factory, &iterable_hstring.IIterable_HSTRING_iface, &listconstraint2);
++    ok(hr == S_OK, "ISpeechRecognitionListConstraintFactory_CreateWithTag failed, hr %#x.\n", hr);
++
++    hr = ISpeechRecognitionListConstraint_QueryInterface(listconstraint, &IID_ISpeechRecognitionConstraint, (void **)&constraint2);
++    ok(hr == S_OK, "ISpeechRecognitionListConstraint_QueryInterface failed, hr %#x.\n", hr);
++
++    hr = IVector_ISpeechRecognitionConstraint_get_Size(vector_constraints2, &size);
++    ok(hr == S_OK, "IVector_ISpeechRecognitionConstraint_get_Size failed, hr %#x.\n", hr);
++    ok(size == 1, "Size %u\n", size);
++
++    ref = ISpeechRecognitionConstraint_Release(constraint2);
++    ok(ref == 1, "Got unexpected ref %u.\n", ref);
++
++    ref = ISpeechRecognitionListConstraint_Release(listconstraint2);
++    ok(ref == 0, "Got unexpected ref %u.\n", ref);
++
++    ref = IVector_ISpeechRecognitionConstraint_Release(vector_constraints2);
++    ok(ref == 1, "Got unexpected ref %u.\n", ref);
++
++    ISpeechRecognizer_Release(recognizer_4);
++    ok(ref == 1, "Got unexpected ref %u.\n", ref);
++
++    ref = IInspectable_Release(inspectable4);
+     ok(ref == 0, "Got unexpected ref %u.\n", ref);
+ 
+ skip_1507:
+@@ -991,12 +1048,17 @@ skip_1507:
+     ref = IActivationFactory_Release(afactory2);
+     ok(ref == 1, "Got unexpected ref %u.\n", ref);
+ 
++    ref = IActivationFactory_Release(afactory);
++    ok(ref == 1, "Got unexpected ref %u.\n", ref);
++
+ done:
+     WindowsDeleteString(str);
+     WindowsDeleteString(str2);
+     WindowsDeleteString(tag);
+     for (i = 0; i < ARRAY_SIZE(commands); i++)
+         WindowsDeleteString(commands[i]);
++    for (i = 0; i < ARRAY_SIZE(commands2); i++)
++        WindowsDeleteString(commands2[i]);
+ 
+     RoUninitialize();
+ }
+diff --git a/dlls/windows.media.speech/unixlib.c b/dlls/windows.media.speech/unixlib.c
+new file mode 100644
+index 00000000000..c5cfe5cf2e5
+--- /dev/null
++++ b/dlls/windows.media.speech/unixlib.c
+@@ -0,0 +1,112 @@
++/*
++ * Unixlib for Windows.Media.Speech
++ *
++ * Copyright 2022 Bernhard Kölbl
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
++ */
++
++#if 0
++#pragma makedep unix
++#endif
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <vosk_api.h>
++
++#include "ntstatus.h"
++#define WIN32_NO_STATUS
++#include "windef.h"
++#include "winternl.h"
++#include "lm.h"
++#include "wine/debug.h"
++
++#include "unixlib.h"
++
++WINE_DEFAULT_DEBUG_CHANNEL(speech);
++
++VoskModel *model = NULL;
++VoskRecognizer *recognizer = NULL;
++//FILE *fp = NULL;
++
++static NTSTATUS init_vosk(void *args)
++{
++    struct init_vosk_params *params = args;
++    TRACE("args %p\n", args);
++
++    if(!model && !recognizer && params->model_path)
++    {
++        model = vosk_model_new(params->model_path);
++        recognizer = vosk_recognizer_new(model, 16000.0);
++        //fp = fopen("/home/bernhard/Documents/test.wav", "w+");
++    }
++
++    return STATUS_SUCCESS;
++}
++
++static NTSTATUS release_vosk(void *args)
++{
++    TRACE("args %p\n", args);
++
++    if(!recognizer && !model)
++        return STATUS_SUCCESS;
++
++    vosk_recognizer_free(recognizer);
++    recognizer = NULL;
++    vosk_model_free(model);
++    model = NULL;
++    //fclose(fp);
++    //fp = NULL;
++
++    return STATUS_SUCCESS;
++}
++
++static NTSTATUS recognize_pcm(void *args)
++{
++    struct recognize_pcm_params *params = args;
++    int final;
++
++    TRACE("args %p, data %p, len %u.\n", args, params->audio_buf, params->buf_len);
++
++    //fwrite(params->audio_buf, sizeof(char), params->buf_len, fp);
++
++    final = vosk_recognizer_accept_waveform(recognizer, (const char*) params->audio_buf, params->buf_len);
++
++    if (final) {
++        const char *result;
++        UINT32 result_len = 0;
++
++        result = vosk_recognizer_result(recognizer);
++        result_len = strlen(result);
++        params->recognized_text = calloc(1, (result_len + 1) * sizeof(WCHAR));
++        params->recognized_text_len = result_len;
++        ntdll_umbstowcs(result, result_len + 1, params->recognized_text, params->recognized_text_len + 1);
++ 
++        vosk_recognizer_reset(recognizer);
++    } else
++        return STATUS_SUCCESS; 
++        //FIXME("\n%s\n", vosk_recognizer_partial_result(recognizer));
++
++    //FIXME("%s\n", vosk_recognizer_final_result(recognizer));
++
++    return STATUS_SUCCESS;
++}
++
++const unixlib_entry_t __wine_unix_call_funcs[] =
++{
++    init_vosk,
++    release_vosk,
++    recognize_pcm,
++};
+diff --git a/dlls/windows.media.speech/unixlib.h b/dlls/windows.media.speech/unixlib.h
+new file mode 100644
+index 00000000000..07c6bd56e85
+--- /dev/null
++++ b/dlls/windows.media.speech/unixlib.h
+@@ -0,0 +1,45 @@
++/*
++ * Unix library interface for Windows.Media.Speech
++ *
++ * Copyright 2022 Bernhard Kölbl
++ *
++ * This library is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU Lesser General Public
++ * License as published by the Free Software Foundation; either
++ * version 2.1 of the License, or (at your option) any later version.
++ *
++ * This library is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
++ */
++
++#include "winternl.h"
++#include "wine/unixlib.h"
++
++struct init_vosk_params
++{
++    char *model_path;
++};
++
++struct recognize_pcm_params
++{
++    BYTE *audio_buf;
++    UINT32 buf_len;
++    WCHAR *recognized_text;
++    UINT32 recognized_text_len;
++};
++
++enum unix_funcs
++{
++    unix_init_vosk,
++    unix_release_vosk,
++    unix_recognize_pcm,
++};
++
++extern unixlib_handle_t speech_handle;
++#define SPEECH_CALL(func, args) __wine_unix_call( speech_handle, unix_ ## func, args )
+diff --git a/dlls/windows.media.speech/windows_media_speech_private.h b/dlls/windows.media.speech/windows_media_speech_private.h
+index 18138a3b7be..3d6a4c0d488 100644
+--- a/dlls/windows.media.speech/windows_media_speech_private.h
++++ b/dlls/windows.media.speech/windows_media_speech_private.h
+@@ -25,7 +25,11 @@
+ #include "wine/list.h"
+ 
+ #include <stdarg.h>
+-#include <time.h>
++#include <wchar.h>
++
++#ifdef WINDOWS_MEDIA_SPEECH_INIT_GUID
++#include "initguid.h"
++#endif
+ 
+ #define COBJMACROS
+ #include "windef.h"
+@@ -33,9 +37,10 @@
+ #include "winstring.h"
+ #include "objbase.h"
+ 
+-#ifdef WINDOWS_MEDIA_SPEECH_INIT_GUID
+-#include "initguid.h"
+-#endif
++
++#include "mmdeviceapi.h"
++#include "audioclient.h"
++#include "mmsystem.h"
+ 
+ #include "activation.h"
+ 
+diff --git a/include/windows.foundation.collections.idl b/include/windows.foundation.collections.idl
+index a2d2d75ec4f..f304b4b2d58 100644
+--- a/include/windows.foundation.collections.idl
++++ b/include/windows.foundation.collections.idl
+@@ -74,11 +74,23 @@ cpp_quote("#endif")
+ 
+         namespace Collections
+         {
++            [
++                contract(Windows.Foundation.FoundationContract, 1.0),
++                uuid(02b51929-c1c4-4a7e-8940-0312b5c18500)
++            ]
++            interface IKeyValuePair<K, V> : IInspectable
++            {
++                [propget] HRESULT Key([out] K *key);
++                [propget] HRESULT Value([out] V *value);
++            }
++
+             [
+                 contract(Windows.Foundation.FoundationContract, 1.0),
+                 uuid(e480ce40-a338-4ada-adcf-272272e48cb9)
+             ]
+             interface IMapView<K, V> : IInspectable
++                requires
++                    IKeyValuePair<K, V>
+             {
+                 HRESULT Lookup([in] K key, [out] V *value);
+                 [propget] HRESULT Size([out] unsigned int *size);
+diff --git a/include/windows.foundation.idl b/include/windows.foundation.idl
+index 8abb3275fa7..932570dff20 100644
+--- a/include/windows.foundation.idl
++++ b/include/windows.foundation.idl
+@@ -162,7 +162,10 @@ namespace Windows {
+             interface Windows.Foundation.Collections.IIterator<HSTRING>;
+             interface Windows.Foundation.Collections.IVectorView<HSTRING>;
+             interface Windows.Foundation.Collections.IVector<HSTRING>;
++            interface Windows.Foundation.Collections.IKeyValuePair<HSTRING, Windows.Foundation.Collections.IVectorView<HSTRING>*>;
+             interface Windows.Foundation.Collections.IMapView<HSTRING, Windows.Foundation.Collections.IVectorView<HSTRING>*>;
++            interface Windows.Foundation.Collections.IIterable<Windows.Foundation.Collections.IKeyValuePair<HSTRING, Windows.Foundation.Collections.IVectorView<HSTRING>*>*>;
++            interface Windows.Foundation.Collections.IIterator<Windows.Foundation.Collections.IKeyValuePair<HSTRING, Windows.Foundation.Collections.IVectorView<HSTRING>*>*>;
+             interface Windows.Foundation.AsyncOperationCompletedHandler<boolean>;
+             interface Windows.Foundation.IAsyncOperation<boolean>;
+         }
+-- 
+2.35.1
+

@@ -1,0 +1,96 @@
+From 92e4bdc6df133d0fea8bfa5e069662be6aaee49d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Thu, 3 Feb 2022 18:26:03 +0100
+Subject: [PATCH v2 23/52] windows.media.speech: Implement ISpeechRecognizer2
+ get_ContinuousRecognitionSession.
+
+---
+ dlls/windows.media.speech/speechrecognizer.c |  9 ++++-
+ dlls/windows.media.speech/tests/speech.c     | 39 +++++++++++++++++++-
+ 2 files changed, 44 insertions(+), 4 deletions(-)
+
+diff --git a/dlls/windows.media.speech/speechrecognizer.c b/dlls/windows.media.speech/speechrecognizer.c
+index 3e8c4587fca..4c3113c7d11 100644
+--- a/dlls/windows.media.speech/speechrecognizer.c
++++ b/dlls/windows.media.speech/speechrecognizer.c
+@@ -580,8 +580,13 @@ static HRESULT STDMETHODCALLTYPE speech_recognizer2_GetTrustLevel(ISpeechRecogni
+ static HRESULT STDMETHODCALLTYPE speech_recognizer2_get_ContinuousRecognitionSession(ISpeechRecognizer2 *iface,
+     ISpeechContinuousRecognitionSession **session)
+ {
+-    FIXME("iface %p, session %p stub!\n", iface, session);
+-    return E_NOTIMPL;
++    struct speech_recognizer *impl = impl_from_ISpeechRecognizer2(iface);
++
++    TRACE("iface %p, session %p.\n", iface, session);
++    ISpeechContinuousRecognitionSession_AddRef(&impl->ISpeechContinuousRecognitionSession_iface);
++    *session = &impl->ISpeechContinuousRecognitionSession_iface;
++
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE speech_recognizer2_get_State(ISpeechRecognizer2 *iface,
+diff --git a/dlls/windows.media.speech/tests/speech.c b/dlls/windows.media.speech/tests/speech.c
+index b5b78049cc9..43708a10fee 100644
+--- a/dlls/windows.media.speech/tests/speech.c
++++ b/dlls/windows.media.speech/tests/speech.c
+@@ -546,13 +546,14 @@ static void test_VoiceInformation(void)
+ static void test_SpeechRecognizer(void)
+ {
+     static const WCHAR *speech_recognition_name = L"Windows.Media.SpeechRecognition.SpeechRecognizer";
++    ISpeechContinuousRecognitionSession *sr_session, *sr_session2, *sr_session3 = NULL;
+     ISpeechRecognizerFactory *sr_factory = NULL;
+     ISpeechRecognizerStatics *sr_statics = NULL;
+     ISpeechRecognizerStatics2 *sr_statics2 = NULL;
+     ISpeechRecognizer *recognizer = NULL;
+-    ISpeechRecognizer2 *recognizer2 = NULL;
++    ISpeechRecognizer2 *recognizer2, *recognizer2_2 = NULL;
+     IActivationFactory *factory = NULL;
+-    IInspectable *inspectable = NULL;
++    IInspectable *inspectable, *inspectable2 = NULL;
+     IClosable *closable = NULL;
+     ILanguage *language = NULL;
+     HSTRING hstr, hstr_lang;
+@@ -622,6 +623,40 @@ static void test_SpeechRecognizer(void)
+         hr = IInspectable_QueryInterface(inspectable, &IID_ISpeechRecognizer2, (void **)&recognizer2);
+         ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
+ 
++        hr = RoActivateInstance(hstr, &inspectable2);
++        ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++
++        hr = IInspectable_QueryInterface(inspectable2, &IID_ISpeechRecognizer2, (void **)&recognizer2_2);
++        ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++
++        hr = ISpeechRecognizer2_get_ContinuousRecognitionSession(recognizer2, &sr_session);
++        ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++
++        hr = ISpeechRecognizer2_get_ContinuousRecognitionSession(recognizer2, &sr_session2);
++        ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++
++        hr = ISpeechRecognizer2_get_ContinuousRecognitionSession(recognizer2_2, &sr_session3);
++        ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
++
++        ok(sr_session == sr_session2, "Pointers not identical.\n");
++        ok(sr_session2 != sr_session3, "Pointers identical.\n");
++        ok(sr_session3 != sr_session, "Pointers identical.\n");
++
++        ref = ISpeechContinuousRecognitionSession_Release(sr_session3);
++        ok(ref == 1, "Got unexpected ref %u.\n", ref);
++
++        ref = ISpeechContinuousRecognitionSession_Release(sr_session2);
++        ok(ref == 2, "Got unexpected ref %u.\n", ref);
++
++        ref = ISpeechContinuousRecognitionSession_Release(sr_session);
++        ok(ref == 1, "Got unexpected ref %u.\n", ref);
++
++        ref = ISpeechRecognizer2_Release(recognizer2_2);
++        ok(ref == 1, "Got unexpected ref %u.\n", ref);
++
++        ref = IInspectable_Release(inspectable2);
++        ok(ref == 0, "Got unexpected ref %u.\n", ref);
++
+         hr = IInspectable_QueryInterface(inspectable, &IID_IClosable, (void **)&closable);
+         ok(hr == S_OK, "Got unexpected hr %#x.\n", hr);
+ 
+-- 
+2.35.1
+

@@ -1,0 +1,62 @@
+From 1266711f8d5441a7c6719150974580328b98da51 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Sat, 5 Feb 2022 16:16:12 +0100
+Subject: [PATCH v2 39/52] windows.media.speech: Add handler to async
+ operation.
+
+---
+ dlls/windows.media.speech/speechrecognizer.c | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/windows.media.speech/speechrecognizer.c b/dlls/windows.media.speech/speechrecognizer.c
+index 8edd59e4c89..4a5ab745f29 100644
+--- a/dlls/windows.media.speech/speechrecognizer.c
++++ b/dlls/windows.media.speech/speechrecognizer.c
+@@ -136,6 +136,8 @@ struct async_operation_speech_recognition_compilation_result
+ {
+     IAsyncOperation_SpeechRecognitionCompilationResult IAsyncOperation_SpeechRecognitionCompilationResult_iface;
+     LONG ref;
++
++    IAsyncOperationCompletedHandler_SpeechRecognitionCompilationResult *handler;
+ };
+ 
+ static inline struct async_operation_speech_recognition_compilation_result *impl_from_IAsyncOperation_SpeechRecognitionCompilationResult(
+@@ -183,7 +185,10 @@ static ULONG STDMETHODCALLTYPE async_operation_speech_recognition_compilation_re
+     TRACE("iface %p, ref %u.\n", iface, ref);
+ 
+     if(!ref)
++    {
++        free(impl->handler);
+         free(impl);
++    }
+ 
+     return ref;
+ }
+@@ -212,8 +217,13 @@ static HRESULT STDMETHODCALLTYPE async_operation_speech_recognition_compilation_
+ static HRESULT STDMETHODCALLTYPE async_operation_speech_recognition_compilation_result_get_Completed(
+     IAsyncOperation_SpeechRecognitionCompilationResult *iface, IAsyncOperationCompletedHandler_SpeechRecognitionCompilationResult *handler)
+ {
+-    FIXME("iface %p, handler %p stub!\n", iface, handler);
+-    return E_NOTIMPL;
++    struct async_operation_speech_recognition_compilation_result *impl = impl_from_IAsyncOperation_SpeechRecognitionCompilationResult(iface);
++
++    TRACE("iface %p, handler %p.\n", iface, handler);
++    IAsyncOperationCompletedHandler_SpeechRecognitionCompilationResult_AddRef(impl->handler);
++    handler = impl->handler;
++
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE async_operation_speech_recognition_compilation_result_put_Completed(
+@@ -259,6 +269,8 @@ static HRESULT async_operation_speech_recognition_compilation_result_create(IAsy
+     impl->IAsyncOperation_SpeechRecognitionCompilationResult_iface.lpVtbl = &async_operation_speech_recognition_compilation_result_vtbl;
+     impl->ref = 1;
+ 
++    async_operation_completed_handler_speech_recognition_compilation_result_create(&impl->handler);
++
+     *out = &impl->IAsyncOperation_SpeechRecognitionCompilationResult_iface;
+     return S_OK;
+ }
+-- 
+2.35.1
+

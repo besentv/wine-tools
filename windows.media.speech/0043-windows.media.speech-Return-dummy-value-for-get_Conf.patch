@@ -1,0 +1,28 @@
+From 5b2e51d0cb3347a455f097159a2181c7f38bd100 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Bernhard=20K=C3=B6lbl?= <besentv@gmail.com>
+Date: Mon, 7 Feb 2022 23:14:35 +0100
+Subject: [PATCH v2 43/52] windows.media.speech: Return dummy value for
+ get_Confidence.
+
+---
+ dlls/windows.media.speech/speechrecognitionresult.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/dlls/windows.media.speech/speechrecognitionresult.c b/dlls/windows.media.speech/speechrecognitionresult.c
+index 4519ade1ac9..b1d9b55f8e8 100644
+--- a/dlls/windows.media.speech/speechrecognitionresult.c
++++ b/dlls/windows.media.speech/speechrecognitionresult.c
+@@ -406,7 +406,9 @@ static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_Confidence(
+     ISpeechRecognitionResult *iface, SpeechRecognitionConfidence *value)
+ {
+     FIXME("iface %p, operation %p stub!\n", iface, value);
+-    return E_NOTIMPL;
++
++    *value = SpeechRecognitionConfidence_High;
++    return S_OK;
+ }
+ 
+ static HRESULT STDMETHODCALLTYPE speech_recognition_result_get_SemanticInterpretation(
+-- 
+2.35.1
+
