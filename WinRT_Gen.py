@@ -1,6 +1,23 @@
+#!/usr/bin/env python3
 #
-# Script to generate WinRT C stubs for Wine from a compiled IDL file.
-# Example usage: $python3 ./WinRT_Gen.py -i ./windows.foundation.h -n IVectorView_HSTRING
+#    Script to generate WinRT C stubs for Wine from a compiled IDL file.
+#    Example usage: ./WinRT_Gen.py -i ./windows.foundation.h -n IVectorView_HSTRING
+#
+#    Copyright (C) 2022 Bernhard Kölbl
+#
+#    This library is free software; you can redistribute it and/or
+#    modify it under the terms of the GNU Lesser General Public
+#    License as published by the Free Software Foundation; either
+#    version 2.1 of the License, or (at your option) any later version.
+#
+#    This library is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    Lesser General Public License for more details.
+#
+#    You should have received a copy of the GNU Lesser General Public
+#    License along with this library; if not, write to the Free Software
+#    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
 
 import argparse
@@ -8,8 +25,8 @@ import re
 
 def main():
     parser = argparse.ArgumentParser(description='Generate stubbed C interfaces from generated WinRT headers.')
-    parser.add_argument('-i', '--input', type=argparse.FileType('r'), help='The generated header by Widl.')
-    parser.add_argument('-n', '--interface_name', type=str, help='Name of the interface to stub.')
+    parser.add_argument('-i', '--input', type=argparse.FileType('r'), help='The generated header by Widl.', required=True)
+    parser.add_argument('-n', '--interface_name', type=str, help='Name of the interface to stub.', required=True)
     args = parser.parse_args()
 
     print('Stubbing interface "' + args.interface_name + '" from header "' + args.input.name + '".')
