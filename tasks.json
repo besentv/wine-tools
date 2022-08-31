@@ -12,7 +12,8 @@
             ],
             "group": {
                 "kind": "build"
-            }
+            },
+            "hide": true
         },
         {
             "label": "Build Wine x32",
@@ -23,7 +24,8 @@
             ],
             "group": {
                 "kind": "build"
-            }
+            },
+            "hide": true
         },
         {
             "label": "Build Wine",
@@ -43,7 +45,8 @@
             "command": "make clean -C /home/bernhard/Documents/programming/builds/wine/x64",
             "group": {
                 "kind": "build"
-            }
+            },
+            "hide": true
         },
         {
             "label": "Clean Wine x32",
@@ -51,7 +54,8 @@
             "command": "make clean -C /home/bernhard/Documents/programming/builds/wine/x32",
             "group": {
                 "kind": "build"
-            }
+            },
+            "hide": true
         },
         {
             "label": "Clean Wine",
@@ -70,6 +74,7 @@
             "command": "../../builds/wine/x64/wine ../../builds/wine/x64/dlls/${input:componentType}/tests/${input:componentType}_test.exe ${fileBasenameNoExtension}",
             "problemMatcher": [
                 {
+                    "owner": "winetest",
                     "fileLocation": [
                         "relative",
                         "${workspaceFolder}/dlls/${input:componentType}/tests"
@@ -84,6 +89,7 @@
                     "severity": "error"
                 },
                 {
+                    "owner": "winetest",
                     "fileLocation": [
                         "relative",
                         "${workspaceFolder}/dlls/${input:componentType}/tests"
