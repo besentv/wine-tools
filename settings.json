@@ -1,0 +1,24 @@
+{
+    "files.associations": {
+        "*.idl": "ignore",
+        "*.h": "c",
+        "*.c": "c"
+    },
+    "C_Cpp.default.forcedInclude": [
+        /*"~/Documents/programming/builds/wine/x64/include/**",*/
+        "${workspaceFolder}/include/**"
+    ],
+    "C_Cpp.files.exclude": {
+        "**/.vscode": true,
+       // "/usr/x86_64-w64-mingw32/include/**": true,
+        "/usr/i686-w64-mingw32/include/**": true,
+        "/usr/include/windows/**": true,
+    },
+    "C_Cpp.exclusionPolicy": "checkFilesAndFolders",
+    "C_Cpp.default.systemIncludePath":
+    [
+        "~/Documents/programming/builds/wine/x64/include/**",
+        "${workspaceFolder}/include/**"
+    ],
+    "C_Cpp.default.intelliSenseMode": "linux-gcc-x64"
+}

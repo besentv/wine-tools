@@ -1,0 +1,125 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Wine x64",
+            "type": "shell",
+            "command": "make -s -j$(( $(nproc) - 2 )) -C /home/bernhard/Documents/programming/builds/wine/x64",
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "label": "Build Wine x32",
+            "type": "shell",
+            "command": "make -s -j$(( $(nproc) - 2 )) -C /home/bernhard/Documents/programming/builds/wine/x32",
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "label": "Build Wine",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Build Wine x64",
+                "Build Wine x32"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Clean Wine x64",
+            "type": "shell",
+            "command": "make clean -C /home/bernhard/Documents/programming/builds/wine/x64",
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "label": "Clean Wine x32",
+            "type": "shell",
+            "command": "make clean -C /home/bernhard/Documents/programming/builds/wine/x32",
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "label": "Clean Wine",
+            "dependsOrder": "parallel",
+            "dependsOn": [
+                "Clean Wine x64",
+                "Clean Wine x32"
+            ],
+            "group": {
+                "kind": "none"
+            }
+        },
+        {
+            "label": "Run Wine Tests",
+            "type": "shell",
+            "command": "../../builds/wine/x64/wine ../../builds/wine/x64/dlls/${input:componentType}/tests/${input:componentType}_test.exe ${fileBasenameNoExtension}",
+            "problemMatcher": [
+                {
+                    "fileLocation": [
+                        "relative",
+                        "${workspaceFolder}/dlls/${input:componentType}/tests"
+                    ],
+                    "pattern": {
+                        "regexp": "^(.*):(\\d+):\\s+(Test failed|Test succeeded inside todo block):\\s+(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "code": 3,
+                        "message": 4,
+                    },
+                    "severity": "error"
+                },
+                {
+                    "fileLocation": [
+                        "relative",
+                        "${workspaceFolder}/dlls/${input:componentType}/tests"
+                    ],
+                    "pattern": {
+                        "regexp": "^(.*):(\\d+):\\s+(Test marked todo):\\s+(.*)$",
+                        "file": 1,
+                        "line": 2,
+                        "code": 3,
+                        "message": 4,
+                    
+                    },
+                    "severity": "info"
+                },
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "type": "pickString",
+            "id": "componentType",
+            "description": "What type of component do you want to test?",
+            "options": [
+                "windows.media.speech"
+            ],
+            "default": "windows.media.speech"
+        },
+        {
+            "type": "promptString",
+            "id": "componentName",
+            "description": "What dll do you want to test?",
+            "default": "yourdll",
+        }
+    ]
+}
