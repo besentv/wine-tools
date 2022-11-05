@@ -2,7 +2,7 @@
     "files.associations": {
         "*.idl": "ignore",
         "*.h": "c",
-        "*.c": "c"
+        "*.c": "c",
     },
     "C_Cpp.default.forcedInclude": [
         /*"~/Documents/programming/builds/wine/x64/include/**",*/
@@ -20,5 +20,7 @@
         "~/Documents/programming/builds/wine/x64/include/**",
         "${workspaceFolder}/include/**"
     ],
-    "C_Cpp.default.intelliSenseMode": "linux-gcc-x64"
+    "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
+    "C_Cpp.errorSquiggles": "Disabled", //We gain errors from parsing the build output (better results)
+    "editor.rulers": [130,160]
 }
