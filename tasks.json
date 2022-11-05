@@ -4,6 +4,36 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Configure Wine x64",
+            "type": "shell",
+            "command": "cd ../../builds/wine/x64 && ${workspaceFolder}/configure --enable-win64 --with-mingw CC=\"ccache gcc\" CROSSCC=\"ccache x86_64-w64-mingw32-gcc\"",
+            "group": {
+                "kind": "none"
+            },
+            "hide": true
+        },
+        {
+            "label": "Configure Wine x32",
+            "type": "shell",
+            "command": "cd ../../builds/wine/x32 && ${workspaceFolder}/configure --with-wine64=../x64 --with-mingw CC=\"ccache gcc\" CROSSCC=\"ccache i686-w64-mingw32-gcc\"",
+            "group": {
+                "kind": "none"
+            },
+            "hide": true
+        },
+        {
+            "label": "Configure Wine",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Configure Wine x64",
+                "Configure Wine x32"
+            ],
+            "group": {
+                "kind": "none",
+                "isDefault": true
+            }
+        },
+        {
             "label": "Build Wine x64",
             "type": "shell",
             "command": "make -s -j$(( $(nproc) - 2 )) -C /home/bernhard/Documents/programming/builds/wine/x64",
@@ -71,7 +101,7 @@
         {
             "label": "Run Wine Tests",
             "type": "shell",
-            "command": "../../builds/wine/x64/wine ../../builds/wine/x64/dlls/${input:componentType}/tests/${input:componentType}_test.exe ${fileBasenameNoExtension}",
+            "command": "../../builds/wine/x64/wine ../../builds/wine/x64/dlls/${input:componentType}/tests/x86_64-windows/${input:componentType}_test.exe ${fileBasenameNoExtension}",
             "problemMatcher": [
                 {
                     "owner": "winetest",
@@ -86,12 +116,14 @@
                         "code": 3,
                         "message": 4,
                     },
-                    "severity": "error"
+                    "severity": "error",
+                    "source": "winetest"
                 },
                 {
                     "owner": "winetest",
                     "fileLocation": [
                         "relative",
+                        //"${workspaceFolder}/dlls/${input:componentType}/tests"
                         "${workspaceFolder}/dlls/${input:componentType}/tests"
                     ],
                     "pattern": {
@@ -102,7 +134,8 @@
                         "message": 4,
                     
                     },
-                    "severity": "info"
+                    "severity": "info",
+                    "source": "winetest"
                 },
             ],
             "group": {
@@ -117,15 +150,19 @@
             "id": "componentType",
             "description": "What type of component do you want to test?",
             "options": [
-                "windows.media.speech"
+                "mfmediaengine",
+                "windows.media.speech",
+                "mfplat",
+                "mf",
+                "mfplay"
             ],
             "default": "windows.media.speech"
         },
         {
-            "type": "promptString",
+            "type": "command",
             "id": "componentName",
-            "description": "What dll do you want to test?",
-            "default": "yourdll",
+            "command": "",
+            "args": [ "basename", "$(dirname ${relativeFileDirname})"]
         }
     ]
 }
