@@ -6,7 +6,7 @@
         {
             "label": "Configure Wine x64",
             "type": "shell",
-            "command": "cd ../../builds/wine/x64 && ${workspaceFolder}/configure --enable-win64 --with-mingw CC=\"ccache gcc\" CROSSCC=\"ccache x86_64-w64-mingw32-gcc\"",
+            "command": "cd ../../builds/wine/x64 && ${workspaceFolder}/configure --enable-win64 --with-mingw",
             "group": {
                 "kind": "none"
             },
@@ -15,7 +15,7 @@
         {
             "label": "Configure Wine x32",
             "type": "shell",
-            "command": "cd ../../builds/wine/x32 && ${workspaceFolder}/configure --with-wine64=../x64 --with-mingw CC=\"ccache gcc\" CROSSCC=\"ccache i686-w64-mingw32-gcc\"",
+            "command": "cd ../../builds/wine/x32 && ${workspaceFolder}/configure --with-wine64=../x64 --with-mingw",
             "group": {
                 "kind": "none"
             },
@@ -36,24 +36,28 @@
         {
             "label": "Build Wine x64",
             "type": "shell",
-            "command": "make -s -j$(( $(nproc) - 2 )) -C /home/bernhard/Documents/programming/builds/wine/x64",
-            "problemMatcher": [
-                "$gcc"
-            ],
+            "command": "make -j$(( $(nproc) - 2 )) -C /home/bernhard/Documents/programming/builds/wine/x64",
             "group": {
                 "kind": "build"
+            },
+            "options": {
+                "env": {
+                    "PATH": "/usr/lib/ccache:${env:PATH}"
+                }
             },
             "hide": true
         },
         {
             "label": "Build Wine x32",
             "type": "shell",
-            "command": "make -s -j$(( $(nproc) - 2 )) -C /home/bernhard/Documents/programming/builds/wine/x32",
-            "problemMatcher": [
-                "$gcc"
-            ],
+            "command": "make -j$(( $(nproc) - 2 )) -C /home/bernhard/Documents/programming/builds/wine/x32",
             "group": {
                 "kind": "build"
+            },
+            "options": {
+                "env": {
+                    "PATH": "/usr/lib/ccache:${env:PATH}"
+                }
             },
             "hide": true
         },
@@ -67,7 +71,7 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
         },
         {
             "label": "Clean Wine x64",
@@ -96,7 +100,8 @@
             ],
             "group": {
                 "kind": "none"
-            }
+            },
+            "problemMatcher": []
         },
         {
             "label": "Run Wine Tests",
@@ -114,7 +119,7 @@
                         "file": 1,
                         "line": 2,
                         "code": 3,
-                        "message": 4,
+                        "message": 4
                     },
                     "severity": "error",
                     "source": "winetest"
@@ -123,7 +128,6 @@
                     "owner": "winetest",
                     "fileLocation": [
                         "relative",
-                        //"${workspaceFolder}/dlls/${input:componentType}/tests"
                         "${workspaceFolder}/dlls/${input:componentType}/tests"
                     ],
                     "pattern": {
@@ -131,12 +135,11 @@
                         "file": 1,
                         "line": 2,
                         "code": 3,
-                        "message": 4,
-                    
+                        "message": 4
                     },
                     "severity": "info",
                     "source": "winetest"
-                },
+                }
             ],
             "group": {
                 "kind": "test",

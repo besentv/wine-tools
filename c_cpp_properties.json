@@ -2,17 +2,6 @@
     "configurations": [
         {
             "name": "Wine",
-            "includePath": [
-                "~/Documents/programming/builds/wine/x64/include/**",
-                "${workspaceFolder}/include/**",
-                "/usr/lib/gcc/x86_64-w64-mingw32/12.1.0/include/**",
-                "/usr/include",
-                "/usr/lib/gcc/x86_64-w64-mingw32/12.1.0/include",
-                "/usr/lib/gcc/x86_64-w64-mingw32/12.1.0/include"
-            ],
-            "defines": [
-                "__WINESRC__"
-            ],
             "compilerPath": "/usr/bin/x86_64-w64-mingw32-gcc",
             "cStandard": "c89",
             "cppStandard": "c++14",
