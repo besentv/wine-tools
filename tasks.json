@@ -34,6 +34,20 @@
             }
         },
         {
+            "label": "Validate CCache",
+            "type": "shell",
+            "command": "if [[ \"$(type x86_64-w64-mingw32-gcc)\" != *\"/usr/lib/ccache/x86_64-w64-mingw32-gcc\" ]]; then echo $(type x86_64-w64-mingw32-gcc) && exit 42; fi && if [[ \"$(type gcc)\" != *\"/usr/lib/ccache/gcc\" ]]; then exit 42; fi",
+            "group": {
+                "kind": "test"
+            },
+            "options": {
+                "env": {
+                    "PATH": "/usr/lib/ccache:${env:PATH}"
+                }
+            },
+            "hide": true
+        },
+        {
             "label": "Build Wine x64",
             "type": "shell",
             "command": "make -j$(( $(nproc) - 2 )) -C /home/bernhard/Documents/programming/builds/wine/x64",
@@ -65,6 +79,7 @@
             "label": "Build Wine",
             "dependsOrder": "sequence",
             "dependsOn": [
+                "Validate CCache",
                 "Build Wine x64",
                 "Build Wine x32"
             ],
@@ -106,6 +121,9 @@
         {
             "label": "Run Wine Tests",
             "type": "shell",
+            "options": { "env": {
+                "WINEDEBUG": "-all"
+            } },
             "command": "../../builds/wine/x64/wine ../../builds/wine/x64/dlls/${input:componentType}/tests/x86_64-windows/${input:componentType}_test.exe ${fileBasenameNoExtension}",
             "problemMatcher": [
                 {
