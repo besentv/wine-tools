@@ -118,6 +118,31 @@
             },
             "problemMatcher": []
         },
+                {
+            "label": "Run Bear",
+            "type": "shell",
+            "command": "bear -- make -j$(( $(nproc) - 2 )) -C /home/bernhard/Documents/programming/builds/wine/x64",
+            "group": {
+                "kind": "build"
+            },
+            "options": {
+                "env": {
+                    "PATH": "/usr/lib/ccache:${env:PATH}"
+                }
+            },
+            "hide": true
+        },
+        {
+            "label": "Update clangd lists",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "Clean Wine x64",
+                "run bear"
+            ],
+            "group": {
+                "kind": "build",
+            },
+        },
         {
             "label": "Run Wine Tests",
             "type": "shell",
