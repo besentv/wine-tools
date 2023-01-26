@@ -137,7 +137,7 @@
             "dependsOrder": "sequence",
             "dependsOn": [
                 "Clean Wine x64",
-                "run bear"
+                "Run Bear"
             ],
             "group": {
                 "kind": "build",
