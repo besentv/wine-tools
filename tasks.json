@@ -6,7 +6,7 @@
         {
             "label": "Configure Wine x64",
             "type": "shell",
-            "command": "cd ../../builds/wine/x64 && ${workspaceFolder}/configure --enable-win64 --with-mingw",
+            "command": "cd ../../builds/wine/x64 && ${workspaceFolder}/configure --enable-win64 --with-mingw --enable-silent-rules",
             "group": {
                 "kind": "none"
             },
@@ -15,7 +15,7 @@
         {
             "label": "Configure Wine x32",
             "type": "shell",
-            "command": "cd ../../builds/wine/x32 && ${workspaceFolder}/configure --with-wine64=../x64 --with-mingw",
+            "command": "cd ../../builds/wine/x32 && ${workspaceFolder}/configure --with-wine64=../x64 --with-mingw --enable-silent-rules",
             "group": {
                 "kind": "none"
             },
