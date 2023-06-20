@@ -4,203 +4,209 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Configure Wine x64",
-            "type": "shell",
-            "command": "cd ../../builds/wine/x64 && ${workspaceFolder}/configure --enable-win64 --with-mingw --enable-silent-rules",
-            "group": {
-                "kind": "none"
-            },
-            "hide": true
-        },
-        {
-            "label": "Configure Wine x32",
-            "type": "shell",
-            "command": "cd ../../builds/wine/x32 && ${workspaceFolder}/configure --with-wine64=../x64 --with-mingw --enable-silent-rules",
-            "group": {
-                "kind": "none"
-            },
-            "hide": true
-        },
-        {
-            "label": "Configure Wine",
-            "dependsOrder": "sequence",
-            "dependsOn": [
-                "Configure Wine x64",
-                "Configure Wine x32"
-            ],
-            "group": {
-                "kind": "none",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "Validate CCache",
-            "type": "shell",
-            "command": "if [[ \"$(type x86_64-w64-mingw32-gcc)\" != *\"/usr/lib/ccache/x86_64-w64-mingw32-gcc\" ]]; then echo $(type x86_64-w64-mingw32-gcc) && exit 42; fi && if [[ \"$(type gcc)\" != *\"/usr/lib/ccache/gcc\" ]]; then exit 42; fi",
-            "group": {
-                "kind": "test"
-            },
-            "options": {
-                "env": {
-                    "PATH": "/usr/lib/ccache:${env:PATH}"
-                }
-            },
-            "hide": true
-        },
-        {
-            "label": "Build Wine x64",
-            "type": "shell",
-            "command": "make -j$(( $(nproc) - 2 )) -C /home/bernhard/Documents/programming/builds/wine/x64",
-            "group": {
-                "kind": "build"
-            },
-            "options": {
-                "env": {
-                    "PATH": "/usr/lib/ccache:${env:PATH}"
-                }
-            },
-            "hide": true
-        },
-        {
-            "label": "Build Wine x32",
-            "type": "shell",
-            "command": "make -j$(( $(nproc) - 2 )) -C /home/bernhard/Documents/programming/builds/wine/x32",
-            "group": {
-                "kind": "build"
-            },
-            "options": {
-                "env": {
-                    "PATH": "/usr/lib/ccache:${env:PATH}"
-                }
-            },
-            "hide": true
-        },
-        {
-            "label": "Build Wine",
-            "dependsOrder": "sequence",
-            "dependsOn": [
-                "Validate CCache",
-                "Build Wine x64",
-                "Build Wine x32"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-        },
-        {
-            "label": "Clean Wine x64",
-            "type": "shell",
-            "command": "make clean -C /home/bernhard/Documents/programming/builds/wine/x64",
-            "group": {
-                "kind": "build"
-            },
-            "hide": true
-        },
-        {
-            "label": "Clean Wine x32",
-            "type": "shell",
-            "command": "make clean -C /home/bernhard/Documents/programming/builds/wine/x32",
-            "group": {
-                "kind": "build"
-            },
-            "hide": true
-        },
-        {
-            "label": "Clean Wine",
-            "dependsOrder": "parallel",
-            "dependsOn": [
-                "Clean Wine x64",
-                "Clean Wine x32"
-            ],
-            "group": {
-                "kind": "none"
-            },
-            "problemMatcher": []
-        },
-                {
-            "label": "Run Bear",
-            "type": "shell",
-            "command": "bear -- make -j$(( $(nproc) - 2 )) -C /home/bernhard/Documents/programming/builds/wine/x64",
-            "group": {
-                "kind": "build"
-            },
-            "options": {
-                "env": {
-                    "PATH": "/usr/lib/ccache:${env:PATH}"
-                }
-            },
-            "hide": true
-        },
-        {
-            "label": "Update clangd lists",
-            "dependsOrder": "sequence",
-            "dependsOn": [
-                "Clean Wine x64",
-                "Run Bear"
-            ],
-            "group": {
-                "kind": "build",
-            },
-        },
-        {
-            "label": "Run Wine Tests",
-            "type": "shell",
-            "options": { "env": {
-                "WINEDEBUG": "-all"
-            } },
-            "command": "../../builds/wine/x64/wine ../../builds/wine/x64/dlls/${input:componentType}/tests/x86_64-windows/${input:componentType}_test.exe ${fileBasenameNoExtension}",
-            "problemMatcher": [
-                {
-                    "owner": "winetest",
-                    "fileLocation": [
-                        "relative",
-                        "${workspaceFolder}/dlls/${input:componentType}/tests"
-                    ],
-                    "pattern": {
-                        "regexp": "^(.*):(\\d+):\\s+(Test failed|Test succeeded inside todo block):\\s+(.*)$",
-                        "file": 1,
-                        "line": 2,
-                        "code": 3,
-                        "message": 4
-                    },
-                    "severity": "error",
-                    "source": "winetest"
+                "label": "Configure Wine x64",
+                "type": "shell",
+                "command": "autoreconf -i && cd ../../builds/wine/x64 && ${workspaceFolder}/configure --enable-win64 --enable-silent-rules --with-mingw",
+                "group": {
+                        "kind": "none"
                 },
-                {
-                    "owner": "winetest",
-                    "fileLocation": [
-                        "relative",
-                        "${workspaceFolder}/dlls/${input:componentType}/tests"
-                    ],
-                    "pattern": {
-                        "regexp": "^(.*):(\\d+):\\s+(Test marked todo):\\s+(.*)$",
-                        "file": 1,
-                        "line": 2,
-                        "code": 3,
-                        "message": 4
-                    },
-                    "severity": "info",
-                    "source": "winetest"
+                "hide": true
+        },
+        {
+                "label": "Configure Wine x32",
+                "type": "shell",
+                "command": "autoreconf -i && cd ../../builds/wine/x32 && ${workspaceFolder}/configure --enable-silent-rules --with-wine64=../x64 --with-mingw",
+                "group": {
+                        "kind": "none"
+                },
+                "hide": true
+        },
+        {
+                "label": "Configure Wine",
+                "dependsOrder": "sequence",
+                "dependsOn": [
+                        "Configure Wine x64",
+                        "Configure Wine x32"
+                ],
+                "group": {
+                        "kind": "none",
+                        "isDefault": true
+                },
+                "problemMatcher": []
+        },
+        {
+                "label": "Validate CCache",
+                "type": "shell",
+                "command": "if [[ \"$(type x86_64-w64-mingw32-gcc)\" != *\"/usr/lib/ccache/x86_64-w64-mingw32-gcc\" ]]; then echo $(type x86_64-w64-mingw32-gcc) && exit 42; fi && if [[ \"$(type gcc)\" != *\"/usr/lib/ccache/gcc\" ]]; then exit 42; fi",
+                "group": {
+                        "kind": "test"
+                },
+                "options": {
+                        "env": {
+                                "PATH": "/usr/lib/ccache:${env:PATH}"
+                        }
+                },
+                "hide": true
+        },
+        {
+                "label": "Build Wine x64",
+                "type": "shell",
+                "command": "make -j$(( $(nproc) - 2 )) -C /home/bernhard/Documents/programming/builds/wine/x64",
+                "group": {
+                        "kind": "build"
+                },
+                "options": {
+                        "env": {
+                                "PATH": "/usr/lib/ccache:${env:PATH}"
+                        }
+                },
+                "hide": true
+        },
+        {
+                "label": "Build Wine x32",
+                "type": "shell",
+                "command": "make -j$(( $(nproc) - 2 )) -C /home/bernhard/Documents/programming/builds/wine/x32",
+                "group": {
+                        "kind": "build"
+                },
+                "options": {
+                        "env": {
+                                "PATH": "/usr/lib/ccache:${env:PATH}"
+                        }
+                },
+                "hide": true
+        },
+        {
+                "label": "Build Wine",
+                "dependsOrder": "sequence",
+                "dependsOn": [
+                        "Validate CCache",
+                        "Build Wine x64",
+                        "Build Wine x32"
+                ],
+                "group": {
+                        "kind": "build",
+                        "isDefault": true
                 }
-            ],
-            "group": {
-                "kind": "test",
-                "isDefault": true
-            }
+        },
+        {
+                "label": "Clean Wine x64",
+                "type": "shell",
+                "command": "make clean -C /home/bernhard/Documents/programming/builds/wine/x64",
+                "group": {
+                        "kind": "build"
+                },
+                "hide": true
+        },
+        {
+                "label": "Clean Wine x32",
+                "type": "shell",
+                "command": "make clean -C /home/bernhard/Documents/programming/builds/wine/x32",
+                "group": {
+                        "kind": "build"
+                },
+                "hide": true
+        },
+        {
+                "label": "Clean Wine",
+                "dependsOrder": "parallel",
+                "dependsOn": [
+                        "Clean Wine x64",
+                        "Clean Wine x32"
+                ],
+                "group": {
+                        "kind": "none"
+                },
+                "problemMatcher": []
+        },
+        {
+                "label": "Run Bear",
+                "type": "shell",
+                "command": "bear -- make -j$(( $(nproc) - 2 )) -C /home/bernhard/Documents/programming/builds/wine/x64",
+                "group": {
+                        "kind": "build"
+                },
+                "options": {
+                        "env": {
+                                "PATH": "/usr/lib/ccache:${env:PATH}"
+                        }
+                },
+                "hide": true
+        },
+        {
+                "label": "Update clangd lists",
+                "dependsOrder": "sequence",
+                "dependsOn": [
+                        "Clean Wine x64",
+                        "Run Bear"
+                ],
+                "group": {
+                        "kind": "build"
+                }
+        },
+        {
+                "label": "Run Wine Tests",
+                "type": "shell",
+                "options": {
+                        "env": {
+                                "WINEDEBUG": "+speech",
+                                "WINETEST_COLOR": "auto"
+                        }
+                },
+                "command": "../../builds/wine/x64/wine ../../builds/wine/x64/dlls/${input:componentType}/tests/x86_64-windows/${input:componentType}_test.exe ${fileBasenameNoExtension}",
+                "problemMatcher": [
+                        {
+                                "owner": "winetest",
+                                "fileLocation": [
+                                        "relative",
+                                        "${workspaceFolder}/dlls/${input:componentType}/tests"
+                                ],
+                                "pattern": {
+                                        "regexp": "^(.*):(\\d+):\\s+(Test failed|Test succeeded inside todo block):\\s+(.*)$",
+                                        "file": 1,
+                                        "line": 2,
+                                        "code": 3,
+                                        "message": 4
+                                },
+                                "severity": "error",
+                                "source": "winetest"
+                        },
+                        {
+                                "owner": "winetest",
+                                "fileLocation": [
+                                        "relative",
+                                        "${workspaceFolder}/dlls/${input:componentType}/tests"
+                                ],
+                                "pattern": {
+                                        "regexp": "^(.*):(\\d+):\\s+(Test marked todo):\\s+(.*)$",
+                                        "file": 1,
+                                        "line": 2,
+                                        "code": 3,
+                                        "message": 4
+                                },
+                                "severity": "info",
+                                "source": "winetest"
+                        }
+                ],
+                "group": {
+                        "kind": "test",
+                        "isDefault": true
+                }
         }
-    ],
+],
     "inputs": [
         {
             "type": "pickString",
             "id": "componentType",
             "description": "What type of component do you want to test?",
             "options": [
+                "gdiplus",
                 "mfmediaengine",
                 "windows.media.speech",
                 "mfplat",
                 "mf",
-                "mfplay"
+                "mfplay",
+                "transform"
             ],
             "default": "windows.media.speech"
         },
