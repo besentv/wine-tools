@@ -1,4 +1,2 @@
-# wine-patches
-A collection of not upstreamed wine patches I created.
-
-Potentially broken, so use at your own risk. ;)
+# wine-tools
+A collection of tools I use for wine development.
