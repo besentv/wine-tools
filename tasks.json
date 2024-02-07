@@ -5,9 +5,9 @@
     "tasks": [
         // Wine Configuration
         {
-            "label": "Create Build Dir",
+            "label": "Create Build Dirs",
             "type": "shell",
-            "command": "mkdir -p ${workspaceFolder}/build",
+            "command": "mkdir -p ${workspaceFolder}/build/x64 && mkdir -p ${workspaceFolder}/build/x32 && mkdir -p ${workspaceFolder}/build/wow64",
             "group": {
                 "kind": "none"
             },
@@ -53,7 +53,7 @@
             "label": "Configure Wine",
             "dependsOrder": "sequence",
             "dependsOn": [
-                "Create Build Dir",
+                "Create Build Dirs",
                 "Autoreconf",
                 "Configure Wine x64",
                 "Configure Wine x32",
@@ -129,7 +129,7 @@
                 "Validate CCache",
                 "Build Wine x64",
                 "Build Wine x32",
-                "Build Wine wow64",
+                //"Build Wine wow64",
             ],
             "group": {
                 "kind": "build",
