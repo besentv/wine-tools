@@ -25,11 +25,18 @@
         {
             "label": "Configure Wine x64",
             "type": "shell",
-            "command": "cd ${workspaceFolder}/build/x64 && ${workspaceFolder}/configure --enable-win64 --enable-silent-rules --with-mingw",
+            "command": "cd ${workspaceFolder}/build/x64 && ${workspaceFolder}/configure --enable-silent-rules --enable-win64 --with-mingw",
             "group": {
                 "kind": "none"
             },
-            "hide": true
+            "hide": true,
+            "options": {
+                "env": {
+                    "CC": "ccache gcc",
+                    "i386_CC": "ccache i686-w64-mingw32-gcc",
+                    "x86_64_CC": "ccache x86_64-w64-mingw32-gcc",
+                }
+            },
         },
         {
             "label": "Configure Wine x32",
@@ -38,7 +45,14 @@
             "group": {
                 "kind": "none"
             },
-            "hide": true
+            "hide": true,
+            "options": {
+                "env": {
+                    "CC": "ccache gcc",
+                    "i386_CC": "ccache i686-w64-mingw32-gcc",
+                    "x86_64_CC": "ccache x86_64-w64-mingw32-gcc",
+                }
+            },
         },
         {
             "label": "Configure Wine wow64",
@@ -67,20 +81,6 @@
         },
         //Wine Building
         {
-            "label": "Validate CCache",
-            "type": "shell",
-            "command": "if [[ \"$(type x86_64-w64-mingw32-gcc)\" != *\"/usr/lib/ccache/x86_64-w64-mingw32-gcc\" ]]; then echo $(type x86_64-w64-mingw32-gcc) && exit 42; fi && if [[ \"$(type gcc)\" != *\"/usr/lib/ccache/gcc\" ]]; then exit 42; fi",
-            "group": {
-                "kind": "test"
-            },
-            "options": {
-                "env": {
-                    "PATH": "/usr/lib/ccache:${env:PATH}"
-                }
-            },
-            "hide": true
-        },
-        {
             "label": "Build Wine x64",
             "type": "shell",
             "command": "make -j$(( $(nproc) - 4 )) -C ${workspaceFolder}/build/x64",
@@ -89,10 +89,13 @@
             },
             "options": {
                 "env": {
+                    "CC": "ccache gcc",
+                    "i386_CC": "ccache i686-w64-mingw32-gcc",
+                    "x86_64_CC": "ccache x86_64-w64-mingw32-gcc",
                     "PATH": "/usr/lib/ccache:${env:PATH}"
                 }
             },
-            "hide": true
+            "hide": true,
         },
         {
             "label": "Build Wine x32",
@@ -103,6 +106,9 @@
             },
             "options": {
                 "env": {
+                    "CC": "ccache gcc",
+                    "i386_CC": "ccache i686-w64-mingw32-gcc",
+                    "x86_64_CC": "ccache x86_64-w64-mingw32-gcc",
                     "PATH": "/usr/lib/ccache:${env:PATH}"
                 }
             },
@@ -117,6 +123,23 @@
             },
             "options": {
                 "env": {
+                    "CC": "ccache gcc",
+                    "i386_CC": "ccache i686-w64-mingw32-gcc",
+                    "x86_64_CC": "ccache x86_64-w64-mingw32-gcc",
+                    "PATH": "/usr/lib/ccache:${env:PATH}"
+                }
+            },
+            "hide": false
+        },
+        {
+            "label": "Copy CompileCommands",
+            "type": "shell",
+            "command": "cp ${workspaceFolder}/build/x64/compile_commands.json ${workspaceFolder}/compile_commands.json",
+            "group": {
+                "kind": "build"
+            },
+            "options": {
+                "env": {
                     "PATH": "/usr/lib/ccache:${env:PATH}"
                 }
             },
@@ -126,7 +149,6 @@
             "label": "Build Wine",
             "dependsOrder": "sequence",
             "dependsOn": [
-                "Validate CCache",
                 "Build Wine x64",
                 "Build Wine x32",
                 //"Build Wine wow64",
@@ -179,7 +201,7 @@
         {
             "label": "Run Bear",
             "type": "shell",
-            "command": "bear -- make -j$(( $(nproc) - 2 )) -C ${workspaceFolder}/build/wow64",
+            "command": "bear -- make -j$(( $(nproc) - 2 )) -C ${workspaceFolder}/build/x64",
             "group": {
                 "kind": "build"
             },
@@ -194,8 +216,9 @@
             "label": "Update clangd lists",
             "dependsOrder": "sequence",
             "dependsOn": [
-                "Clean Wine wow64",
-                "Run Bear"
+                "Clean Wine x64",
+                "Run Bear",
+                "Copy CompileCommands",
             ],
             "group": {
                 "kind": "build"
@@ -210,9 +233,10 @@
                     "WINEDEBUG": "warn+heap,+debugstr",
                     "WINETEST_COLOR": "auto",
                     "WINETEST_DEBUG": "1",
+                    "WINEPREFIX": "${workspaceFolder}/build/test_prefix_x64",
                 }
             },
-            "command": "${workspaceFolder}/build/x64/wine ${workspaceFolder}/build/x64/dlls/${input:componentType}/tests/x86_64-windows/${input:componentType}_test.exe ${fileBasenameNoExtension}",
+            "command": "${workspaceFolder}/build/x64/wine ${workspaceFolder}/build/x64/dlls/${input:componentType}/tests/x86_64-windows/${input:componentType}_test.exe ${fileBasenameNoExtension}",// &> log.txt 2&>1",
             "problemMatcher": [
                 {
                     "owner": "winetest",
@@ -271,7 +295,17 @@
                 "mfplat",
                 "mf",
                 "mfplay",
-                "transform"
+                "transform",
+                "d3dx9_36",
+                "setupapi",
+                "kernelbase",
+                "kernel32",
+                "d2d1",
+                "gdi32",
+                "winmm",
+                "msvfw32",
+                "mciqtz32",
+                "mmdevapi",
             ],
             "default": "windows.media.speech"
         },
